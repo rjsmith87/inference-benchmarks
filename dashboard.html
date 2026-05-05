@@ -716,6 +716,128 @@
     .roi-card-big .roi-compare thead th:nth-child(3) { width: auto; }
   }
 
+  /* Chinook.db status pill — small inline status, not a card */
+  .db-status-line { margin: 0 0 14px; }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 11px; border-radius: 999px;
+    font-size: 12px; font-weight: 500;
+    background: rgba(168, 85, 247, 0.10); color: var(--purple);
+    line-height: 1.4;
+  }
+  .status-pill.loading { background: rgba(168, 85, 247, 0.10); color: var(--purple); }
+  .status-pill.ready   { background: rgba(74, 222, 128, 0.14);  color: var(--green); }
+  .status-pill.error   { background: rgba(248, 113, 113, 0.14); color: var(--red); }
+
+  /* Live Demo 60/40 layout — main results + activity log */
+  .live-demo-layout {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;     /* roughly 60/40 */
+    gap: 16px;
+    margin-top: 16px;
+    align-items: start;
+  }
+  @media (max-width: 800px) {
+    .live-demo-layout { grid-template-columns: 1fr; }
+  }
+  /* Inside the 60% column the panels stack vertically — Side A above Side B —
+     so each panel keeps a comfortable terminal-output width. */
+  .live-demo-layout .panels-grid { grid-template-columns: 1fr; }
+
+  /* Activity log card — server-style monospace stream */
+  .activity-log-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 16px;
+    position: sticky; top: 16px;
+  }
+  @media (max-width: 800px) { .activity-log-card { position: static; } }
+  .activity-log-card h4 {
+    margin: 0 0 8px; font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .activity-log-card .activity-count {
+    font-size: 11px; font-weight: 500; color: var(--text-faint);
+    letter-spacing: normal; text-transform: none;
+  }
+  .activity-log {
+    background: #16151A; color: #F5F5F7;
+    border: 1px solid #2A2930; border-radius: 8px;
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.55;
+    max-height: 460px; overflow-y: auto;
+  }
+  .activity-log .activity-empty { color: #6E6B78; font-style: italic; padding: 12px 0; }
+  .activity-log .activity-entry {
+    padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+  }
+  .activity-log .activity-entry:last-child { border-bottom: none; }
+  .activity-log .ts { color: #6E6B78; }
+  .activity-log .body { color: #F5F5F7; word-break: break-word; }
+  .activity-log .body .model { color: #FC6D26; font-weight: 600; }
+  .activity-log .body .prompt { color: #c084fc; }
+  .activity-log .body .endpoint { color: #6E6B78; font-size: 10.5px; }
+  .activity-log .stat { color: #A8A6B0; text-align: right; white-space: nowrap; }
+  .activity-log .stat.ok { color: #4ADE80; }
+  .activity-log .stat.warn { color: #FBBF24; }
+  .activity-log .stat.bad { color: #F87171; }
+
+  /* Build vs Buy section · Cost tab */
+  .bvb-grid {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px; margin-top: 16px;
+  }
+  @media (max-width: 1000px) { .bvb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 580px)  { .bvb-grid { grid-template-columns: 1fr; } }
+  .bvb-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 11px; padding: 18px;
+    display: flex; flex-direction: column;
+  }
+  .bvb-card.recommended {
+    border-left: 3px solid var(--orange);
+  }
+  .bvb-card h4 {
+    margin: 0 0 4px; font-size: 14.5px; font-weight: 700; letter-spacing: -0.005em;
+    color: var(--text);
+  }
+  .bvb-tag {
+    font-size: 10px; padding: 2px 7px; border-radius: 5px;
+    background: rgba(0,0,0,0.05); color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+    margin-left: 6px;
+  }
+  .bvb-tag.bvb-recommended {
+    background: var(--orange-soft); color: var(--orange);
+  }
+  .bvb-rows { margin: 12px 0 0; padding: 0; list-style: none; }
+  .bvb-rows .bvb-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px;
+  }
+  .bvb-rows .bvb-row:first-child { border-top: none; }
+  .bvb-rows .bvb-row .lbl  { color: var(--text-dim); }
+  .bvb-rows .bvb-row .val  { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+  .bvb-rows .bvb-row.total { border-top: 1px solid var(--line-strong); font-weight: 700; padding-top: 10px; margin-top: 4px; }
+  .bvb-rows .bvb-row.total .lbl { color: var(--text); }
+  .bvb-rows .bvb-row.total .val { color: var(--orange); }
+  .bvb-notes {
+    margin: 14px 0 0; font-size: 12.5px; color: var(--text-dim);
+    line-height: 1.5; flex-grow: 1;
+  }
+  .bvb-token-source {
+    margin-top: 12px; font-size: 12.5px; color: var(--text-faint);
+    font-style: italic;
+  }
+  .bvb-honest {
+    margin-top: 16px; font-size: 13.5px; color: var(--text-dim); line-height: 1.55;
+    border-top: 1px solid var(--line); padding-top: 14px;
+  }
+  .bvb-honest strong { color: var(--text); }
+
   /* Question picker (legacy) */
   .question-picker { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
   .picker-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -804,7 +926,7 @@
         mode) for SQL, executes it against SQLite, and repairs on errors up
         to twice. A 25-question gold set (10 provided + 15 hand-written
         pattern-coverage questions) measured against tolerant multiset
-        comparison. Latency and cost benchmarks at Raul's projected
+        comparison. Latency and cost benchmarks at the projected
         30k q/day. An interactive CLI for follow-ups, and this dashboard
         with sql.js running Chinook in your browser so every claim is
         live-verifiable with your own Fireworks key.
@@ -933,8 +1055,8 @@ wrote data/dev_answers.json</pre>
 
     <!-- Live latency test moved to the top — first thing a reviewer sees -->
     <div class="card sub-section" style="margin-top: 16px;">
-      <h3>Live latency test</h3>
-      <p style="color: var(--text-dim);">Fires 3 sequential calls to Fireworks against the same dev question and reports the median you see right now.</p>
+      <h3>Live latency test · Kimi K2.6</h3>
+      <p style="color: var(--text-dim);">Fires 3 sequential calls to Fireworks (<strong>Kimi K2.6</strong>) against the same dev question and reports the median you see right now. Calls also stream into the Live Demo activity log.</p>
       <div class="row-flex" style="margin-top: 12px;">
         <button class="btn" id="latRun">Measure latency now ▸</button>
         <span class="muted" id="latStatus">Set your Fireworks key in the <a href="#livedemo">Live Demo</a> tab.</span>
@@ -976,7 +1098,7 @@ wrote data/dev_answers.json</pre>
         <div class="lat-tile">
           <div class="label">% under 3 s</div>
           <div class="val" id="latUnder3">loading…</div>
-          <div class="muted" style="margin-top:4px;">cleared Raul's 3,000 ms line</div>
+          <div class="muted" style="margin-top:4px;">cleared the 3,000 ms target</div>
         </div>
       </div>
       <p class="muted" style="margin-top: 10px;">Best clean dev-eval run hit median 2,901 ms separately (no pacing). Schema compaction (935 → 665 mean prompt tokens, −29%) is what made that possible — same accuracy.</p>
@@ -1040,7 +1162,7 @@ wrote data/dev_answers.json</pre>
       Drag the slider. Every number is computed from <strong>actually-measured</strong>
       mean token counts (665 input / 78 output per query, from
       <code class="mono">perf_compact_*.json</code>) at published list rates.
-      Default position is 30,000 q/day — Raul's projected first cohort.
+      Default position is 30,000 q/day — the projected first cohort.
     </p>
 
     <div class="calc">
@@ -1051,7 +1173,7 @@ wrote data/dev_answers.json</pre>
         </div>
         <div class="muted" style="text-align: right;">
           1,000 users × 30 queries/day<br/>
-          (Raul's projected first cohort)
+          (projected first cohort)
         </div>
       </div>
       <input type="range" min="1000" max="300000" step="1000" value="30000" class="calc-slider" id="calcSlider" />
@@ -1108,6 +1230,69 @@ wrote data/dev_answers.json</pre>
         <li><strong>The baseline is conservative.</strong> We apply GPT-5.4 rates to <em>our</em> token profile. The customer's bare "Convert to SQL" prompt would in practice generate <em>longer</em> free-text answers, not shorter — so the real GPT-5.4 spend would be higher than what we show.</li>
         <li><strong>The compact-schema rollout cut another ~21%</strong> off our per-query cost vs the verbose schema baseline ($0.001197 → $0.000942) at no quality cost.</li>
       </ul>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Build vs Buy · why Fireworks</h2>
+      <p style="color: var(--text-dim);">All four columns recompute when you drag the slider above. If you've made runs in the Live Demo, the token profile switches from the benchmark default to the average of your own runs — apples-to-apples across all four options.</p>
+      <p class="bvb-token-source" id="bvbTokenSource">Based on benchmark data (665 in / 78 out)</p>
+
+      <div class="bvb-grid" id="bvbGrid">
+        <!-- Column 1 · GPT-5.4 -->
+        <div class="bvb-card">
+          <h4>GPT-5.4 <span class="bvb-tag">current</span></h4>
+          <ul class="bvb-rows">
+            <li class="bvb-row"><span class="lbl">Per query</span><span class="val" id="bvbGptPerQ">$0.002862</span></li>
+            <li class="bvb-row total"><span class="lbl">Monthly</span><span class="val" id="bvbGptMonth">$2,576</span></li>
+            <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbGptAnnual">$30,917</span></li>
+          </ul>
+          <p class="bvb-notes">No infra to manage. Highest cost, proprietary lock-in, 7s latency reported by customer.</p>
+        </div>
+
+        <!-- Column 2 · Direct provider APIs -->
+        <div class="bvb-card">
+          <h4>Direct provider APIs <span class="bvb-tag">estimated</span></h4>
+          <ul class="bvb-rows">
+            <li class="bvb-row"><span class="lbl">Per query</span><span class="val" id="bvbDirectPerQ">$0.000942</span></li>
+            <li class="bvb-row total"><span class="lbl">Monthly</span><span class="val" id="bvbDirectMonth">$848</span></li>
+            <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbDirectAnnual">$10,176</span></li>
+          </ul>
+          <p class="bvb-notes">Potentially cheapest per-token. But: multiple vendors, multiple billing relationships, no unified fine-tuning, potential data residency concerns (many providers based outside US/EU), no inference optimization, no SLA guarantees.</p>
+        </div>
+
+        <!-- Column 3 · Self-host -->
+        <div class="bvb-card">
+          <h4>Self-host open-source</h4>
+          <ul class="bvb-rows">
+            <li class="bvb-row"><span class="lbl">GPUs needed</span><span class="val" id="bvbShGpus">1× H100</span></li>
+            <li class="bvb-row"><span class="lbl">GPU/month <span class="muted">(@ $2.50/hr)</span></span><span class="val" id="bvbShGpuMonth">$1,800</span></li>
+            <li class="bvb-row"><span class="lbl">+ 0.5 FTE ML infra</span><span class="val">$6,250</span></li>
+            <li class="bvb-row total"><span class="lbl">Monthly total</span><span class="val" id="bvbShTotalMonth">$8,050</span></li>
+            <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbShAnnual">$96,600</span></li>
+          </ul>
+          <p class="bvb-notes">Full control at extreme scale. Requires ML infra team, GPU procurement, autoscaling, monitoring, model updates.</p>
+        </div>
+
+        <!-- Column 4 · Fireworks (this POC) -->
+        <div class="bvb-card recommended">
+          <h4>Fireworks (this POC) <span class="bvb-tag bvb-recommended">recommended</span></h4>
+          <ul class="bvb-rows">
+            <li class="bvb-row"><span class="lbl">Per query</span><span class="val" id="bvbFwPerQ">$0.000942</span></li>
+            <li class="bvb-row total"><span class="lbl">Monthly</span><span class="val" id="bvbFwMonth">$848</span></li>
+            <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbFwAnnual">$10,176</span></li>
+          </ul>
+          <p class="bvb-notes">Optimized inference (FireAttention, speculative decoding). 18+ regions, 8 cloud providers. US/EU/APAC region pinning. BYOC option. Single vendor for all open-source models. Fine-tuning (SFT / RFT / DPO) at base serving price. On-demand tier for latency SLOs.</p>
+        </div>
+      </div>
+
+      <p class="bvb-honest">
+        At extreme scale (1M+ queries/day), self-hosting eventually wins on
+        pure compute cost — but doesn't account for the engineering team
+        needed to run it. At the projected first cohort volume
+        (30k queries/day) and even at 10× growth, <strong>Fireworks is the
+        clear choice</strong>: zero ops overhead, instant model swapping,
+        and fine-tuning without a training cluster.
+      </p>
     </div>
   </div>
 </section>
@@ -1218,24 +1403,15 @@ wrote data/dev_answers.json</pre>
             <td class="num">~$0.000200 estimated · verify before publishing</td>
             <td>Reachable but not listed in <code class="mono">/v1/models</code>. Persistent rate-limiting on this key. Plausible cheap-first router candidate once we have stable QPS allowance.</td>
           </tr>
-          <tr>
-            <td>Qwen2.5-Coder-32B</td>
-            <td class="num">Not reachable (404)</td>
-            <td class="num">Not reachable (404)</td>
-            <td class="num">Not reachable (404)</td>
-            <td class="num">Not reachable (404)</td>
-            <td>The customer's specific ask. Returns <code class="mono">NOT_FOUND</code> from <code class="mono">/v1/chat/completions</code>; not in <code class="mono">/v1/models</code> for this key.</td>
-          </tr>
-          <tr>
-            <td>Llama 4 (Maverick / Scout) · Mistral Large/Small · Qwen3-235B · Gemma 2 · Yi · DBRX · Command-R+</td>
-            <td class="num">Not reachable (404)</td>
-            <td class="num">Not reachable (404)</td>
-            <td class="num">Not reachable (404)</td>
-            <td class="num">Not reachable (404)</td>
-            <td>Probed each by name — all return <code class="mono">NOT_FOUND</code>. Nothing else in the Fireworks library is exposed to this account's key today.</td>
-          </tr>
         </tbody>
       </table>
+      <p class="muted" style="margin-top: 12px; font-size: 12.5px;">
+        <strong>Also probed but unavailable on this account:</strong>
+        Qwen2.5-Coder-32B, Llama 4 (Maverick / Scout), Mistral Large / Small,
+        Qwen3-235B, Gemma 2, Yi, DBRX, Command-R+.
+        All returned <code class="mono">404 NOT_FOUND</code> from
+        <code class="mono">/v1/chat/completions</code>.
+      </p>
       <p class="muted" style="margin-top: 14px;">
         <strong>Methodology.</strong> The smoke test is one prompt
         (<code class="mono">"How many albums are in the database?"</code>),
@@ -1330,7 +1506,7 @@ wrote data/dev_answers.json</pre>
       <code class="mono">api.fireworks.ai</code>. Type any natural-language
       question about the music store and watch the customer baseline and our
       agent prompt run side-by-side. Designed for ~1,000 users at ~30 queries/day
-      (30k daily queries — Raul's projected first cohort).
+      (30k daily queries — projected first cohort).
     </p>
 
     <div class="key-bar" id="keyBar" style="position: static; top: auto; margin: 0 0 16px;">
@@ -1339,9 +1515,8 @@ wrote data/dev_answers.json</pre>
       <span class="key-status" id="keyStatus">Never stored. Sent only to api.fireworks.ai.</span>
     </div>
 
-    <div class="card" id="dbStatus" style="margin-bottom: 16px;">
-      <span id="dbStatusBadge" class="pill purple">Loading sql.js + Chinook.db…</span>
-      <p id="dbStatusText" style="margin-top: 10px; color: var(--text-dim); font-size: 13.5px;">A 1MB SQLite file is being fetched and opened in the browser via sql.js (1.10.3). All SQL runs locally — only the Fireworks API call leaves your machine.</p>
+    <div class="db-status-line" id="dbStatus">
+      <span id="dbStatusBadge" class="status-pill loading">Loading sql.js + Chinook.db…</span>
     </div>
 
     <div class="card unified-demo">
@@ -1379,13 +1554,26 @@ wrote data/dev_answers.json</pre>
         <span class="muted">Live calls hit api.fireworks.ai. Each side uses your selected model + prompt strategy.</span>
       </div>
 
-      <div class="panels-grid">
-        <div class="panel-terminal" id="ldPanelA"><div class="panel-empty">Side A · configure and run</div></div>
-        <div class="panel-terminal" id="ldPanelB"><div class="panel-empty">Side B · configure and run</div></div>
-      </div>
+      <div class="live-demo-layout">
+        <div class="live-demo-main">
+          <div class="panels-grid">
+            <div class="panel-terminal" id="ldPanelA"><div class="panel-empty">Side A · configure and run</div></div>
+            <div class="panel-terminal" id="ldPanelB"><div class="panel-empty">Side B · configure and run</div></div>
+          </div>
 
-      <div class="roi-card-big" id="ldRoiSummary">
-        <div class="roi-empty">Run a comparison above to see the cost-at-scale projection.</div>
+          <div class="roi-card-big" id="ldRoiSummary">
+            <div class="roi-empty">Run a comparison above to see the cost-at-scale projection.</div>
+          </div>
+        </div>
+
+        <aside class="live-demo-side">
+          <div class="activity-log-card">
+            <h4>Activity log <span class="activity-count" id="ldActivityCount">0 calls</span></h4>
+            <div class="activity-log" id="ldActivityLog">
+              <div class="activity-empty">No calls yet. Click <strong>Run both ▸</strong> above to see Fireworks calls stream in.</div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
 
@@ -1542,24 +1730,19 @@ const dbReady = (async () => {
   if (!resp.ok) throw new Error(`Couldn't load data/Chinook.db (HTTP ${resp.status}). Serve via 'python3 -m http.server 8000'.`);
   const buf = new Uint8Array(await resp.arrayBuffer());
   db = new SQL.Database(buf);
-  // Update Live Demo status badge
+  // Update Live Demo status pill
   const badge = document.getElementById("dbStatusBadge");
-  const text = document.getElementById("dbStatusText");
   if (badge) {
     badge.textContent = "✓ Chinook.db loaded · sql.js ready";
-    badge.style.background = "rgba(74, 222, 128, 0.14)";
-    badge.style.color = "var(--green)";
+    badge.className = "status-pill ready";
   }
-  if (text) text.textContent = "1MB SQLite database loaded into browser memory. SQL runs locally; only the Fireworks API call leaves your machine.";
 })().catch(e => {
-  console.error(e);
   const ks = document.getElementById("keyStatus");
   if (ks) { ks.textContent = "DB not loaded — " + e.message; ks.className = "key-status err"; }
   const badge = document.getElementById("dbStatusBadge");
   if (badge) {
     badge.textContent = "✗ Chinook.db failed to load";
-    badge.style.background = "rgba(248, 113, 113, 0.14)";
-    badge.style.color = "var(--red)";
+    badge.className = "status-pill error";
   }
 });
 
@@ -1672,7 +1855,7 @@ async function fireworksCall(messages, { model = null, jsonMode = true, maxToken
   const timeoutHandle = setTimeout(() => controller.abort(), FIREWORKS_TIMEOUT_MS);
 
   const t0 = performance.now();
-  let resp;
+  let resp, fetchErr;
   try {
     resp = await fetch(FIREWORKS_URL, {
       method: "POST",
@@ -1681,24 +1864,44 @@ async function fireworksCall(messages, { model = null, jsonMode = true, maxToken
       signal: controller.signal,
     });
   } catch (e) {
-    if (e && e.name === "AbortError") {
-      throw new Error("Timed out after 15s — this model may be slow or rate-limited. Try again or pick a different model.");
-    }
-    throw e;
+    fetchErr = e;
   } finally {
     clearTimeout(timeoutHandle);
   }
   const dt = performance.now() - t0;
+
+  if (fetchErr) {
+    if (fetchErr.name === "AbortError") {
+      logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
+                    latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
+                    status: "timeout" });
+      throw new Error("Timed out after 15s — this model may be slow or rate-limited. Try again or pick a different model.");
+    }
+    logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
+                  latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
+                  status: "error", error: fetchErr.message });
+    throw fetchErr;
+  }
   if (!resp.ok) {
     const t = await resp.text();
+    const isRateLimit = resp.status === 429;
+    logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
+                  latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
+                  status: isRateLimit ? "rate-limit" : "error",
+                  error: `${resp.status}` });
     throw new Error(`Fireworks ${resp.status}: ${t.slice(0, 200)}`);
   }
   const data = await resp.json();
+  const pt = data.usage?.prompt_tokens || 0;
+  const ct = data.usage?.completion_tokens || 0;
+  logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
+                latency_ms: dt, prompt_tokens: pt, completion_tokens: ct,
+                status: "success" });
   return {
     content: data.choices?.[0]?.message?.content || "",
     latency_ms: dt,
-    prompt_tokens: data.usage?.prompt_tokens || 0,
-    completion_tokens: data.usage?.completion_tokens || 0,
+    prompt_tokens: pt,
+    completion_tokens: ct,
   };
 }
 
@@ -2109,11 +2312,80 @@ function calcUpdate() {
   document.getElementById("saveMo").textContent  = fmtInt(saveDay * 30);
   document.getElementById("saveYr").textContent  = fmtInt(saveDay * 365);
   document.getElementById("saveRatio").textContent = ((1 - kimiPer / gptPer) * 100).toFixed(0);
+  if (typeof calcBuildVsBuy === "function") calcBuildVsBuy();
 }
 
 function initCalc() {
   document.getElementById("calcSlider").addEventListener("input", calcUpdate);
   calcUpdate();
+}
+
+// ============================================================
+// Build vs Buy · Cost tab · 4-column dynamic comparison
+// Reactive to: cost slider value, window.runHistory token profile.
+// ============================================================
+function calcBuildVsBuy() {
+  const slider = document.getElementById("calcSlider");
+  const grid = document.getElementById("bvbGrid");
+  if (!slider || !grid) return;
+  const v = parseInt(slider.value, 10);
+
+  // Token profile: average of session runs that returned tokens, else benchmark default.
+  const validRuns = (window.runHistory || []).filter(r => r.prompt_tokens && r.completion_tokens);
+  let pt, ct, sourceText;
+  if (validRuns.length) {
+    pt = validRuns.reduce((s, r) => s + r.prompt_tokens, 0) / validRuns.length;
+    ct = validRuns.reduce((s, r) => s + r.completion_tokens, 0) / validRuns.length;
+    sourceText = `Based on your ${validRuns.length} run${validRuns.length === 1 ? "" : "s"} · avg ${Math.round(pt)} tokens in / ${Math.round(ct)} tokens out`;
+  } else {
+    pt = MEAN_PROMPT_TOKENS;
+    ct = MEAN_COMPLETION_TOKENS;
+    sourceText = `Based on benchmark data (${MEAN_PROMPT_TOKENS} in / ${MEAN_COMPLETION_TOKENS} out)`;
+  }
+  const sourceEl = document.getElementById("bvbTokenSource");
+  if (sourceEl) sourceEl.textContent = sourceText;
+
+  // Per-query costs
+  const gptPerQ    = (pt * PRICING.gpt54.input + ct * PRICING.gpt54.output) / 1_000_000;
+  const directPerQ = (pt * PRICING.kimi.input  + ct * PRICING.kimi.output)  / 1_000_000;
+  const fwPerQ     = validRuns.length
+    ? (pt * PRICING.kimi.input + ct * PRICING.kimi.output) / 1_000_000
+    : 0.000942;  // verified Kimi K2.6 benchmark
+
+  // Self-host throughput: ~50 q/min per H100 = 72,000 q/day per GPU
+  const QPS_DAY = v;
+  const gpusNeeded = Math.max(1, Math.ceil(QPS_DAY / 72_000));
+  const gpuHourly = 2.50;
+  const gpuMonthly = gpusNeeded * gpuHourly * 24 * 30;
+  const fteMonthly = 6_250;
+  const selfHostMonthly = gpuMonthly + fteMonthly;
+  const selfHostAnnual  = selfHostMonthly * 12;
+
+  const gptMonth    = gptPerQ    * v * 30;
+  const directMonth = directPerQ * v * 30;
+  const fwMonth     = fwPerQ     * v * 30;
+  const gptAnnual    = gptPerQ    * v * 365;
+  const directAnnual = directPerQ * v * 365;
+  const fwAnnual     = fwPerQ     * v * 365;
+
+  const fmtUSD  = n => "$" + Math.round(n).toLocaleString("en-US");
+  const fmtPerQ = n => "$" + n.toFixed(6);
+
+  // Update each column's cells.
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set("bvbGptPerQ",      fmtPerQ(gptPerQ));
+  set("bvbGptMonth",     fmtUSD(gptMonth));
+  set("bvbGptAnnual",    fmtUSD(gptAnnual));
+  set("bvbDirectPerQ",   fmtPerQ(directPerQ));
+  set("bvbDirectMonth",  fmtUSD(directMonth));
+  set("bvbDirectAnnual", fmtUSD(directAnnual));
+  set("bvbShGpus",       `${gpusNeeded}× H100`);
+  set("bvbShGpuMonth",   fmtUSD(gpuMonthly));
+  set("bvbShTotalMonth", fmtUSD(selfHostMonthly));
+  set("bvbShAnnual",     fmtUSD(selfHostAnnual));
+  set("bvbFwPerQ",       fmtPerQ(fwPerQ));
+  set("bvbFwMonth",      fmtUSD(fwMonth));
+  set("bvbFwAnnual",     fmtUSD(fwAnnual));
 }
 
 // ============================================================
@@ -2124,6 +2396,69 @@ function initCalc() {
 // (and the Live latency test) appends here. Survives only this browser
 // session; not persisted, not sent anywhere. The Latency tab subscribes.
 window.runHistory = window.runHistory || [];
+
+// Activity log — every individual Fireworks fetch, including ones that
+// would otherwise be invisible (failed JSON parse, 429s, timeouts). The
+// Live Demo right-column shows this stream live.
+window.activityLog = window.activityLog || [];
+
+function logActivity(entry) {
+  const e = {
+    timestamp: Date.now(),
+    model: entry.model || "?",
+    endpoint: "/v1/chat/completions",
+    promptType: entry.promptType || "agent",
+    prompt_tokens: entry.prompt_tokens || 0,
+    completion_tokens: entry.completion_tokens || 0,
+    latency_ms: entry.latency_ms || 0,
+    status: entry.status || "success",
+    error: entry.error || null,
+  };
+  window.activityLog.unshift(e);              // newest at top
+  if (window.activityLog.length > 200) window.activityLog.length = 200;
+  renderActivityLog();
+}
+
+function fmtLogTs(ts) {
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function renderActivityLog() {
+  const container = document.getElementById("ldActivityLog");
+  const counter = document.getElementById("ldActivityCount");
+  if (!container) return;
+  if (counter) counter.textContent = `${window.activityLog.length} call${window.activityLog.length === 1 ? "" : "s"}`;
+  if (window.activityLog.length === 0) {
+    container.innerHTML = `<div class="activity-empty">No calls yet. Click <strong>Run both ▸</strong> above to see Fireworks calls stream in.</div>`;
+    return;
+  }
+  container.innerHTML = window.activityLog.map(e => {
+    const shortModel = (typeof modelLabelShort === "function") ? modelLabelShort(e.model) : (e.model.split("/").pop() || "");
+    const statusClass = e.status === "success" ? "ok"
+                      : (e.status === "timeout" || e.status === "rate-limit") ? "warn"
+                      : "bad";
+    const statusGlyph = e.status === "success" ? "✓"
+                      : e.status === "timeout" ? "⚠ timeout"
+                      : e.status === "rate-limit" ? "⚠ 429"
+                      : "✗";
+    const tokensTxt = (e.prompt_tokens || e.completion_tokens)
+      ? `${e.prompt_tokens}↑/${e.completion_tokens}↓`
+      : "—";
+    return `
+      <div class="activity-entry">
+        <div class="ts">${fmtLogTs(e.timestamp)}</div>
+        <div class="body">
+          <span class="model">${escapeHtml ? escapeHtml(shortModel) : shortModel}</span>
+          &middot; <span class="prompt">${e.promptType}</span>
+          <div class="endpoint">POST api.fireworks.ai${e.endpoint}</div>
+        </div>
+        <div class="stat ${statusClass}">${statusGlyph}<br>${Math.round(e.latency_ms).toLocaleString()}ms<br>${tokensTxt}</div>
+      </div>
+    `;
+  }).join("");
+}
 
 function recordRun(run) {
   if (!run || !run.modelId) return;
@@ -2141,6 +2476,8 @@ function recordRun(run) {
     success: !run.error && Array.isArray(run.rows),
   });
   refreshLatencyDashboard();
+  // Recompute Build-vs-Buy if it's been mounted — session token profile may have shifted.
+  if (typeof calcBuildVsBuy === "function") calcBuildVsBuy();
 }
 
 function quantile(sorted, p) {
@@ -2260,7 +2597,7 @@ async function runLatencyTest() {
         error: r.error,
       });
       result.innerHTML = samples.map((sm, idx) =>
-        `<div class="muted">call ${idx + 1}: ${sm.toFixed(0)} ms ${sm < 3000 ? '✓' : '— over 3s'}</div>`).join("");
+        `<div class="muted">call ${idx + 1} (Kimi K2.6): ${sm.toFixed(0)} ms ${sm < 3000 ? '✓' : '— over 3s'}</div>`).join("");
     }
     const sorted = [...samples].sort((a, b) => a - b);
     const median = sorted[1];
@@ -2523,7 +2860,7 @@ function updateRoiSummary(runA, runB) {
     el.innerHTML = `<div class="roi-empty">Run a comparison above to see the cost-at-scale projection.</div>`;
     return;
   }
-  const QPS_DAY      = 30_000;       // Raul's first cohort
+  const QPS_DAY      = 30_000;       // projected first cohort
   const QPS_DAY_10X  = 300_000;      // 10× scale
   const DAYS_MONTH   = 30;
   const DAYS_YEAR    = 365;
@@ -2679,7 +3016,7 @@ function updateRoiSummary(runA, runB) {
 
   el.innerHTML = `
     <div class="roi-eyebrow">Cost at scale</div>
-    <h3 class="roi-heading">What this means at Raul's volume</h3>
+    <h3 class="roi-heading">What this means at scale</h3>
     ${headlineHtml}
     ${tableHtml}
     ${footnotesHtml}
@@ -2754,6 +3091,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initLatency();
   initRoadmap();
   initLiveDemo();           // unified comparison tool + sql.js + schema preview
+  renderActivityLog();      // initial empty state on the right column
+  calcBuildVsBuy();         // populate the Cost-tab Build vs Buy table
 });
 </script>
 </body>

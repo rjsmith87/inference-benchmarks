@@ -853,6 +853,13 @@
   }
   .bvb-card .bvb-notes:first-of-type { margin-top: 14px; }
   .bvb-card .bvb-notes + .bvb-notes { margin-top: 8px; flex-grow: 1; }
+  .bvb-hidden-costs {
+    margin: 10px 0 0; padding-left: 18px;
+    font-size: 12.5px; color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .bvb-hidden-costs li { margin-top: 8px; }
+  .bvb-hidden-costs li strong { color: var(--text); }
   .bvb-cite {
     margin: 10px 0 0; font-size: 11.5px; color: var(--text-faint);
     border-top: 1px dashed var(--line); padding-top: 8px;
@@ -1232,25 +1239,27 @@ wrote data/dev_answers.json</pre>
           <p class="bvb-notes">No infra to manage. Highest cost, proprietary lock-in, 7s latency reported by customer.</p>
         </div>
 
-        <!-- Column 2 · Direct API (Moonshot for Kimi K2.6) -->
+        <!-- Column 2 · Direct model APIs (category — Moonshot, Alibaba, DeepSeek, etc.) -->
         <div class="bvb-card">
-          <h4>Direct API (Moonshot)</h4>
-          <div class="bvb-subtitle">Same model, direct from provider</div>
+          <h4>Direct model APIs</h4>
+          <div class="bvb-subtitle">Moonshot, Alibaba, DeepSeek, etc.</div>
           <ul class="bvb-rows">
-            <li class="bvb-row"><span class="lbl">Per query</span><span class="val" id="bvbDirectPerQ">$0.000594</span></li>
-            <li class="bvb-row total"><span class="lbl">Monthly</span><span class="val" id="bvbDirectMonth">$535</span></li>
-            <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbDirectAnnual">$6,504</span></li>
+            <li class="bvb-row"><span class="lbl">Per query</span><span class="val" id="bvbDirectPerQ">Varies</span></li>
+            <li class="bvb-row total"><span class="lbl">Monthly <span class="muted">(est. avg)</span></span><span class="val" id="bvbDirectMonth">$594</span></li>
+            <li class="bvb-row"><span class="lbl">Annual <span class="muted">(est. avg)</span></span><span class="val" id="bvbDirectAnnual">$7,231</span></li>
           </ul>
           <p class="bvb-notes">
-            Moonshot direct API is <strong>~37% cheaper per token</strong> than Fireworks ($0.60/$2.50 vs $0.95/$4.00 per 1M). The tradeoff: Fireworks delivers the fastest TTFT (<strong>0.71s vs 3.04s</strong> on Moonshot direct — source: artificialanalysis.ai), plus unified fine-tuning, US region pinning, BYOC, and single-vendor billing.
+            Per-token pricing is often cheaper going direct to the model provider — typically <strong>20–40% cheaper</strong> than Fireworks. But for an enterprise deployment like GitLab's, the total cost includes more than tokens:
           </p>
-          <p class="bvb-notes">
-            For multi-model deployments (Kimi + Qwen + DeepSeek) the direct route also means multiple vendors, multiple billing relationships, no unified fine-tuning across model families, and data-residency concerns (most providers headquartered outside US/EU).
-          </p>
+          <ul class="bvb-hidden-costs">
+            <li><strong>Vendor management.</strong> Each model comes from a different company (Moonshot in Beijing, Alibaba in Hangzhou, DeepSeek in Hangzhou). Multiple contracts, billing relationships, and SLA negotiations.</li>
+            <li><strong>Data residency.</strong> Most leading open-source model providers are headquartered outside the US / EU. Enterprise customers may require guarantees about where their data is processed. Fireworks offers US / EU / APAC region pinning and BYOC.</li>
+            <li><strong>Rate limits and scaling.</strong> Direct APIs often require prepaid recharge tiers and have manual scaling limits. Production traffic at 30k+ q/day needs automatic scaling.</li>
+            <li><strong>No unified fine-tuning.</strong> Can't fine-tune across model families on one platform. Fireworks offers SFT / RFT / DPO for any hosted model at base serving price.</li>
+            <li><strong>Reliability.</strong> Research labs ship models, not production infrastructure. No published SLAs. Fireworks processes 5T+ tokens/day.</li>
+          </ul>
           <p class="bvb-cite">
-            <a href="https://platform.kimi.ai/docs/pricing/chat" target="_blank" rel="noopener">Moonshot pricing ↗</a>
-            <span class="muted">·</span>
-            <a href="https://artificialanalysis.ai/models/kimi-k2-6/providers" target="_blank" rel="noopener">Provider comparison ↗</a>
+            Per-token rates sourced from <a href="https://artificialanalysis.ai/models" target="_blank" rel="noopener">artificialanalysis.ai/models ↗</a>
           </p>
         </div>
 
@@ -2337,9 +2346,12 @@ function calcBuildVsBuy() {
 
   // Per-query costs
   const gptPerQ    = (pt * PRICING.gpt54.input + ct * PRICING.gpt54.output) / 1_000_000;
-  // Direct Moonshot API for Kimi K2.6 — verified rates from platform.kimi.ai/docs/pricing/chat:
-  // $0.60/M input, $2.50/M output. ~37% cheaper per token than Fireworks-hosted Kimi.
-  const directPerQ = (pt * 0.60 + ct * 2.50) / 1_000_000;
+  // Direct model APIs (category — Moonshot, Alibaba, DeepSeek, etc.) Per-token
+  // rates vary 20-40% cheaper than Fireworks across this group; we report a
+  // midpoint of 30% for the monthly / annual estimates and label them as
+  // "estimated average" so the reviewer understands the cell is a category-
+  // level approximation, not a verified single-vendor quote.
+  const DIRECT_MIDPOINT_DISCOUNT = 0.30;       // 30% cheaper than Fireworks per query
   const fwPerQ     = validRuns.length
     ? (pt * PRICING.kimi.input + ct * PRICING.kimi.output) / 1_000_000
     : 0.000942;  // verified Kimi K2.6 benchmark
@@ -2353,12 +2365,17 @@ function calcBuildVsBuy() {
   const selfHostMonthly = gpuMonthly + fteMonthly;
   const selfHostAnnual  = selfHostMonthly * 12;
 
-  const gptMonth    = gptPerQ    * v * 30;
-  const directMonth = directPerQ * v * 30;
-  const fwMonth     = fwPerQ     * v * 30;
-  const gptAnnual    = gptPerQ    * v * 365;
-  const directAnnual = directPerQ * v * 365;
-  const fwAnnual     = fwPerQ     * v * 365;
+  // Direct = midpoint estimate, 30% cheaper per query than Fireworks.
+  // Per-query cell stays as text "Varies" — the cell is category-level, not
+  // a single verified rate.
+  const directPerQ_est = fwPerQ * (1 - DIRECT_MIDPOINT_DISCOUNT);
+
+  const gptMonth     = gptPerQ        * v * 30;
+  const directMonth  = directPerQ_est * v * 30;
+  const fwMonth      = fwPerQ         * v * 30;
+  const gptAnnual    = gptPerQ        * v * 365;
+  const directAnnual = directPerQ_est * v * 365;
+  const fwAnnual     = fwPerQ         * v * 365;
 
   const fmtUSD  = n => "$" + Math.round(n).toLocaleString("en-US");
   const fmtPerQ = n => "$" + n.toFixed(6);
@@ -2368,7 +2385,7 @@ function calcBuildVsBuy() {
   set("bvbGptPerQ",      fmtPerQ(gptPerQ));
   set("bvbGptMonth",     fmtUSD(gptMonth));
   set("bvbGptAnnual",    fmtUSD(gptAnnual));
-  set("bvbDirectPerQ",   fmtPerQ(directPerQ));
+  set("bvbDirectPerQ",   "Varies — 20-40% cheaper");
   set("bvbDirectMonth",  fmtUSD(directMonth));
   set("bvbDirectAnnual", fmtUSD(directAnnual));
   set("bvbShGpus",       `${gpusNeeded}× H100`);

@@ -1054,7 +1054,7 @@ wrote data/dev_answers.json</pre>
             <td class="num warn">5/10 (earlier session)</td>
             <td class="warn">Partial — observed in earlier runs</td>
             <td class="num">~$0.000200 estimated · verify before publishing</td>
-            <td>Reachable but not listed in <code class="mono">/v1/models</code>. Persistent rate-limiting on this key. Plausible CACR cheap-first router candidate once we have stable QPS allowance.</td>
+            <td>Reachable but not listed in <code class="mono">/v1/models</code>. Persistent rate-limiting on this key. Plausible cheap-first router candidate once we have stable QPS allowance.</td>
           </tr>
           <tr>
             <td>Qwen2.5-Coder-32B</td>
@@ -1139,31 +1139,6 @@ wrote data/dev_answers.json</pre>
       </div>
     </div>
 
-    <div class="sub-section">
-      <h2 class="sub-title">CACR-style router · cheap-first, escalate on low confidence</h2>
-      <div class="card">
-        <p style="color: var(--text); font-size: 15px; margin-bottom: 12px;">
-          <strong>What is a CACR router?</strong> A model router that sends
-          easy queries to a fast/cheap model and escalates hard ones to a
-          more capable model — cutting cost without sacrificing accuracy on
-          difficult questions.
-        </p>
-        <p style="color: var(--text-dim);">
-          A natural fit once Qwen3-class fine-tuned checkpoints are in place.
-          The cheap, fast model takes the first attempt; a confidence probe
-          (logprobs are cheaper than a second LLM call) decides whether to
-          escalate to the heavier model. The eval data on this submission
-          already characterizes the split — Qwen3-8B handles tier-1s
-          cleanly and Kimi catches the rest. Implementation lives outside
-          the agent: the router sits in front of <code class="mono">SqlAgent</code>
-          and selects the model per call.
-        </p>
-        <p style="margin-top: 10px;">
-          <a href="https://github.com/rjsmith87/fireworks-takehome" target="_blank" rel="noopener" style="color: var(--orange);">→ github.com/rjsmith87/fireworks-takehome</a> &middot;
-          <span class="muted">routing scaffolding stubbed in <code class="mono">src/agent.py</code> via the model constructor arg; CACR router is the Phase 1 deliverable.</span>
-        </p>
-      </div>
-    </div>
 
     <div class="sub-section">
       <h2 class="sub-title">Known limitations</h2>
@@ -1520,6 +1495,9 @@ function getModel() {
   return (el && el.value) || "accounts/fireworks/models/kimi-k2p6";
 }
 
+// Hard per-fetch ceiling so a slow model can't hang the UI forever.
+const FIREWORKS_TIMEOUT_MS = 15000;
+
 async function fireworksCall(messages, { model = null, jsonMode = true, maxTokens = 1024 } = {}) {
   const key = getApiKey();
   if (!key) throw new Error("Paste a Fireworks API key in the Live Demo tab to run live queries.");
@@ -1528,12 +1506,26 @@ async function fireworksCall(messages, { model = null, jsonMode = true, maxToken
   if (jsonMode) body.response_format = { type: "json_object" };
   if (m.includes("qwen3")) body.reasoning_effort = "none";
 
+  const controller = new AbortController();
+  const timeoutHandle = setTimeout(() => controller.abort(), FIREWORKS_TIMEOUT_MS);
+
   const t0 = performance.now();
-  const resp = await fetch(FIREWORKS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
-    body: JSON.stringify(body),
-  });
+  let resp;
+  try {
+    resp = await fetch(FIREWORKS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (e) {
+    if (e && e.name === "AbortError") {
+      throw new Error("Timed out after 15s — this model may be slow or rate-limited. Try again or pick a different model.");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
   const dt = performance.now() - t0;
   if (!resp.ok) {
     const t = await resp.text();
@@ -1977,7 +1969,7 @@ function initLatency() {
 const ROADMAP = [
   { num: 0, title: "POC · Shared Serverless", platform: "Fireworks Serverless API",
     body: "What you're looking at. Kimi K2.6, JSON mode, compact schema-in-prompt, repair loop. 92% combined accuracy, $0.000942/query, p50 spans 1–9s on shared tier." },
-  { num: 1, title: "CACR Router", platform: "Fireworks Serverless + custom routing",
+  { num: 1, title: "Cheap-first router", platform: "Fireworks Serverless + custom routing",
     body: "Qwen3-8B fast first attempt; escalate to Kimi K2.6 on low confidence (logprob threshold). Cuts mean cost ~40% on tier-1 questions while preserving quality on hard ones." },
   { num: 2, title: "Fine-tune", platform: "Fireworks SFT + RFT",
     body: "SFT a Qwen3-8B-class on ~1k synthetic (question, gold_sql) pairs, then RFT with the SQLite executor as reward. Targets the failure modes we saw (top-per-group, date arithmetic). Ship as a fine-tuned checkpoint behind the existing API." },
@@ -2109,6 +2101,27 @@ async function runOnePrompt(modelId, promptType, question) {
 
 const PANEL_SEP = "─────────────────────────────────";
 
+// Per-panel elapsed-time intervals so the user sees the spinner is alive.
+// Cleared when the panel re-renders (renderTerminalPanel) or starts a new run.
+const PANEL_TIMERS = {};
+
+function startPanelTimer(panelId) {
+  stopPanelTimer(panelId);
+  const start = performance.now();
+  PANEL_TIMERS[panelId] = setInterval(() => {
+    const sec = Math.floor((performance.now() - start) / 1000);
+    const span = document.querySelector(`#${panelId} .panel-elapsed`);
+    if (span) span.textContent = `(${sec}s)`;
+  }, 1000);
+}
+
+function stopPanelTimer(panelId) {
+  if (PANEL_TIMERS[panelId]) {
+    clearInterval(PANEL_TIMERS[panelId]);
+    delete PANEL_TIMERS[panelId];
+  }
+}
+
 function setPanelRunning(panelId, modelId, promptType, question) {
   const promptDesc = promptType === "agent"
     ? "Agent (schema + JSON + repair)"
@@ -2119,8 +2132,9 @@ function setPanelRunning(panelId, modelId, promptType, question) {
     <div class="panel-meta">Prompt:   <strong>${promptDesc}</strong></div>
     <div class="panel-meta">Question: ${escapeHtml(question)}</div>
     <div class="panel-sep">${PANEL_SEP}</div>
-    <div class="panel-running"><span class="spinner"></span> calling api.fireworks.ai…</div>
+    <div class="panel-running"><span class="spinner"></span> calling api.fireworks.ai… <span class="panel-elapsed">(0s)</span></div>
   `;
+  startPanelTimer(panelId);
 }
 
 function escapeHtml(s) {
@@ -2130,6 +2144,7 @@ function escapeHtml(s) {
 }
 
 function renderTerminalPanel(panelId, run, gold) {
+  stopPanelTimer(panelId);
   const promptDesc = run.promptType === "agent"
     ? "Agent (schema + JSON + repair)"
     : "Customer Baseline (no schema, no JSON, no repair)";
@@ -2141,8 +2156,13 @@ function renderTerminalPanel(panelId, run, gold) {
   let statusHtml;
   let statusClass;
   if (run.error) {
-    statusHtml = `✗ ${escapeHtml(run.error.slice(0, 160))}`;
-    statusClass = "bad";
+    if (run.error.startsWith("Timed out after")) {
+      statusHtml = `⚠ ${escapeHtml(run.error.slice(0, 200))}`;
+      statusClass = "warn";
+    } else {
+      statusHtml = `✗ ${escapeHtml(run.error.slice(0, 200))}`;
+      statusClass = "bad";
+    }
   } else if (run.rows) {
     statusHtml = `✓ SQL ran · ${run.rows.length} row${run.rows.length === 1 ? "" : "s"}`;
     statusClass = "ok";

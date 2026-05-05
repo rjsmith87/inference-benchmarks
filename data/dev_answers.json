@@ -12,16 +12,16 @@
     "answer": "Luís Gonçalves (Email=luisg@embraer.com.br); Eduardo Martins (Email=eduardo@woodstock.com.br); Alexandre Rocha (Email=alero@uol.com.br); Roberto Almeida (Email=roberto.almeida@riotur.gov.br); Fernanda Ramos (Email=fernadaramos4@uol.com.br)"
   },
   "q_004": {
-    "sql": "SELECT mt.Name AS MediaType, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId, mt.Name ORDER BY TrackCount DESC LIMIT 1",
+    "sql": "SELECT mt.Name AS MediaTypeName, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId, mt.Name ORDER BY TrackCount DESC LIMIT 1",
     "answer": "MPEG audio file (TrackCount=3034)"
   },
   "q_005": {
-    "sql": "SELECT e.FirstName || ' ' || e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId ORDER BY CustomerCount DESC LIMIT 1",
+    "sql": "SELECT e.FirstName ||' '|| e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId ORDER BY CustomerCount DESC LIMIT 1",
     "answer": "Jane Peacock (CustomerCount=21)"
   },
   "q_006": {
-    "sql": "SELECT p.Name AS PlaylistName, COUNT(pt.TrackId) AS TrackCount FROM Playlist p LEFT JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId GROUP BY p.PlaylistId, p.Name",
-    "answer": "Music (TrackCount=3290); Movies (TrackCount=0); TV Shows (TrackCount=213); Audiobooks (TrackCount=0); 90’s Music (TrackCount=1477); Audiobooks (TrackCount=0); Movies (TrackCount=0); Music (TrackCount=3290); Music Videos (TrackCount=1); TV Shows (TrackCount=213); ... (8 more)"
+    "sql": "SELECT p.Name AS PlaylistName, COUNT(pt.TrackId) AS TrackCount FROM Playlist p JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId GROUP BY p.PlaylistId, p.Name",
+    "answer": "Music (TrackCount=3290); TV Shows (TrackCount=213); 90’s Music (TrackCount=1477); Music (TrackCount=3290); Music Videos (TrackCount=1); TV Shows (TrackCount=213); Brazilian Music (TrackCount=39); Classical (TrackCount=75); Classical 101 - Deep Cuts (TrackCount=25); Classical 101 - Next Steps (TrackCount=25); ... (4 more)"
   },
   "q_007": {
     "sql": "SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'",

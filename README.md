@@ -47,6 +47,21 @@ python3 -m http.server 8000          # then open http://localhost:8000/dashboard
 Python 3.11+. The provided `setup.sh` uses `uv`; if `uv` is unavailable,
 `python3 -m venv .venv && pip install -e .` works equivalently.
 
+## Interactive Dashboard
+
+Live: https://rjsmith87.github.io/fireworks-takehome/dashboard.html
+
+Or run locally:
+
+```bash
+python3 -m http.server 8000
+# Open http://localhost:8000/dashboard.html
+```
+
+The dashboard requires a Fireworks API key for live features (enter it
+in the Live Demo tab). All static content (Quality, Latency, Cost,
+How It Works, Production Roadmap) works without a key.
+
 ## What's where
 
 ```

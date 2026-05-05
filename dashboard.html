@@ -441,17 +441,19 @@
   .lat-tile .val { font-size: 22px; font-weight: 700; margin-top: 4px; color: var(--orange); }
   .lat-tile.purple .val { color: var(--purple); }
 
-  .lat-bars { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
-  .lat-bar { display: flex; align-items: center; gap: 10px; font-size: 12px; }
-  .lat-bar .id { width: 60px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
-  .lat-bar .track { flex: 1; height: 18px; background: var(--surface-elev); border-radius: 4px; position: relative; overflow: hidden; }
-  .lat-bar .fill {
-    position: absolute; left: 0; top: 0; bottom: 0;
-    background: linear-gradient(90deg, var(--purple), var(--orange));
-    border-radius: 4px;
+  /* Session ticker on the Latency tab */
+  .session-ticker {
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-left: 3px solid var(--orange);
+    border-radius: 8px; padding: 12px 14px;
+    font-size: 13.5px; color: var(--text);
+    margin-top: 16px;
   }
-  .lat-bar .fill.under { background: linear-gradient(90deg, #22C55E, #15803D); }
-  .lat-bar .ms { width: 80px; text-align: right; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+  .session-ticker a { color: var(--orange); text-decoration: none; }
+  .session-ticker a:hover { text-decoration: underline; }
+  .session-ticker .session-mono {
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
 
   /* Roadmap */
   .road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
@@ -781,8 +783,64 @@ wrote data/dev_answers.json</pre>
       requires on-demand or dedicated deployment.
     </p>
 
+    <!-- Session ticker — updates on every Live Demo run -->
+    <div class="session-ticker" id="latSessionTicker">
+      Run queries in <a href="#livedemo">Live Demo</a> to see your own latency stats.
+    </div>
+
+    <!-- Live latency test moved to the top — first thing a reviewer sees -->
+    <div class="card sub-section" style="margin-top: 16px;">
+      <h3>Live latency test</h3>
+      <p style="color: var(--text-dim);">Fires 3 sequential calls to Fireworks against the same dev question and reports the median you see right now.</p>
+      <div class="row-flex" style="margin-top: 12px;">
+        <button class="btn" id="latRun">Measure latency now ▸</button>
+        <span class="muted" id="latStatus">Set your Fireworks key in the <a href="#livedemo">Live Demo</a> tab.</span>
+      </div>
+      <div id="latResult" style="margin-top: 12px;"></div>
+    </div>
+
+    <!-- Compact stats: session row (when ≥1 call) + benchmark row -->
     <div class="sub-section">
-      <h2 class="sub-title">Three back-to-back perf runs</h2>
+      <h2 class="sub-title">Latency stats</h2>
+
+      <div id="latSessionBlock" style="display: none;">
+        <div class="small-h" style="margin-top: 0;">Your session · <span id="latSessionCount">0</span> calls</div>
+        <div class="lat-grid">
+          <div class="lat-tile"><div class="label">Median p50</div><div class="val" id="latSessionP50">—</div><div class="muted" style="margin-top:4px;">your runs in this browser session</div></div>
+          <div class="lat-tile"><div class="label">Fastest</div><div class="val" id="latSessionFastest">—</div><div class="muted" style="margin-top:4px;">single shortest call</div></div>
+          <div class="lat-tile purple"><div class="label">% under 3 s</div><div class="val" id="latSessionUnder3">—</div><div class="muted" style="margin-top:4px;">across your calls</div></div>
+          <div class="lat-tile"><div class="label">Slowest</div><div class="val" id="latSessionSlowest">—</div><div class="muted" style="margin-top:4px;">single longest call</div></div>
+        </div>
+      </div>
+
+      <div class="small-h" id="latBenchmarkLabel">Benchmark data · pre-recorded · 30 calls across 3 runs</div>
+      <div class="lat-grid">
+        <div class="lat-tile">
+          <div class="label">p50</div>
+          <div class="val" id="latP50">loading…</div>
+          <div class="muted" style="margin-top:4px;" id="latP50Sub">across <span id="latNCalls">30</span> calls</div>
+        </div>
+        <div class="lat-tile">
+          <div class="label">p90</div>
+          <div class="val" id="latP90">loading…</div>
+          <div class="muted" style="margin-top:4px;">tail dominated by cold-start</div>
+        </div>
+        <div class="lat-tile purple">
+          <div class="label">p99</div>
+          <div class="val" id="latP99">loading…</div>
+          <div class="muted" style="margin-top:4px;">worst observed</div>
+        </div>
+        <div class="lat-tile">
+          <div class="label">% under 3 s</div>
+          <div class="val" id="latUnder3">loading…</div>
+          <div class="muted" style="margin-top:4px;">cleared Raul's 3,000 ms line</div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top: 10px;">Best clean dev-eval run hit median 2,901 ms separately (no pacing). Schema compaction (935 → 665 mean prompt tokens, −29%) is what made that possible — same accuracy.</p>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Pre-recorded benchmark · 3 × 10-question runs on shared tier</h2>
       <table class="data">
         <thead>
           <tr><th>Run</th><th>P50</th><th>P90</th><th>Accuracy</th><th>Note</th></tr>
@@ -794,35 +852,6 @@ wrote data/dev_answers.json</pre>
         </tbody>
       </table>
       <p class="muted" style="margin-top: 10px;">All three perf JSONs are checked into the repo (<code class="mono">perf_compact_{1,2,3}.json</code>). Median p50 across runs: 8,297 ms. Best clean p50: 4,058 ms.</p>
-    </div>
-
-    <div class="lat-grid">
-      <div class="lat-tile">
-        <div class="label">Median p50 across 3 runs</div>
-        <div class="val" id="latAgg">loading…</div>
-        <div class="muted" style="margin-top:4px;" id="latAggSub">computed live from perf JSONs</div>
-      </div>
-      <div class="lat-tile">
-        <div class="label">Best clean run (dev set)</div>
-        <div class="val">2,901 ms</div>
-        <div class="muted" style="margin-top:4px;">eval median, no pacing</div>
-      </div>
-      <div class="lat-tile purple">
-        <div class="label">% queries under 3s</div>
-        <div class="val" id="latUnder3">loading…</div>
-        <div class="muted" style="margin-top:4px;">across all measured calls</div>
-      </div>
-      <div class="lat-tile">
-        <div class="label">Schema compaction win</div>
-        <div class="val">−29%</div>
-        <div class="muted" style="margin-top:4px;">935 → 665 prompt tokens · 10/10 preserved</div>
-      </div>
-    </div>
-
-    <div class="card sub-section">
-      <h3>Per-query distribution · 30 calls aggregated</h3>
-      <p style="color: var(--text-dim);">Each row is a single agent call from <code class="mono">perf_compact_{1,2,3}.json</code>, sorted shortest to longest. Green = under Raul's 3,000 ms line.</p>
-      <div class="lat-bars" id="latBars">loading…</div>
     </div>
 
     <div class="sub-section">
@@ -844,16 +873,6 @@ wrote data/dev_answers.json</pre>
           <p>Keyword-match table names against the question, expand via foreign keys to keep JOINs valid. Fires on 9/25 questions today (24.7% mean reduction across all 25, 68.5% on the 9 fired). On <code class="mono">q_002</code> ("AC/DC albums"): 89.8% reduction.</p>
         </div>
       </div>
-    </div>
-
-    <div class="card sub-section">
-      <h3>Live latency test</h3>
-      <p style="color: var(--text-dim);">Fires 3 sequential calls to Fireworks against the same dev question and reports the median you see right now.</p>
-      <div class="row-flex" style="margin-top: 12px;">
-        <button class="btn" id="latRun">Measure latency now ▸</button>
-        <span class="muted" id="latStatus">Bring your own key (above).</span>
-      </div>
-      <div id="latResult" style="margin-top: 12px;"></div>
     </div>
 
     <div class="card sub-section">
@@ -1879,8 +1898,51 @@ function initCalc() {
 }
 
 // ============================================================
-// Latency from perf JSONs + live test
+// Latency · benchmark perf JSONs + per-session run history
 // ============================================================
+
+// Global run history — every Fireworks call from the unified Live Demo
+// (and the Live latency test) appends here. Survives only this browser
+// session; not persisted, not sent anywhere. The Latency tab subscribes.
+window.runHistory = window.runHistory || [];
+
+function recordRun(run) {
+  if (!run || !run.modelId) return;
+  // Don't record dry/error placeholders that never reached the network.
+  if (!run.latency_ms || run.latency_ms <= 0) return;
+  window.runHistory.push({
+    model: run.modelId,
+    promptType: run.promptType,
+    question: run.question || "",
+    latency_ms: run.latency_ms,
+    prompt_tokens: run.prompt_tokens || 0,
+    completion_tokens: run.completion_tokens || 0,
+    cost: (typeof costPerQuery === "function") ? costPerQuery(run.modelId, run.prompt_tokens, run.completion_tokens) : null,
+    timestamp: Date.now(),
+    success: !run.error && Array.isArray(run.rows),
+  });
+  refreshLatencyDashboard();
+}
+
+function quantile(sorted, p) {
+  if (!sorted.length) return 0;
+  const idx = Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * p));
+  return sorted[idx];
+}
+
+function statsForLatencies(latencies) {
+  const sorted = [...latencies].sort((a, b) => a - b);
+  return {
+    n: sorted.length,
+    p50: quantile(sorted, 0.50),
+    p90: quantile(sorted, 0.90),
+    p99: quantile(sorted, 0.99),
+    fastest: sorted.length ? sorted[0] : 0,
+    slowest: sorted.length ? sorted[sorted.length - 1] : 0,
+    under_3s_pct: sorted.length ? (sorted.filter(l => l < 3000).length / sorted.length) * 100 : 0,
+  };
+}
+
 async function tryLoadPerf() {
   const lats = [];
   let loaded = 0;
@@ -1896,38 +1958,61 @@ async function tryLoadPerf() {
     } catch {}
   }
   if (!loaded || !lats.length) return null;
-  const sorted = [...lats].sort((a, b) => a - b);
-  const median = sorted[Math.floor(sorted.length / 2)];
-  const under3 = lats.filter(l => l < 3000).length;
-  return { runs_loaded: loaded, all_latencies: sorted, median_ms: median, under_3s_pct: (under3 / lats.length) * 100 };
+  const s = statsForLatencies(lats);
+  return { runs_loaded: loaded, ...s, all_latencies: lats };
 }
 
-function renderLatencyDistribution(data) {
-  const tile = document.getElementById("latAgg");
-  const sub = document.getElementById("latAggSub");
-  const u3 = document.getElementById("latUnder3");
-  const bars = document.getElementById("latBars");
+const fmtMs = ms => `${Math.round(ms).toLocaleString()} ms`;
+
+function renderBenchmarkStats(data) {
+  const setText = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   if (!data) {
-    if (tile) tile.textContent = "—";
-    if (sub) sub.textContent = "perf JSONs not found";
-    if (u3) u3.textContent = "—";
-    if (bars) bars.innerHTML = `<div class="muted">No perf data yet. Run <code class="mono">python -m src.perf accounts/fireworks/models/kimi-k2p6 --out perf_compact_N.json</code> three times to populate.</div>`;
+    setText("latP50", "—");
+    setText("latP90", "—");
+    setText("latP99", "—");
+    setText("latUnder3", "—");
+    setText("latNCalls", "0");
+    const sub = document.getElementById("latP50Sub");
+    if (sub) sub.textContent = "perf JSONs not found — run python -m src.perf to populate";
+    const lbl = document.getElementById("latBenchmarkLabel");
+    if (lbl) lbl.textContent = "Benchmark data · perf JSONs not found";
     return;
   }
-  if (tile) tile.textContent = `${Math.round(data.median_ms).toLocaleString()} ms`;
-  if (sub) sub.textContent = `median p50 across ${data.runs_loaded} perf.py runs (${data.all_latencies.length} calls)`;
-  if (u3) u3.textContent = `${data.under_3s_pct.toFixed(0)}%`;
-  const max = Math.max(...data.all_latencies);
-  if (bars) {
-    bars.innerHTML = data.all_latencies.map((ms, idx) => {
-      const w = Math.max(2, (ms / max) * 100);
-      const under = ms < 3000;
-      return `<div class="lat-bar">
-        <div class="id">#${idx + 1}</div>
-        <div class="track"><div class="fill ${under ? 'under' : ''}" style="width:${w.toFixed(1)}%"></div></div>
-        <div class="ms">${Math.round(ms).toLocaleString()} ms</div>
-      </div>`;
-    }).join("") + `<div class="muted" style="margin-top:8px;">Green = under Raul's 3,000 ms line. ${data.under_3s_pct.toFixed(0)}% of calls cleared it.</div>`;
+  setText("latP50",     fmtMs(data.p50));
+  setText("latP90",     fmtMs(data.p90));
+  setText("latP99",     fmtMs(data.p99));
+  setText("latUnder3",  `${data.under_3s_pct.toFixed(0)}%`);
+  setText("latNCalls",  String(data.n));
+  const lbl = document.getElementById("latBenchmarkLabel");
+  if (lbl) lbl.textContent = `Benchmark data · pre-recorded · ${data.n} calls across ${data.runs_loaded} runs`;
+}
+
+function refreshLatencyDashboard() {
+  const ticker = document.getElementById("latSessionTicker");
+  const sessionBlock = document.getElementById("latSessionBlock");
+  const setText = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  const calls = window.runHistory.filter(r => r.latency_ms > 0);
+  if (!calls.length) {
+    if (ticker) ticker.innerHTML = `Run queries in <a href="#livedemo">Live Demo</a> to see your own latency stats.`;
+    if (sessionBlock) sessionBlock.style.display = "none";
+    return;
+  }
+  const lats = calls.map(r => r.latency_ms);
+  const s = statsForLatencies(lats);
+  if (ticker) {
+    ticker.innerHTML =
+      `<strong>Your session:</strong> <span class="session-mono">${calls.length}</span> call${calls.length === 1 ? "" : "s"} · ` +
+      `median <span class="session-mono">${fmtMs(s.p50)}</span> · ` +
+      `fastest <span class="session-mono">${fmtMs(s.fastest)}</span> · ` +
+      `${s.under_3s_pct.toFixed(0)}% under 3 s. Calls counted from the unified Live Demo tool.`;
+  }
+  if (sessionBlock) {
+    sessionBlock.style.display = "";
+    setText("latSessionCount",   String(calls.length));
+    setText("latSessionP50",     fmtMs(s.p50));
+    setText("latSessionFastest", fmtMs(s.fastest));
+    setText("latSessionUnder3",  `${s.under_3s_pct.toFixed(0)}%`);
+    setText("latSessionSlowest", fmtMs(s.slowest));
   }
 }
 
@@ -1944,8 +2029,19 @@ async function runLatencyTest() {
       status.innerHTML = `<span class="spinner"></span> firing call ${i}/3 …`;
       const r = await runAgentOnce("How many distinct countries do we have customers in?");
       samples.push(r.latency_ms);
-      result.innerHTML = samples.map((s, idx) =>
-        `<div class="muted">call ${idx + 1}: ${s.toFixed(0)} ms ${s < 3000 ? '✓' : '— over 3s'}</div>`).join("");
+      // Record in the global history so the stats row + ticker update.
+      recordRun({
+        modelId: "accounts/fireworks/models/kimi-k2p6",
+        promptType: "agent",
+        question: "How many distinct countries do we have customers in?",
+        latency_ms: r.latency_ms,
+        prompt_tokens: r.prompt_tokens,
+        completion_tokens: r.completion_tokens,
+        rows: r.rows,
+        error: r.error,
+      });
+      result.innerHTML = samples.map((sm, idx) =>
+        `<div class="muted">call ${idx + 1}: ${sm.toFixed(0)} ms ${sm < 3000 ? '✓' : '— over 3s'}</div>`).join("");
     }
     const sorted = [...samples].sort((a, b) => a - b);
     const median = sorted[1];
@@ -1960,7 +2056,8 @@ async function runLatencyTest() {
 
 function initLatency() {
   document.getElementById("latRun").addEventListener("click", runLatencyTest);
-  tryLoadPerf().then(renderLatencyDistribution);
+  tryLoadPerf().then(renderBenchmarkStats);
+  refreshLatencyDashboard();  // initial state — "Run queries in Live Demo…"
 }
 
 // ============================================================
@@ -2262,6 +2359,10 @@ async function runUnifiedDemo() {
     renderTerminalPanel("ldPanelA", resA, q.expected);
     renderTerminalPanel("ldPanelB", resB, q.expected);
     updateRoiSummary(resA, resB);
+    // Push both sides into the global session history so the Latency tab
+    // (and any other future subscribers) can read the user's own data.
+    recordRun(resA);
+    recordRun(resB);
     bumpTouched();
   } finally {
     btn.disabled = false;

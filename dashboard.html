@@ -988,18 +988,18 @@
 <section class="tab-panel" data-panel="quality">
   <div class="container">
     <div class="panel-eyebrow">Quality</div>
-    <h2 class="panel-title">1/10 → 23/25, on the same model.</h2>
+    <h2 class="panel-title">2/10 → 23/25, on the same model.</h2>
     <p class="panel-lede">
       The customer's current prototype prompt
       (<code class="mono">Convert this question to SQL: {question}</code> — no
       schema, no JSON mode, no execute-and-repair) on the same Kimi K2.6
-      endpoint scored <strong>1/10</strong> on the dev set. The agent on the
+      endpoint scored <strong>2/10</strong> on the dev set. The agent on the
       same model scored <strong>10/10 dev + 13/15 synthetic = 23/25 (92%)</strong>.
       The lift comes from prompt engineering, not a model swap.
     </p>
 
     <div class="score-board">
-      <div class="score-tile"><div class="num">10/10</div><div class="lbl">Dev set</div><div class="sub">100% with the agent · 1/10 with the customer baseline</div></div>
+      <div class="score-tile"><div class="num">10/10</div><div class="lbl">Dev set</div><div class="sub">100% with the agent · 2/10 with the customer baseline</div></div>
       <div class="score-tile purple"><div class="num">13/15</div><div class="lbl">Synthetic set</div><div class="sub">s_013 (date arithmetic) flaky · s_014 (top-per-group) miss</div></div>
       <div class="score-tile gradient"><div class="num">23/25</div><div class="lbl">Combined</div><div class="sub">92% across both sets</div></div>
       <div class="score-tile"><div class="num"><span id="liveTouched">0</span>/25</div><div class="lbl">You re-ran live</div><div class="sub">Click any card below to verify yourself</div></div>
@@ -2267,7 +2267,7 @@ const DECISIONS = [
     why: "Chinook is 11 tables / ~390 compact-tokens. RAG would add a round trip and a moving part for negligible benefit. Trim heuristic + FK closure cuts prompt-token cost a further 24% across the eval. For a 1,000-table customer DB we'd swap to retrieval." },
   { chosen: "JSON mode", title: "Structured vs free-text output",
     considered: ["Free-text + regex parsing", "XML tag wrappers", "Tool-call schema"],
-    why: "Native parsing, model respects it, gives us a rationale field for human review. The customer baseline shows what free-text gets you — fenced/unfenced/with-prose answers the executor can't run (1/10 vs our 10/10)." },
+    why: "Native parsing, model respects it, gives us a rationale field for human review. The customer baseline shows what free-text gets you — fenced/unfenced/with-prose answers the executor can't run (2/10 vs our 10/10)." },
   { chosen: "Execute-and-repair", title: "Repair loop vs single-shot",
     considered: ["Single-shot (fail fast)", "AST-level auto-fix", "LLM judge with N samples"],
     why: "Repair on the SQLite error message is the cheapest robustness win. Most agent runs need 0 repairs; when they do trigger, they fix on the first retry. Cap at 2 prevents runaway cost." },

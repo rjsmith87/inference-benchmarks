@@ -149,14 +149,15 @@ as cheap-first router candidates.
 
 The customer's current prototype prompt (`Convert this question to SQL:
 {question}` — no schema, no JSON mode, no repair) on the same Kimi K2.6
-endpoint scored **1/10** on the dev set. The single pass — q_004,
-"most popular media type" — survived only because the model happened to
-guess the correct table casing (`MediaType`, `Track`). Every other question
-referenced lowercase plural names (`tracks`, `customers`, `albums`) that
-don't exist in Chinook. Full enriched output is in `data/baseline_results.json`.
+endpoint scored **2/10** on the dev set. The two passes — q_002 ("AC/DC
+albums") and q_004 ("most popular media type") — survived only because
+the model happened to guess the correct table casing (`Album`, `Artist`,
+`MediaType`, `Track`). Every other question referenced lowercase plural
+names (`tracks`, `customers`, `albums`) that don't exist in Chinook.
+Full enriched output is in `data/baseline_results.json`.
 
 That number is the lift baseline: schema injection, JSON mode, and the
-execute-and-repair loop together turn a **1/10 system into 10/10 on the
+execute-and-repair loop together turn a **2/10 system into 10/10 on the
 same model and same key.**
 
 ### Accuracy on the 10 dev questions (`evals.py`)
@@ -164,7 +165,7 @@ same model and same key.**
 | Model | Tier 1 | Tier 2 | Tier 3 | Total |
 |---|---|---|---|---|
 | **Kimi K2.6 + agent** (primary) | 4/4 | 4/4 | 2/2 | **10/10 (100%)** |
-| Kimi K2.6 + naive baseline prompt | 1/4 | 0/4 | 0/2 | 1/10 (10%) |
+| Kimi K2.6 + customer baseline prompt | 2/4 | 0/4 | 0/2 | 2/10 (20%) |
 | Qwen3-8B + agent (cheap candidate) | 2/4 | 3/4 | 0/2 | 5/10 (50%) |
 
 ### Accuracy on the 15-question synthetic pattern-coverage set
@@ -286,9 +287,8 @@ loads sql.js + Chinook.db in the browser and lets the reviewer:
 
 - Re-run any of the 25 questions live against Fireworks (their own key)
   and see SQL, results, pass/fail vs gold answers.
-- Run the customer's naive baseline prompt and our agent prompt
-  side-by-side on the same question — watch 1/10 vs 10/10 with their
-  own eyes.
+- Run the customer baseline prompt and our agent prompt side-by-side
+  on the same question — watch 2/10 vs 10/10 with their own eyes.
 - Run the same question on Kimi K2.6 vs Qwen3-8B side-by-side.
 - See the live latency distribution (loaded from
   `perf_compact_*.json`) with the 3-second line marked.

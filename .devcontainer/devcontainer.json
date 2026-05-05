@@ -1,0 +1,39 @@
+{
+  "name": "Fireworks Text-to-SQL Takehome",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+
+  // Run setup.sh once when the codespace is first created — installs deps
+  // into .venv and downloads data/Chinook.db.
+  "postCreateCommand": "./setup.sh",
+
+  // After every start, remind the user to set their Fireworks key.
+  "postStartCommand": "echo '\\n→ Next step: paste your key into .env, e.g.\\n    echo \"FIREWORKS_API_KEY=fw_...\" > .env\\nor set FIREWORKS_API_KEY as a Codespaces user secret in github.com/settings/codespaces.\\n\\nThen:\\n    source .venv/bin/activate\\n    python -m src.cli\\n\\n— or — serve the dashboard locally:\\n    python3 -m http.server 8000  (auto-forwards to your browser)\\n'",
+
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Dashboard",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/fireworks-takehome/.venv/bin/python",
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  },
+
+  // Pull FIREWORKS_API_KEY from Codespaces user secrets if the reviewer set
+  // one — see https://github.com/settings/codespaces. Falls through harmlessly
+  // if the secret isn't set; user can also write it to .env manually.
+  "remoteEnv": {
+    "FIREWORKS_API_KEY": "${localEnv:FIREWORKS_API_KEY}"
+  }
+}

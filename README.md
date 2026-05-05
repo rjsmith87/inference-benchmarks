@@ -4,7 +4,19 @@ An interactive CLI that converts natural-language questions into executable
 SQLite queries against the Chinook music-store database, using open-source
 models hosted on Fireworks.
 
-## Quick start
+**Live dashboard:** https://rjsmith87.github.io/fireworks-takehome/dashboard.html
+
+## One-click setup
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/rjsmith87/fireworks-takehome?quickstart=1)
+
+Click the badge to launch a pre-configured Codespace — `setup.sh` runs
+automatically, the venv is built, Chinook.db is downloaded, and the
+dashboard port (8000) is forwarded to your browser. Just paste your
+Fireworks key into `.env` (or set it as a [Codespaces user secret](https://github.com/settings/codespaces))
+and you're running.
+
+## Quick start (local)
 
 ```bash
 ./setup.sh                            # uv venv, deps, downloads Chinook.db

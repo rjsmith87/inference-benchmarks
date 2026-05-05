@@ -1064,9 +1064,11 @@ wrote data/dev_answers.json</pre>
 
     <!-- Live latency test moved to the top — first thing a reviewer sees -->
     <div class="card sub-section" style="margin-top: 16px;">
-      <h3>Live latency test · Kimi K2.6</h3>
-      <p style="color: var(--text-dim);">Fires 3 sequential calls to Fireworks (<strong>Kimi K2.6</strong>) against the same dev question and reports the median you see right now. Calls also stream into the Live Demo activity log.</p>
+      <h3>Live latency test · <span id="latModelLabel">Kimi K2.6</span></h3>
+      <p style="color: var(--text-dim);">Fires 3 sequential calls to Fireworks (<strong id="latModelLabel2">Kimi K2.6</strong>) against the same dev question and reports the median you see right now. Calls also stream into the Live Demo activity log.</p>
       <div class="row-flex" style="margin-top: 12px;">
+        <label class="muted" for="latModelSelect">Model:</label>
+        <select id="latModelSelect" aria-label="Latency-test model"></select>
         <button class="btn" id="latRun">Measure latency now ▸</button>
         <span class="muted" id="latStatus">Set your Fireworks key in the <a href="#livedemo">Live Demo</a> tab.</span>
       </div>
@@ -2582,21 +2584,24 @@ function refreshLatencyDashboard() {
 }
 
 async function runLatencyTest() {
-  const btn = document.getElementById("latRun");
+  const btn    = document.getElementById("latRun");
   const status = document.getElementById("latStatus");
   const result = document.getElementById("latResult");
+  const sel    = document.getElementById("latModelSelect");
+  const modelId = (sel && sel.value) || "accounts/fireworks/models/kimi-k2p6";
+  const modelDisplay = (typeof modelLabelShort === "function") ? modelLabelShort(modelId) : modelId.split("/").pop();
   btn.disabled = true;
   result.innerHTML = "";
   const samples = [];
   await dbReady;
   try {
     for (let i = 1; i <= 3; i++) {
-      status.innerHTML = `<span class="spinner"></span> firing call ${i}/3 …`;
-      const r = await runAgentOnce("How many distinct countries do we have customers in?");
+      status.innerHTML = `<span class="spinner"></span> firing call ${i}/3 on ${modelDisplay}…`;
+      const r = await runAgentOnce("How many distinct countries do we have customers in?", modelId);
       samples.push(r.latency_ms);
       // Record in the global history so the stats row + ticker update.
       recordRun({
-        modelId: "accounts/fireworks/models/kimi-k2p6",
+        modelId,
         promptType: "agent",
         question: "How many distinct countries do we have customers in?",
         latency_ms: r.latency_ms,
@@ -2606,20 +2611,39 @@ async function runLatencyTest() {
         error: r.error,
       });
       result.innerHTML = samples.map((sm, idx) =>
-        `<div class="muted">call ${idx + 1} (Kimi K2.6): ${sm.toFixed(0)} ms ${sm < 3000 ? '✓' : '— over 3s'}</div>`).join("");
+        `<div class="muted">call ${idx + 1} (${modelDisplay}): ${sm.toFixed(0)} ms ${sm < 3000 ? '✓' : '— over 3s'}</div>`).join("");
     }
     const sorted = [...samples].sort((a, b) => a - b);
     const median = sorted[1];
-    result.innerHTML += `<div style="margin-top:10px;font-weight:600;color:${median < 3000 ? 'var(--green)' : 'var(--yellow)'};">Median: ${median.toFixed(0)} ms ${median < 3000 ? '· under 3s' : '· over 3s'}</div>`;
-    status.textContent = `done · 3 calls completed`;
+    result.innerHTML += `<div style="margin-top:10px;font-weight:600;color:${median < 3000 ? 'var(--green)' : 'var(--yellow)'};">Median (${modelDisplay}): ${median.toFixed(0)} ms ${median < 3000 ? '· under 3s' : '· over 3s'}</div>`;
+    status.textContent = `done · 3 calls on ${modelDisplay}`;
   } catch (e) {
-    status.innerHTML = `<span style="color:var(--red);">error: ${(e.message || e).slice(0,90)}</span>`;
+    status.innerHTML = `<span style="color:var(--red);">error on ${modelDisplay}: ${(e.message || e).slice(0,90)}</span>`;
   } finally {
     btn.disabled = false;
   }
 }
 
 function initLatency() {
+  // Populate model dropdown from MODEL_OPTIONS (same list the Live Demo uses).
+  const sel = document.getElementById("latModelSelect");
+  if (sel && typeof MODEL_OPTIONS !== "undefined") {
+    for (const m of MODEL_OPTIONS) {
+      const o = document.createElement("option");
+      o.value = m.id; o.textContent = m.label;
+      sel.appendChild(o);
+    }
+    sel.value = "accounts/fireworks/models/kimi-k2p6";
+    const syncLabel = () => {
+      const display = modelLabelShort(sel.value);
+      const a = document.getElementById("latModelLabel");
+      const b = document.getElementById("latModelLabel2");
+      if (a) a.textContent = display;
+      if (b) b.textContent = display;
+    };
+    sel.addEventListener("change", syncLabel);
+    syncLabel();
+  }
   document.getElementById("latRun").addEventListener("click", runLatencyTest);
   tryLoadPerf().then(renderBenchmarkStats);
   refreshLatencyDashboard();  // initial state — "Run queries in Live Demo…"

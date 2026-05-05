@@ -30,11 +30,14 @@ edges, not glossy claims.
   **13/15 (87%)** on a clean run; 14/15 on quieter shared-tier runs
   because s_013 is run-to-run flaky. Counted as 13/15 in the README to
   be conservative.
-- `python -m src.evals --baseline` → **1/10**. Confirms the customer's
-  current naive prompt (`Convert this question to SQL: {question}`)
-  fails on 9/10 questions because the model invents lowercase plural
+- `python -m src.evals --baseline` → **2/10**. Confirms the customer's
+  current prototype prompt (`Convert this question to SQL: {question}`)
+  fails on 8/10 questions because the model invents lowercase plural
   table names (`tracks`, `customers`, `albums`) that don't exist in
-  Chinook. Full enriched output in `data/baseline_results.json`.
+  Chinook. The two passes (q_002 "AC/DC albums", q_004 "most popular
+  media type") are the questions where the model happened to guess
+  the correct table casing. Full enriched output in
+  `data/baseline_results.json`.
 
 ### Perf
 - `python -m src.perf accounts/fireworks/models/kimi-k2p6 --out
@@ -191,7 +194,7 @@ python -m src.evals accounts/fireworks/models/kimi-k2p6
 python -m src.evals accounts/fireworks/models/kimi-k2p6 \
     --questions data/synthetic_questions.json
 
-# 1/10 baseline accuracy
+# 2/10 baseline accuracy
 python -m src.evals accounts/fireworks/models/kimi-k2p6 --baseline
 
 # Latency distribution + cost

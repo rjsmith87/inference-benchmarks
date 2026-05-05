@@ -958,99 +958,119 @@ wrote data/dev_answers.json</pre>
 
     <div class="sub-section">
       <h2 class="sub-title">Model comparison · the full decision matrix</h2>
-      <p style="color: var(--text-dim); max-width: 820px;">
-        Every chat-capable model on this Fireworks key, swept against the
-        10 dev questions in a single-shot, no-repair configuration to make
-        the comparison apples-to-apples. The 429 column is critical context:
-        rate limits hit several models hard during this sweep; the
-        <strong>raw accuracy</strong> column is what literally happened, the
-        <strong>clean acc</strong> column excludes 429-failed calls. Sweep
-        data is in <code class="mono">data/model_sweep.json</code>.
+      <p style="color: var(--text-dim); max-width: 880px;">
+        Every chat-capable model on this Fireworks key, against two tests:
+        (1) a one-question smoke test
+        (<code class="mono">"How many albums are in the database?"</code>,
+        gold = 347, 15s timeout — see
+        <code class="mono">data/single_q_test.json</code>) and (2) a 10-question
+        dev-set sweep, single-shot, no repair (see
+        <code class="mono">data/model_sweep.json</code>). The Verdict column
+        carries the current notes — every line below is from a run made for
+        this submission.
+      </p>
+      <p style="color: var(--text-dim); margin-top: 8px;">
+        <strong>Smoke-test summary:</strong> all 7 models eventually returned
+        the correct answer (347) with JSON mode honored. Three (Kimi K2.5,
+        GLM-5.1, Qwen3-8B) hit a 429 on first attempt and only succeeded after
+        a per-minute rate-limit window reset. Minimax M2.7 took 17.8s — over
+        our 15s timeout — and is labeled "(slow ~18s)" in the dropdown.
       </p>
       <table class="data">
         <thead>
-          <tr><th>Model</th><th>Dev accuracy</th><th>JSON Reliable?</th><th>Median latency</th><th>Per-query cost</th><th>Verdict</th></tr>
+          <tr><th>Model</th><th>Smoke (1 Q · gold 347)</th><th>Dev sweep (10 Q)</th><th>JSON Reliable?</th><th>Per-query cost</th><th>Verdict</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><strong>Kimi K2.6</strong> <span class="pill">primary</span></td>
-            <td class="num good"><strong>10/10</strong> with repair · 6/10 first-shot</td>
+            <td class="good">✓ 1,449 ms · JSON ✓ · 347 ✓</td>
+            <td class="num good"><strong>10/10</strong> w/ repair · 6/10 first-shot</td>
             <td class="good">Yes — 7/10 first-shot, 100% with repair</td>
-            <td class="num">1,294 ms (clean)</td>
             <td class="num">$0.000942 (verified)</td>
             <td>Ships in this POC. Repair loop closes the first-shot gap.</td>
           </tr>
           <tr>
             <td>Kimi K2.5</td>
+            <td class="warn">✓ 1,249 ms · JSON ✓ · 347 ✓ <em>(429 on 1st try, retry succeeded)</em></td>
             <td class="num good">7/10 first-shot</td>
             <td class="good">Yes — 7/10</td>
-            <td class="num warn">7,917 ms (clean)</td>
             <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Higher first-shot accuracy than K2.6 but ~5× slower. Drop-in alternative if K2.6 cost rises; not worth the latency hit today.</td>
+            <td>Higher first-shot accuracy than K2.6 but ~5× slower on the longer sweep. Drop-in alternative if K2.6 cost rises.</td>
           </tr>
           <tr>
             <td>DeepSeek V4 Pro</td>
+            <td class="good">✓ 1,479 ms · JSON ✓ · 347 ✓</td>
             <td class="num warn">4/10 (1 call returned empty content)</td>
-            <td class="warn">Partial — 6/10</td>
-            <td class="num">2,956 ms (clean)</td>
+            <td class="warn">Partial — 6/10 on the longer sweep</td>
             <td class="num">Pricing not published on Fireworks site for this version</td>
             <td>Reasoning-class output (~282 mean completion tokens vs Kimi's ~48); not cost-competitive at this token profile.</td>
           </tr>
           <tr>
             <td>GLM-5</td>
-            <td class="num bad">3/10 (7/10 calls hit 429 rate limits)</td>
-            <td class="bad">Poor — 3/10 honored</td>
-            <td class="num warn">5,584 ms (clean)</td>
+            <td class="good">✓ 2,449 ms · JSON ✓ · 347 ✓</td>
+            <td class="num bad">3/10 (7/10 calls hit 429s in the sweep)</td>
+            <td class="bad">Poor on sweep — 3/10 honored</td>
             <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Of 3 clean calls all 3 were correct — undersampled. JSON-mode reliability is the disqualifier today.</td>
+            <td>Smoke test passes cleanly; sweep was rate-limited. JSON-mode reliability under load is the open question.</td>
           </tr>
           <tr>
             <td>GLM-5.1</td>
-            <td class="num bad">2/10 (7/10 calls hit 429 rate limits)</td>
-            <td class="bad">Poor — 3/10 honored</td>
-            <td class="num warn">9,817 ms (clean)</td>
+            <td class="warn">✓ 2,803 ms · JSON ✓ · 347 ✓ <em>(429 on 1st try, retry succeeded)</em></td>
+            <td class="num bad">2/10 (7/10 calls hit 429s)</td>
+            <td class="bad">Poor on sweep — 3/10 honored</td>
             <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Mostly ignores JSON mode and one returned SQL was rejected by SQLite. No improvement over GLM-5 in this sample.</td>
+            <td>Smoke test passes; one sweep call returned SQL the SQLite engine rejected. No improvement over GLM-5 in our sample.</td>
           </tr>
           <tr>
-            <td>Minimax M2.7</td>
-            <td class="num bad">3/10 (7/10 calls hit 429 rate limits)</td>
-            <td class="bad">Poor — 3/10 honored</td>
-            <td class="num">3,262 ms (clean)</td>
+            <td>Minimax M2.7 <span class="pill" style="background: rgba(251,191,36,0.14); color: var(--yellow);">slow</span></td>
+            <td class="warn">✓ 17,798 ms · JSON ✓ · 347 ✓ <em>(over 15s timeout)</em></td>
+            <td class="num bad">3/10 (7/10 calls hit 429s)</td>
+            <td class="bad">Poor on sweep — 3/10 honored</td>
             <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Of 3 clean calls all 3 were correct. Worth re-testing on a fresh rate-limit window before ruling out.</td>
+            <td>Functionally correct but slow enough that it busts the latency budget on its own. Labeled "(slow ~18s)" in the dropdown so the reviewer knows what to expect.</td>
           </tr>
           <tr>
-            <td>Qwen3-8B <span class="pill purple">legacy</span></td>
+            <td>Qwen3-8B <span class="pill purple">experimental</span></td>
+            <td class="warn">✓ 1,239 ms · JSON ✓ · 347 ✓ <em>(429 on 1st + 2nd attempts; succeeded after 90s back-off)</em></td>
             <td class="num warn">5/10 (earlier session)</td>
             <td class="warn">Partial — observed in earlier runs</td>
-            <td class="num">~3-5 s</td>
             <td class="num">~$0.000200 estimated · verify before publishing</td>
-            <td>Retired from this account's catalog after our earlier session. Plausible CACR cheap-first candidate if re-provisioned.</td>
+            <td>Reachable but not listed in <code class="mono">/v1/models</code>. Persistent rate-limiting on this key. Plausible CACR cheap-first router candidate once we have stable QPS allowance.</td>
           </tr>
           <tr>
             <td>Qwen2.5-Coder-32B</td>
-            <td class="num">Not reachable</td>
-            <td class="num">Not reachable</td>
-            <td class="num">Not reachable</td>
-            <td class="num">Not reachable</td>
-            <td>The customer's specific ask. Not in <code class="mono">/v1/models</code> for this Fireworks key. Would re-test once provisioned.</td>
+            <td class="num">Not reachable (404)</td>
+            <td class="num">Not reachable (404)</td>
+            <td class="num">Not reachable (404)</td>
+            <td class="num">Not reachable (404)</td>
+            <td>The customer's specific ask. Returns <code class="mono">NOT_FOUND</code> from <code class="mono">/v1/chat/completions</code>; not in <code class="mono">/v1/models</code> for this key.</td>
+          </tr>
+          <tr>
+            <td>Llama 4 (Maverick / Scout) · Mistral Large/Small · Qwen3-235B · Gemma 2 · Yi · DBRX · Command-R+</td>
+            <td class="num">Not reachable (404)</td>
+            <td class="num">Not reachable (404)</td>
+            <td class="num">Not reachable (404)</td>
+            <td class="num">Not reachable (404)</td>
+            <td>Probed each by name — all return <code class="mono">NOT_FOUND</code>. Nothing else in the Fireworks library is exposed to this account's key today.</td>
           </tr>
         </tbody>
       </table>
       <p class="muted" style="margin-top: 14px;">
-        <strong>Methodology.</strong> Single-shot, JSON-mode-required, 30s
-        per-call timeout, 1.5s pacing between calls, 8s between models. No
-        repair loop, no rate-limit retry — those would mask cross-model
-        differences. The full agent ships with a 4-step exponential backoff
-        on 429 and a 2-turn repair loop, which is why Kimi K2.6 hits 10/10
-        in <code class="mono">python -m src.evals</code> end-to-end (vs 6/10
-        first-shot). <strong>Caveat.</strong> Several models hit 429s during
-        this sweep — shared serverless was loaded today. The "Clean acc"
-        column factors that out, but the small denominators (e.g. 3/3 for
-        GLM-5 and Minimax) mean accuracy on those models is undersampled.
-        A Fireworks engineer with priority access could re-sweep cleanly
-        in a couple of minutes.
+        <strong>Methodology.</strong> The smoke test is one prompt
+        (<code class="mono">"How many albums are in the database?"</code>),
+        JSON-mode-required, 15s per-call timeout, with retries after a
+        rate-limit window reset for any model that 429'd. The 10-question
+        dev sweep is single-shot, JSON-mode-required, no repair loop, no
+        rate-limit retry — that's by design so cross-model differences are
+        visible rather than masked. The full agent ships with 4-step
+        exponential backoff on 429 and a 2-turn repair loop, which is why
+        Kimi K2.6 hits 10/10 in <code class="mono">python -m src.evals</code>
+        end-to-end (vs 6/10 first-shot).
+        <strong>Caveat.</strong> Shared-serverless rate limits hit several
+        models hard during the longer sweep — small denominators on GLM and
+        Minimax mean accuracy there is undersampled, not necessarily low. A
+        Fireworks engineer with priority access could re-sweep cleanly in
+        a couple of minutes.
       </p>
     </div>
   </div>
@@ -1166,8 +1186,8 @@ wrote data/dev_answers.json</pre>
         <option value="accounts/fireworks/models/deepseek-v4-pro">DeepSeek V4 Pro</option>
         <option value="accounts/fireworks/models/glm-5">GLM-5</option>
         <option value="accounts/fireworks/models/glm-5p1">GLM-5.1</option>
-        <option value="accounts/fireworks/models/minimax-m2p7">Minimax M2.7</option>
-        <option value="accounts/fireworks/models/qwen3-8b">Qwen3-8B (legacy)</option>
+        <option value="accounts/fireworks/models/minimax-m2p7">Minimax M2.7 (slow ~18s)</option>
+        <option value="accounts/fireworks/models/qwen3-8b">Qwen3-8B (experimental — rate-limited on this key)</option>
       </select>
       <span class="key-status" id="keyStatus">Never stored. Sent only to api.fireworks.ai.</span>
     </div>

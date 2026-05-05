@@ -483,7 +483,85 @@
   .decision-card p, .decision-card li { font-size: 13.5px; color: var(--text-dim); margin: 4px 0 0; }
   .decision-card ul { margin: 4px 0 0; padding-left: 18px; }
 
-  /* Question picker */
+  /* Unified comparison tool (Live Demo) */
+  .unified-demo { display: flex; flex-direction: column; gap: 16px; }
+  .demo-controls {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch;
+    margin-top: 6px;
+  }
+  @media (max-width: 760px) { .demo-controls { grid-template-columns: 1fr; } }
+  .demo-side {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
+  }
+  .demo-side-label {
+    font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;
+  }
+  .demo-model { width: 100%; }
+  .demo-vs {
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    padding: 0 4px;
+  }
+  @media (max-width: 760px) { .demo-vs { padding: 4px 0; } }
+  .seg-toggle {
+    display: inline-flex; border: 1px solid var(--line); border-radius: 7px;
+    overflow: hidden; align-self: flex-start;
+  }
+  .seg-toggle .seg {
+    padding: 7px 12px; background: transparent; border: none; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; color: var(--text-dim); font-weight: 500;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .seg-toggle .seg:hover:not(.active) { background: var(--surface-elev); color: var(--text); }
+  .seg-toggle .seg.active { background: var(--orange); color: white; font-weight: 600; }
+  .seg-toggle .seg + .seg { border-left: 1px solid var(--line); }
+  .demo-question-row { display: flex; flex-direction: column; gap: 8px; }
+  .demo-question-row select { width: 100%; }
+  .demo-run-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .run-btn-big {
+    padding: 12px 22px; font-size: 14.5px; font-weight: 600;
+    box-shadow: 0 2px 12px var(--orange-glow);
+  }
+
+  /* Terminal-style result panels */
+  .panels-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  @media (max-width: 800px) { .panels-grid { grid-template-columns: 1fr; } }
+  .panel-terminal {
+    background: #16151A; color: #F5F5F7;
+    border: 1px solid #2A2930; border-radius: 9px;
+    padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.55;
+    overflow: auto; min-height: 220px;
+  }
+  .panel-terminal .panel-empty { color: #6E6B78; font-style: italic; }
+  .panel-terminal .panel-meta { color: #c084fc; }
+  .panel-terminal .panel-meta strong { color: #F5F5F7; }
+  .panel-terminal .panel-sep { color: #3B3942; margin: 8px 0; user-select: none; }
+  .panel-terminal .panel-label { color: #fb923c; margin-top: 0; font-weight: 600; }
+  .panel-terminal .panel-code {
+    margin: 4px 0 0; padding: 0; background: transparent; border: none;
+    color: #F5F5F7; white-space: pre-wrap; word-break: break-word;
+    font-family: inherit; font-size: inherit;
+  }
+  .panel-terminal .panel-stats { color: #A8A6B0; }
+  .panel-terminal .panel-stats .ok { color: #4ADE80; }
+  .panel-terminal .panel-stats .bad { color: #F87171; }
+  .panel-terminal .panel-stats .warn { color: #FBBF24; }
+  .panel-terminal .panel-running { color: #c084fc; }
+
+  .roi-summary {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
+    padding: 14px 16px;
+  }
+  .roi-summary .roi-headline { font-size: 14px; font-weight: 600; color: var(--text); }
+  .roi-summary .roi-detail   { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
+  .roi-summary .roi-savings  { color: var(--orange); font-weight: 700; }
+  .roi-summary .roi-warning  { color: var(--text-faint); font-size: 12px; margin-top: 6px; font-style: italic; }
+
+  /* Question picker (legacy) */
   .question-picker { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
   .picker-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .picker-row select { flex: 1 1 320px; min-width: 220px; }
@@ -612,67 +690,8 @@
     </div>
 
     <div class="sub-section">
-      <h2 class="sub-title">Customer Baseline vs agent · same model, different prompt</h2>
-      <p style="color: var(--text-dim);">Pick any dev question and watch both fail or succeed in real time on Kimi K2.6. <span class="muted">Live calls require a Fireworks key — set one in the <a href="#livedemo" style="color: var(--orange);">Live Demo</a> tab.</span></p>
-      <div class="question-picker">
-        <div class="picker-row">
-          <label class="muted">Dev question:</label>
-          <select id="bsQuestion"></select>
-          <button class="btn" id="bsRunBoth">Run both ▸</button>
-        </div>
-      </div>
-      <div class="compare">
-        <div class="compare-col">
-          <h4>Customer Baseline <span class="label-pill naive">no schema · no JSON · no repair</span></h4>
-          <div class="meta" id="bsNaiveMeta">—</div>
-          <pre class="sql" id="bsNaiveSql">(SQL will appear here)</pre>
-          <pre class="rows" id="bsNaiveRows">(rows will appear here)</pre>
-          <div id="bsNaiveVerdict"></div>
-        </div>
-        <div class="compare-col">
-          <h4>Agent prompt <span class="label-pill agent">Schema + JSON + repair</span></h4>
-          <div class="meta" id="bsAgentMeta">—</div>
-          <pre class="sql" id="bsAgentSql">(SQL will appear here)</pre>
-          <pre class="rows" id="bsAgentRows">(rows will appear here)</pre>
-          <div id="bsAgentVerdict"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sub-section">
-      <h2 class="sub-title">Kimi K2.6 vs Qwen3-8B · same prompt, different model</h2>
-      <p style="color: var(--text-dim);">Both calls use the agent prompt, JSON mode, and repair. Pick a question or write your own.</p>
-      <div class="question-picker">
-        <div class="picker-row">
-          <label class="muted">Question:</label>
-          <select id="cmpPreset"></select>
-        </div>
-        <textarea id="cmpCustom" placeholder="…or type your own question (overrides the dropdown)" spellcheck="false"></textarea>
-        <div class="picker-row">
-          <button class="btn" id="cmpRun">Run on both models ▸</button>
-        </div>
-      </div>
-      <div class="compare">
-        <div class="compare-col">
-          <h4>Kimi K2.6 <span class="label-pill kimi">Primary</span></h4>
-          <div class="meta" id="cmpKimiMeta">—</div>
-          <pre class="sql" id="cmpKimiSql">(SQL will appear here)</pre>
-          <pre class="rows" id="cmpKimiRows">(rows will appear here)</pre>
-          <div id="cmpKimiVerdict"></div>
-        </div>
-        <div class="compare-col">
-          <h4>Qwen3-8B <span class="label-pill qwen">Cheap candidate</span></h4>
-          <div class="meta" id="cmpQwenMeta">—</div>
-          <pre class="sql" id="cmpQwenSql">(SQL will appear here)</pre>
-          <pre class="rows" id="cmpQwenRows">(rows will appear here)</pre>
-          <div id="cmpQwenVerdict"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="sub-section">
-      <h2 class="sub-title">All 25 questions · click any card to re-run</h2>
-      <p style="color: var(--text-dim);">Every card runs the live agent against your Fireworks key, executes the SQL through sql.js in your browser, and compares to the gold answer.</p>
+      <h2 class="sub-title">All 25 questions · click any card to inspect</h2>
+      <p style="color: var(--text-dim);">Click any card to load the question into the unified comparison tool on the <a href="#livedemo" style="color: var(--orange);">Live Demo</a> tab — pick models and prompt strategies, then run.</p>
       <div class="small-h">Dev set · 10 questions</div>
       <div class="qcards" id="devCards"></div>
       <div class="small-h">Synthetic set · 15 questions</div>
@@ -1180,15 +1199,6 @@ wrote data/dev_answers.json</pre>
     <div class="key-bar" id="keyBar" style="position: static; top: auto; margin: 0 0 16px;">
       <label for="apiKey">Fireworks API key</label>
       <input id="apiKey" type="password" placeholder="fw_..." autocomplete="off" spellcheck="false" />
-      <select id="modelSelect" aria-label="Model">
-        <option value="accounts/fireworks/models/kimi-k2p6">Kimi K2.6 — primary</option>
-        <option value="accounts/fireworks/models/kimi-k2p5">Kimi K2.5</option>
-        <option value="accounts/fireworks/models/deepseek-v4-pro">DeepSeek V4 Pro</option>
-        <option value="accounts/fireworks/models/glm-5">GLM-5</option>
-        <option value="accounts/fireworks/models/glm-5p1">GLM-5.1</option>
-        <option value="accounts/fireworks/models/minimax-m2p7">Minimax M2.7 (slow ~18s)</option>
-        <option value="accounts/fireworks/models/qwen3-8b">Qwen3-8B (experimental — rate-limited on this key)</option>
-      </select>
       <span class="key-status" id="keyStatus">Never stored. Sent only to api.fireworks.ai.</span>
     </div>
 
@@ -1197,33 +1207,48 @@ wrote data/dev_answers.json</pre>
       <p id="dbStatusText" style="margin-top: 10px; color: var(--text-dim); font-size: 13.5px;">A 1MB SQLite file is being fetched and opened in the browser via sql.js (1.10.3). All SQL runs locally — only the Fireworks API call leaves your machine.</p>
     </div>
 
-    <div class="card">
-      <h3>Free-form question</h3>
-      <p style="color: var(--text-dim);">Pick a preset or type your own — anything the Chinook schema can answer.</p>
-      <div class="question-picker">
-        <select id="ldPreset"></select>
-        <textarea id="ldCustom" placeholder="…or write your own (overrides the dropdown)" spellcheck="false"></textarea>
-        <div class="picker-row">
-          <button class="btn" id="ldRunBoth">Run Customer Baseline + agent ▸</button>
-          <button class="btn ghost" id="ldRunAgent">Run agent only</button>
-          <span class="muted">Both calls use the model selected above.</span>
+    <div class="card unified-demo">
+      <h3>Unified comparison tool</h3>
+      <p style="color: var(--text-dim);">Pick any two combinations of <em>model</em> and <em>prompt strategy</em> and run them side-by-side on any of the 25 gold questions or your own free-form input. Defaults to Customer Baseline vs Agent on Kimi K2.6 — change either side to compare anything.</p>
+
+      <div class="demo-controls">
+        <div class="demo-side">
+          <div class="demo-side-label">Side A</div>
+          <select id="ldModelA" class="demo-model"></select>
+          <div class="seg-toggle" id="ldPromptA">
+            <button type="button" class="seg active" data-prompt="agent">Agent Prompt</button>
+            <button type="button" class="seg" data-prompt="baseline">Customer Baseline</button>
+          </div>
+        </div>
+        <div class="demo-vs">vs</div>
+        <div class="demo-side">
+          <div class="demo-side-label">Side B</div>
+          <select id="ldModelB" class="demo-model"></select>
+          <div class="seg-toggle" id="ldPromptB">
+            <button type="button" class="seg" data-prompt="agent">Agent Prompt</button>
+            <button type="button" class="seg active" data-prompt="baseline">Customer Baseline</button>
+          </div>
         </div>
       </div>
-      <div class="compare">
-        <div class="compare-col">
-          <h4>Customer Baseline <span class="label-pill naive">no schema · no JSON · no repair</span></h4>
-          <div class="meta" id="ldNaiveMeta">—</div>
-          <pre class="sql" id="ldNaiveSql">(SQL will appear here)</pre>
-          <pre class="rows" id="ldNaiveRows">(rows will appear here)</pre>
-          <div id="ldNaiveVerdict"></div>
-        </div>
-        <div class="compare-col">
-          <h4>Agent prompt <span class="label-pill agent">Schema + JSON + repair</span></h4>
-          <div class="meta" id="ldAgentMeta">—</div>
-          <pre class="sql" id="ldAgentSql">(SQL will appear here)</pre>
-          <pre class="rows" id="ldAgentRows">(rows will appear here)</pre>
-          <div id="ldAgentVerdict"></div>
-        </div>
+
+      <div class="demo-question-row">
+        <label class="muted">Question</label>
+        <select id="ldQuestionPicker"></select>
+        <textarea id="ldCustomQ" placeholder="…or type your own question (overrides the dropdown)" spellcheck="false"></textarea>
+      </div>
+
+      <div class="demo-run-row">
+        <button class="btn run-btn-big" id="ldRunBoth">Run both ▸</button>
+        <span class="muted">Live calls hit api.fireworks.ai. Each side uses your selected model + prompt strategy.</span>
+      </div>
+
+      <div class="panels-grid">
+        <div class="panel-terminal" id="ldPanelA"><div class="panel-empty">Side A · configure and run</div></div>
+        <div class="panel-terminal" id="ldPanelB"><div class="panel-empty">Side B · configure and run</div></div>
+      </div>
+
+      <div class="roi-summary" id="ldRoiSummary">
+        <div class="roi-headline">ROI projection appears here after a run.</div>
       </div>
     </div>
 
@@ -1487,7 +1512,13 @@ function trimSchemaForQuestion(question) {
 // Fireworks API
 // ============================================================
 function getApiKey() { return document.getElementById("apiKey").value.trim(); }
-function getModel() { return document.getElementById("modelSelect").value; }
+// Default model is only used by callers that don't pass an explicit override
+// (e.g. the live latency tester). The unified Live Demo tool always passes
+// explicit Model A / Model B selections.
+function getModel() {
+  const el = document.getElementById("modelSelect");
+  return (el && el.value) || "accounts/fireworks/models/kimi-k2p6";
+}
 
 async function fireworksCall(messages, { model = null, jsonMode = true, maxTokens = 1024 } = {}) {
   const key = getApiKey();
@@ -1670,56 +1701,6 @@ function initTabs() {
 }
 
 // ============================================================
-// Baseline picker (Quality tab)
-// ============================================================
-function initBaseline() {
-  const sel = document.getElementById("bsQuestion");
-  for (const q of GOLD_DEV) {
-    const o = document.createElement("option");
-    o.value = q.id; o.textContent = `${q.id} · ${q.question}`;
-    sel.appendChild(o);
-  }
-  document.getElementById("bsRunBoth").addEventListener("click", runBaselineCompare);
-}
-
-async function runBaselineCompare() {
-  const id = document.getElementById("bsQuestion").value;
-  const q = GOLD_DEV.find(x => x.id === id);
-  if (!q) return;
-  const btn = document.getElementById("bsRunBoth");
-  btn.disabled = true;
-  for (const side of ["Naive", "Agent"]) {
-    document.getElementById(`bs${side}Sql`).textContent = "running…";
-    document.getElementById(`bs${side}Rows`).textContent = "";
-    document.getElementById(`bs${side}Meta`).textContent = "calling Fireworks…";
-    document.getElementById(`bs${side}Verdict`).innerHTML = `<span class="verdict err"><span class="spinner"></span>running</span>`;
-  }
-  await dbReady;
-  try {
-    const model = "accounts/fireworks/models/kimi-k2p6";
-    const [naive, agent] = await Promise.all([
-      runNaiveOnce(q.question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
-      runAgentOnce(q.question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
-    ]);
-    const naiveOk = naive.rows && rowsMatch(naive.rows, q.expected);
-    document.getElementById("bsNaiveSql").textContent = naive.sql || "(model returned no SQL)";
-    document.getElementById("bsNaiveRows").textContent = naive.error ? `error: ${naive.error}` : fmtRows(naive.rows);
-    document.getElementById("bsNaiveMeta").textContent = `${naive.latency_ms ? naive.latency_ms.toFixed(0) + " ms" : ""} · ${naive.prompt_tokens || 0} in / ${naive.completion_tokens || 0} out`;
-    setVerdict("bsNaiveVerdict", naiveOk, naive.error);
-
-    const agentOk = agent.rows && rowsMatch(agent.rows, q.expected);
-    document.getElementById("bsAgentSql").textContent = agent.sql || "(model returned no SQL)";
-    document.getElementById("bsAgentRows").textContent = agent.error ? `error: ${agent.error}` : fmtRows(agent.rows);
-    const repairsTxt = agent.repairs ? `, ${agent.repairs} repair${agent.repairs > 1 ? "s" : ""}` : "";
-    document.getElementById("bsAgentMeta").textContent = `${agent.latency_ms ? agent.latency_ms.toFixed(0) + " ms" : ""} · ${agent.prompt_tokens || 0} in / ${agent.completion_tokens || 0} out${repairsTxt}`;
-    setVerdict("bsAgentVerdict", agentOk, agent.error);
-    bumpTouched();
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-// ============================================================
 // Eval cards (Quality tab)
 // ============================================================
 function initEvalCards() {
@@ -1740,95 +1721,30 @@ function makeCard(q) {
     <div class="qpattern">${q.pattern || (q.tier === 3 ? "advanced" : q.tier === 2 ? "intermediate" : "easy")}</div>
     ${hint}
     <div class="qtext">${q.question}</div>
-    <div class="qstatus muted">click to run live</div>
+    <div class="qstatus muted">click to inspect</div>
   `;
   el.addEventListener("click", () => runEvalCard(el, q));
   return el;
 }
 
-async function runEvalCard(el, q) {
-  el.classList.remove("pass", "fail", "flaky");
+function runEvalCard(el, q) {
+  // Card click no longer runs inline — it loads the question into the
+  // unified comparison tool on the Live Demo tab so all live runs happen
+  // in one place.
+  const picker = document.getElementById("ldQuestionPicker");
+  if (picker) picker.value = q.id;
+  const custom = document.getElementById("ldCustomQ");
+  if (custom) custom.value = "";  // dropdown takes precedence
+  // Switch tabs
+  location.hash = "#livedemo";
+  // Brief visual confirmation on the card
   el.classList.add("running");
-  el.querySelector(".qstatus").innerHTML = `<span class="spinner"></span> running on Fireworks…`;
-  await dbReady;
-  try {
-    const r = await runAgentOnce(q.question);
-    const ok = r.rows && rowsMatch(r.rows, q.expected);
+  el.querySelector(".qstatus").innerHTML = `<span style="color:var(--orange);">→ loaded into Live Demo</span>`;
+  setTimeout(() => {
     el.classList.remove("running");
-    if (ok) el.classList.add("pass");
-    else if (q.known_flaky) el.classList.add("flaky");
-    else el.classList.add("fail");
-    const lat = r.latency_ms ? `${r.latency_ms.toFixed(0)} ms` : "?";
-    const repTxt = r.repairs ? ` · ${r.repairs} repair${r.repairs > 1 ? "s" : ""}` : "";
-    el.querySelector(".qstatus").innerHTML = ok
-      ? `<span style="color:var(--green);">✓ rows match · ${lat}${repTxt}</span>`
-      : (r.error
-          ? `<span style="color:var(--yellow);">⚠ ${r.error.slice(0, 60)} · ${lat}</span>`
-          : `<span style="color:var(--red);">✗ rows differ · ${lat}${repTxt}</span>`);
-    bumpTouched();
-  } catch (e) {
-    el.classList.remove("running");
-    el.classList.add("fail");
-    el.querySelector(".qstatus").innerHTML = `<span style="color:var(--red);">error: ${(e.message || e).slice(0,80)}</span>`;
-  }
-}
-
-// ============================================================
-// Model comparison (Quality tab)
-// ============================================================
-function initModelCompare() {
-  const sel = document.getElementById("cmpPreset");
-  for (const q of ALL_QUESTIONS) {
-    const o = document.createElement("option");
-    o.value = q.question;
-    o.textContent = `${q.id} · ${q.question.slice(0, 80)}`;
-    sel.appendChild(o);
-  }
-  document.getElementById("cmpRun").addEventListener("click", runModelCompare);
-}
-
-async function runModelCompare() {
-  const custom = document.getElementById("cmpCustom").value.trim();
-  const question = custom || document.getElementById("cmpPreset").value;
-  const known = ALL_QUESTIONS.find(q => q.question === question);
-
-  const btn = document.getElementById("cmpRun");
-  btn.disabled = true;
-  for (const side of ["Kimi", "Qwen"]) {
-    document.getElementById(`cmp${side}Sql`).textContent = "running…";
-    document.getElementById(`cmp${side}Rows`).textContent = "";
-    document.getElementById(`cmp${side}Meta`).textContent = "calling Fireworks…";
-    document.getElementById(`cmp${side}Verdict`).innerHTML = `<span class="verdict err"><span class="spinner"></span>running</span>`;
-  }
-  await dbReady;
-  try {
-    const [kimi, qwen] = await Promise.all([
-      runAgentOnce(question, "accounts/fireworks/models/kimi-k2p6").catch(e => ({ error: e.message, sql:"", rows:null })),
-      runAgentOnce(question, "accounts/fireworks/models/qwen3-8b").catch(e => ({ error: e.message, sql:"", rows:null })),
-    ]);
-    paintCmp("Kimi", kimi, known);
-    paintCmp("Qwen", qwen, known);
-    bumpTouched();
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function paintCmp(prefix, r, known) {
-  document.getElementById(`cmp${prefix}Sql`).textContent = r.sql || "(model returned no SQL)";
-  document.getElementById(`cmp${prefix}Rows`).textContent = r.error ? `error: ${r.error}` : fmtRows(r.rows);
-  document.getElementById(`cmp${prefix}Meta`).textContent =
-    `${r.latency_ms ? r.latency_ms.toFixed(0) + " ms" : ""} · ${r.prompt_tokens || 0} in / ${r.completion_tokens || 0} out` + (r.repairs ? ` · ${r.repairs} repair${r.repairs > 1 ? "s" : ""}` : "");
-  if (known && r.rows) {
-    const ok = rowsMatch(r.rows, known.expected);
-    setVerdict(`cmp${prefix}Verdict`, ok, r.error);
-  } else if (known && r.error) {
-    setVerdict(`cmp${prefix}Verdict`, false, r.error);
-  } else {
-    document.getElementById(`cmp${prefix}Verdict`).innerHTML = r.error
-      ? `<span class="verdict err">⚠ ${r.error.slice(0,90)}</span>`
-      : `<span class="verdict pass">SQL ran cleanly · ${r.rows ? r.rows.length + " rows" : "no rows"}</span>`;
-  }
+    el.querySelector(".qstatus").innerHTML = `<span class="muted">click to inspect</span>`;
+  }, 1400);
+  bumpTouched();
 }
 
 // ============================================================
@@ -2088,85 +2004,247 @@ function initRoadmap() {
 }
 
 // ============================================================
-// Live Demo (free-form playground)
+// Unified Live Demo · Model A vs Model B, with prompt strategy toggles
 // ============================================================
-function initLiveDemo() {
-  const sel = document.getElementById("ldPreset");
-  if (!sel) return;
-  // Curated presets — mix of dev questions and a few exploratory ones
-  const presets = [
-    "How many albums are in the database?",
-    "What are the top 5 best-selling genres by total sales?",
-    "Which 3 customers have spent the most in total?",
-    "List every distinct country in our customer base.",
-    "What is the longest track in each genre?",
-    "How many tracks have the word 'love' in their name?",
-    "What's the average invoice total per billing country, ordered highest to lowest?",
-  ];
-  for (const q of presets) {
-    const o = document.createElement("option");
-    o.value = q; o.textContent = q;
-    sel.appendChild(o);
-  }
-  document.getElementById("ldRunBoth").addEventListener("click", () => runLiveDemo({ both: true }));
-  document.getElementById("ldRunAgent").addEventListener("click", () => runLiveDemo({ both: false }));
+const MODEL_OPTIONS = [
+  { id: "accounts/fireworks/models/kimi-k2p6",       label: "Kimi K2.6 — primary" },
+  { id: "accounts/fireworks/models/kimi-k2p5",       label: "Kimi K2.5" },
+  { id: "accounts/fireworks/models/deepseek-v4-pro", label: "DeepSeek V4 Pro" },
+  { id: "accounts/fireworks/models/glm-5",           label: "GLM-5" },
+  { id: "accounts/fireworks/models/glm-5p1",         label: "GLM-5.1" },
+  { id: "accounts/fireworks/models/minimax-m2p7",    label: "Minimax M2.7 (slow ~18s)" },
+  { id: "accounts/fireworks/models/qwen3-8b",        label: "Qwen3-8B (experimental — rate-limited on this key)" },
+];
 
-  // Show the schema preview
+// Per-model pricing (USD per 1M tokens). 'verified: true' = published on Fireworks
+// pricing page. False = best-effort estimate using Kimi K2.6 rates as a proxy.
+const PRICING_BY_MODEL = {
+  "accounts/fireworks/models/kimi-k2p6":       { input: 0.95, output: 4.00, verified: true,  note: "from fireworks.ai/pricing" },
+  "accounts/fireworks/models/kimi-k2p5":       { input: 0.95, output: 4.00, verified: false, note: "rates not published; using Kimi K2.6 as proxy" },
+  "accounts/fireworks/models/deepseek-v4-pro": { input: 0.95, output: 4.00, verified: false, note: "rates not published; using Kimi K2.6 as proxy" },
+  "accounts/fireworks/models/glm-5":           { input: 0.95, output: 4.00, verified: false, note: "rates not published; using Kimi K2.6 as proxy" },
+  "accounts/fireworks/models/glm-5p1":         { input: 0.95, output: 4.00, verified: false, note: "rates not published; using Kimi K2.6 as proxy" },
+  "accounts/fireworks/models/minimax-m2p7":    { input: 0.95, output: 4.00, verified: false, note: "rates not published; using Kimi K2.6 as proxy" },
+  "accounts/fireworks/models/qwen3-8b":        { input: 0.20, output: 0.20, verified: false, note: "estimated; not yet verified on the pricing page" },
+};
+
+function modelLabel(id) { return (MODEL_OPTIONS.find(m => m.id === id) || {}).label || id; }
+function modelLabelShort(id) { return modelLabel(id).split(" — ")[0]; }
+function costPerQuery(modelId, pt, ct) {
+  const p = PRICING_BY_MODEL[modelId]; if (!p) return null;
+  return (pt * p.input + ct * p.output) / 1_000_000;
+}
+
+function initLiveDemo() {
+  // Populate model dropdowns
+  for (const sel of [document.getElementById("ldModelA"), document.getElementById("ldModelB")]) {
+    if (!sel) continue;
+    for (const m of MODEL_OPTIONS) {
+      const o = document.createElement("option");
+      o.value = m.id; o.textContent = m.label;
+      sel.appendChild(o);
+    }
+  }
+  document.getElementById("ldModelA").value = "accounts/fireworks/models/kimi-k2p6";
+  document.getElementById("ldModelB").value = "accounts/fireworks/models/kimi-k2p6";
+
+  // Populate question dropdown — all 25 gold questions
+  const qSel = document.getElementById("ldQuestionPicker");
+  if (qSel) {
+    for (const q of ALL_QUESTIONS) {
+      const o = document.createElement("option");
+      o.value = q.id;
+      o.textContent = `${q.id} · ${q.question.length > 80 ? q.question.slice(0, 78) + "…" : q.question}`;
+      qSel.appendChild(o);
+    }
+    qSel.value = "q_001";
+  }
+
+  // Wire prompt-toggle segmented buttons
+  for (const groupId of ["ldPromptA", "ldPromptB"]) {
+    const group = document.getElementById(groupId);
+    if (!group) continue;
+    group.querySelectorAll(".seg").forEach(btn => {
+      btn.addEventListener("click", () => {
+        group.querySelectorAll(".seg").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+  }
+
+  document.getElementById("ldRunBoth").addEventListener("click", runUnifiedDemo);
+
+  // Schema preview (existing card below the unified tool)
   const schemaPre = document.getElementById("ldSchemaPreview");
   if (schemaPre) schemaPre.textContent = SCHEMA_COMPACT;
 }
 
-async function runLiveDemo({ both }) {
-  const custom = document.getElementById("ldCustom").value.trim();
-  const question = custom || document.getElementById("ldPreset").value;
-  if (!question) return;
-  const btnBoth = document.getElementById("ldRunBoth");
-  const btnAgent = document.getElementById("ldRunAgent");
-  btnBoth.disabled = true; btnAgent.disabled = true;
-  for (const side of ["Naive", "Agent"]) {
-    const sql = document.getElementById(`ld${side}Sql`);
-    const rows = document.getElementById(`ld${side}Rows`);
-    const meta = document.getElementById(`ld${side}Meta`);
-    const verd = document.getElementById(`ld${side}Verdict`);
-    if (sql) sql.textContent = (side === "Agent" || both) ? "running…" : "(skipped — agent-only mode)";
-    if (rows) rows.textContent = "";
-    if (meta) meta.textContent = (side === "Agent" || both) ? "calling Fireworks…" : "—";
-    if (verd) verd.innerHTML = (side === "Agent" || both) ? `<span class="verdict err"><span class="spinner"></span>running</span>` : "";
+function getPromptType(groupId) {
+  const active = document.querySelector(`#${groupId} .seg.active`);
+  return active ? active.dataset.prompt : "agent";
+}
+
+function getQuestion() {
+  const custom = document.getElementById("ldCustomQ").value.trim();
+  if (custom) return { id: null, question: custom, expected: null };
+  const id = document.getElementById("ldQuestionPicker").value;
+  return ALL_QUESTIONS.find(q => q.id === id) || { id: null, question: "", expected: null };
+}
+
+async function runOnePrompt(modelId, promptType, question) {
+  // Wraps existing runAgentOnce / runNaiveOnce so the unified tool reuses the
+  // exact API call paths the rest of the dashboard uses.
+  const fn = promptType === "baseline" ? runNaiveOnce : runAgentOnce;
+  try {
+    const r = await fn(question, modelId);
+    return { ...r, modelId, promptType };
+  } catch (e) {
+    return {
+      modelId, promptType,
+      sql: "", rows: null, error: (e && e.message) || String(e),
+      latency_ms: 0, prompt_tokens: 0, completion_tokens: 0, repairs: 0,
+    };
   }
+}
+
+const PANEL_SEP = "─────────────────────────────────";
+
+function setPanelRunning(panelId, modelId, promptType, question) {
+  const promptDesc = promptType === "agent"
+    ? "Agent (schema + JSON + repair)"
+    : "Customer Baseline (no schema, no JSON, no repair)";
+  const el = document.getElementById(panelId);
+  el.innerHTML = `
+    <div class="panel-meta">Model:    <strong>${modelLabelShort(modelId)}</strong></div>
+    <div class="panel-meta">Prompt:   <strong>${promptDesc}</strong></div>
+    <div class="panel-meta">Question: ${escapeHtml(question)}</div>
+    <div class="panel-sep">${PANEL_SEP}</div>
+    <div class="panel-running"><span class="spinner"></span> calling api.fireworks.ai…</div>
+  `;
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function renderTerminalPanel(panelId, run, gold) {
+  const promptDesc = run.promptType === "agent"
+    ? "Agent (schema + JSON + repair)"
+    : "Customer Baseline (no schema, no JSON, no repair)";
+  const cost = costPerQuery(run.modelId, run.prompt_tokens, run.completion_tokens);
+  const pInfo = PRICING_BY_MODEL[run.modelId];
+  const costStr = cost == null ? "—"
+    : `$${cost.toFixed(6)}${pInfo && !pInfo.verified ? " (estimate)" : ""}`;
+
+  let statusHtml;
+  let statusClass;
+  if (run.error) {
+    statusHtml = `✗ ${escapeHtml(run.error.slice(0, 160))}`;
+    statusClass = "bad";
+  } else if (run.rows) {
+    statusHtml = `✓ SQL ran · ${run.rows.length} row${run.rows.length === 1 ? "" : "s"}`;
+    statusClass = "ok";
+  } else {
+    statusHtml = "✗ no rows";
+    statusClass = "bad";
+  }
+
+  let verdictLine = "";
+  if (gold) {
+    const ok = run.rows && rowsMatch(run.rows, gold);
+    verdictLine = `<div class="panel-stats"><span class="${ok ? "ok" : "bad"}">Verdict:    ${ok ? "✓ matches gold answer" : "✗ does not match gold"}</span></div>`;
+  }
+
+  const repTxt = run.repairs
+    ? ` · ${run.repairs} repair${run.repairs > 1 ? "s" : ""}`
+    : "";
+
+  const el = document.getElementById(panelId);
+  el.innerHTML = `
+    <div class="panel-meta">Model:    <strong>${escapeHtml(modelLabelShort(run.modelId))}</strong></div>
+    <div class="panel-meta">Prompt:   <strong>${promptDesc}</strong></div>
+    <div class="panel-meta">Question: ${escapeHtml(run.question || "")}</div>
+    <div class="panel-sep">${PANEL_SEP}</div>
+    <div class="panel-label">SQL:</div>
+    <pre class="panel-code">${escapeHtml(run.sql || "(model returned no SQL)")}</pre>
+    <div class="panel-sep">${PANEL_SEP}</div>
+    <div class="panel-label">Result:</div>
+    <pre class="panel-code">${escapeHtml(run.error ? `(execution error: ${run.error})` : fmtRows(run.rows))}</pre>
+    <div class="panel-sep">${PANEL_SEP}</div>
+    <div class="panel-stats">Latency:    ${run.latency_ms ? Math.round(run.latency_ms).toLocaleString() + " ms" + repTxt : "—"}</div>
+    <div class="panel-stats">Tokens:     ${run.prompt_tokens || 0} in / ${run.completion_tokens || 0} out</div>
+    <div class="panel-stats">Cost:       ${costStr}</div>
+    <div class="panel-stats"><span class="${statusClass}">Status:     ${statusHtml}</span></div>
+    ${verdictLine}
+  `;
+}
+
+function updateRoiSummary(runA, runB) {
+  const el = document.getElementById("ldRoiSummary");
+  if (!runA || !runB) {
+    el.innerHTML = `<div class="roi-headline">ROI projection appears here after a run.</div>`;
+    return;
+  }
+  const QPS_DAY = 30000;
+  const DAYS_PER_MONTH = 30;
+  const costA = costPerQuery(runA.modelId, runA.prompt_tokens, runA.completion_tokens);
+  const costB = costPerQuery(runB.modelId, runB.prompt_tokens, runB.completion_tokens);
+  const monthA = costA == null ? null : costA * QPS_DAY * DAYS_PER_MONTH;
+  const monthB = costB == null ? null : costB * QPS_DAY * DAYS_PER_MONTH;
+  const annualDiff = (monthA != null && monthB != null) ? Math.abs(monthA - monthB) * 12 : null;
+  const fmtUSD = n => n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US");
+  const labelA = `${modelLabelShort(runA.modelId)} (${runA.promptType === "agent" ? "Agent" : "Customer Baseline"})`;
+  const labelB = `${modelLabelShort(runB.modelId)} (${runB.promptType === "agent" ? "Agent" : "Customer Baseline"})`;
+  const diff = (monthA != null && monthB != null) ? Math.abs(monthA - monthB) : null;
+  const cheaper = (monthA != null && monthB != null) ? (monthA < monthB ? "A" : monthA > monthB ? "B" : "tie") : null;
+
+  const someUnverified = [runA, runB].some(r => {
+    const p = PRICING_BY_MODEL[r.modelId]; return p && !p.verified;
+  });
+
+  el.innerHTML = `
+    <div class="roi-headline">At ${QPS_DAY.toLocaleString()} queries/day:</div>
+    <div class="roi-detail">
+      <strong>${escapeHtml(labelA)}</strong> = ${fmtUSD(monthA)}/month &middot;
+      <strong>${escapeHtml(labelB)}</strong> = ${fmtUSD(monthB)}/month
+    </div>
+    ${diff != null
+      ? `<div class="roi-detail">Difference: <span class="roi-savings">${fmtUSD(diff)}/month</span> &middot; Annual savings: <span class="roi-savings">${fmtUSD(annualDiff)}</span> in favor of side ${cheaper === "tie" ? "—" : cheaper}.</div>`
+      : `<div class="roi-detail">ROI cannot be computed — token counts unavailable for one or both runs.</div>`}
+    ${someUnverified ? `<div class="roi-warning">Includes estimated rates for at least one model (Fireworks doesn't publish per-token pricing for every model in this catalog).</div>` : ""}
+  `;
+}
+
+async function runUnifiedDemo() {
+  const modelA = document.getElementById("ldModelA").value;
+  const modelB = document.getElementById("ldModelB").value;
+  const promptA = getPromptType("ldPromptA");
+  const promptB = getPromptType("ldPromptB");
+  const q = getQuestion();
+  if (!q.question) return;
+
+  setPanelRunning("ldPanelA", modelA, promptA, q.question);
+  setPanelRunning("ldPanelB", modelB, promptB, q.question);
+  document.getElementById("ldRoiSummary").innerHTML = `<div class="roi-headline"><span class="spinner"></span> running both calls in parallel…</div>`;
+
+  const btn = document.getElementById("ldRunBoth");
+  btn.disabled = true;
   await dbReady;
   try {
-    // Live Demo respects the dropdown selection so the user can compare any
-    // tested model in the playground; the curated Kimi-vs-Qwen3 panel in the
-    // Quality tab keeps its hardcoded pair.
-    const model = getModel();
-    const tasks = both
-      ? [
-          runNaiveOnce(question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
-          runAgentOnce(question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
-        ]
-      : [
-          Promise.resolve(null),
-          runAgentOnce(question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
-        ];
-    const [naive, agent] = await Promise.all(tasks);
-
-    if (naive) {
-      document.getElementById("ldNaiveSql").textContent = naive.sql || "(model returned no SQL)";
-      document.getElementById("ldNaiveRows").textContent = naive.error ? `error: ${naive.error}` : fmtRows(naive.rows);
-      document.getElementById("ldNaiveMeta").textContent = `${naive.latency_ms ? naive.latency_ms.toFixed(0) + " ms" : ""} · ${naive.prompt_tokens || 0} in / ${naive.completion_tokens || 0} out`;
-      document.getElementById("ldNaiveVerdict").innerHTML = naive.error
-        ? `<span class="verdict err">⚠ ${naive.error.slice(0,140)}</span>`
-        : (naive.rows ? `<span class="verdict pass">SQL ran · ${naive.rows.length} rows</span>` : `<span class="verdict fail">no rows</span>`);
-    }
-    document.getElementById("ldAgentSql").textContent = agent.sql || "(model returned no SQL)";
-    document.getElementById("ldAgentRows").textContent = agent.error ? `error: ${agent.error}` : fmtRows(agent.rows);
-    const repTxt = agent.repairs ? ` · ${agent.repairs} repair${agent.repairs > 1 ? "s" : ""}` : "";
-    document.getElementById("ldAgentMeta").textContent = `${agent.latency_ms ? agent.latency_ms.toFixed(0) + " ms" : ""} · ${agent.prompt_tokens || 0} in / ${agent.completion_tokens || 0} out${repTxt}`;
-    document.getElementById("ldAgentVerdict").innerHTML = agent.error
-      ? `<span class="verdict err">⚠ ${agent.error.slice(0,140)}</span>`
-      : (agent.rows ? `<span class="verdict pass">SQL ran · ${agent.rows.length} rows</span>` : `<span class="verdict fail">no rows</span>`);
+    const [resA, resB] = await Promise.all([
+      runOnePrompt(modelA, promptA, q.question),
+      runOnePrompt(modelB, promptB, q.question),
+    ]);
+    // Attach question for rendering
+    resA.question = q.question; resB.question = q.question;
+    renderTerminalPanel("ldPanelA", resA, q.expected);
+    renderTerminalPanel("ldPanelB", resB, q.expected);
+    updateRoiSummary(resA, resB);
+    bumpTouched();
   } finally {
-    btnBoth.disabled = false; btnAgent.disabled = false;
+    btn.disabled = false;
   }
 }
 
@@ -2196,15 +2274,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initKey();
   initHeroStats();
-  initBaseline();
-  initEvalCards();
-  initModelCompare();
+  initEvalCards();          // 25 question cards in Quality tab (click → navigate to Live Demo)
   initArch();
   initDecisions();
   initCalc();
   initLatency();
   initRoadmap();
-  initLiveDemo();
+  initLiveDemo();           // unified comparison tool + sql.js + schema preview
 });
 </script>
 </body>

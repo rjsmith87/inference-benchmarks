@@ -180,12 +180,28 @@
   .hero-sub {
     font-size: 18px; color: var(--text-dim); max-width: 760px; line-height: 1.55;
   }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
-  /* Hero "column" layout: stats stacked vertically with the run-it command directly below */
-  .hero-stack { margin-top: 28px; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
-  .hero-meta-stack { display: flex; flex-direction: column; gap: 10px; }
-  .hero-meta-stack .stat { width: 100%; min-width: 0; }
-  .hero-stack .hero-cmd { margin-top: 12px; align-self: flex-start; }
+  /* Hero (Overview tab) — 4 stats in a horizontal row on desktop, 2×2 on mobile */
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 30px;
+  }
+  @media (max-width: 900px) { .hero-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 480px) { .hero-meta { grid-template-columns: 1fr; } }
+  .hero-meta .stat { min-width: 0; }
+
+  /* Run-locally note at the bottom of the Overview tab */
+  .run-locally-note {
+    margin-top: 36px; font-size: 13px; color: var(--text-faint);
+    border-top: 1px solid var(--line); padding-top: 14px;
+  }
+  .run-locally-note .mono {
+    background: var(--code-bg); border: 1px solid var(--line);
+    padding: 2px 7px; border-radius: 5px; font-size: 12.5px; color: var(--text);
+  }
+  .run-locally-note a { color: var(--purple); text-decoration: none; }
+  .run-locally-note a:hover { color: var(--orange); text-decoration: underline; }
   .stat {
     border: 1px solid var(--line);
     border-radius: 12px; padding: 18px 22px; min-width: 168px;
@@ -773,14 +789,11 @@
       page is reproducible from the repo.
     </p>
 
-    <div class="hero-stack">
-      <div class="hero-meta-stack">
-        <div class="stat"><div class="stat-num" id="heroStatAcc">—</div><div class="stat-label" id="heroStatAccLbl">Combined accuracy</div></div>
-        <div class="stat"><div class="stat-num" id="heroStatCost">—</div><div class="stat-label">Per-query cost (Kimi K2.6)</div></div>
-        <div class="stat"><div class="stat-num gradient" id="heroStatSavings">—</div><div class="stat-label">Cheaper than GPT-5.4 baseline</div></div>
-        <div class="stat"><div class="stat-num" id="heroStatTokens">—</div><div class="stat-label">Mean tokens (in / out)</div></div>
-      </div>
-      <div class="hero-cmd"><span class="prompt">$</span>python -m src.cli</div>
+    <div class="hero-meta">
+      <div class="stat"><div class="stat-num" id="heroStatAcc">—</div><div class="stat-label" id="heroStatAccLbl">Combined accuracy</div></div>
+      <div class="stat"><div class="stat-num" id="heroStatCost">—</div><div class="stat-label">Per-query cost (best model)</div></div>
+      <div class="stat"><div class="stat-num gradient" id="heroStatSavings">—</div><div class="stat-label">Cheaper than GPT-5.4 baseline</div></div>
+      <div class="stat"><div class="stat-num" id="heroStatTokens">—</div><div class="stat-label">Mean tokens (in / out)</div></div>
     </div>
 
     <div class="sub-section">
@@ -804,6 +817,10 @@
       <div class="arch" id="archFlow"></div>
       <div class="arch-detail" id="archDetail">Click a node above ▴</div>
     </div>
+
+    <p class="run-locally-note">
+      <span class="mono">$ python -m src.cli</span> &middot; run locally — see <a href="https://github.com/rjsmith87/fireworks-takehome#quick-start" target="_blank" rel="noopener">README</a> for setup.
+    </p>
   </div>
 </section>
 

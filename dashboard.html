@@ -554,14 +554,57 @@
   .panel-terminal .panel-stats .warn { color: #FBBF24; }
   .panel-terminal .panel-running { color: #c084fc; }
 
-  .roi-summary {
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
-    padding: 14px 16px;
+  /* Big ROI card — the payoff moment after every comparison run */
+  .roi-card-big {
+    background: linear-gradient(135deg, rgba(252, 109, 38, 0.08), rgba(168, 85, 247, 0.05));
+    border: 1px solid rgba(252, 109, 38, 0.32);
+    border-radius: 14px;
+    padding: 26px 30px;
+    box-shadow: 0 4px 24px rgba(252, 109, 38, 0.12);
+    margin-top: 6px;
   }
-  .roi-summary .roi-headline { font-size: 14px; font-weight: 600; color: var(--text); }
-  .roi-summary .roi-detail   { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
-  .roi-summary .roi-savings  { color: var(--orange); font-weight: 700; }
-  .roi-summary .roi-warning  { color: var(--text-faint); font-size: 12px; margin-top: 6px; font-style: italic; }
+  .roi-card-big .roi-eyebrow {
+    color: var(--orange); font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 6px;
+  }
+  .roi-card-big .roi-heading {
+    margin: 0 0 22px; font-size: 26px; font-weight: 700; letter-spacing: -0.020em;
+    color: var(--text);
+  }
+  .roi-card-big .roi-stats-row {
+    display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 22px;
+    padding: 20px 0; border-top: 1px solid rgba(0, 0, 0, 0.07);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  }
+  @media (max-width: 800px) {
+    .roi-card-big .roi-stats-row { grid-template-columns: 1fr; gap: 18px; }
+  }
+  .roi-card-big .roi-big-stat { display: flex; flex-direction: column; }
+  .roi-card-big .roi-big-num {
+    font-size: 36px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.05;
+    color: var(--text);
+  }
+  .roi-card-big .roi-big-num.gradient {
+    background: linear-gradient(135deg, var(--orange), var(--purple));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .roi-card-big .roi-big-stat.win .roi-big-num { font-size: 44px; font-weight: 800; }
+  .roi-card-big .roi-big-label {
+    font-size: 12.5px; color: var(--text-dim); margin-top: 8px;
+    line-height: 1.45; font-weight: 500;
+  }
+  .roi-card-big .roi-context {
+    font-size: 13.5px; color: var(--text-dim); margin: 14px 0 0; line-height: 1.55;
+  }
+  .roi-card-big .roi-context strong { color: var(--text); }
+  .roi-card-big .roi-context.gpt-ref { color: var(--text-faint); border-top: 1px dashed rgba(0,0,0,0.10); padding-top: 12px; margin-top: 14px; }
+  .roi-card-big .roi-warning {
+    color: var(--text-faint); font-size: 12px; margin-top: 10px; font-style: italic;
+  }
+  .roi-card-big .roi-empty {
+    color: var(--text-faint); font-style: italic; padding: 20px 0;
+    text-align: center; font-size: 14px;
+  }
 
   /* Question picker (legacy) */
   .question-picker { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
@@ -1241,8 +1284,8 @@ wrote data/dev_answers.json</pre>
         <div class="panel-terminal" id="ldPanelB"><div class="panel-empty">Side B · configure and run</div></div>
       </div>
 
-      <div class="roi-summary" id="ldRoiSummary">
-        <div class="roi-headline">ROI projection appears here after a run.</div>
+      <div class="roi-card-big" id="ldRoiSummary">
+        <div class="roi-empty">Run a comparison above to see the cost-at-scale projection.</div>
       </div>
     </div>
 
@@ -2301,36 +2344,93 @@ function renderTerminalPanel(panelId, run, gold) {
 function updateRoiSummary(runA, runB) {
   const el = document.getElementById("ldRoiSummary");
   if (!runA || !runB) {
-    el.innerHTML = `<div class="roi-headline">ROI projection appears here after a run.</div>`;
+    el.innerHTML = `<div class="roi-empty">Run a comparison above to see the cost-at-scale projection.</div>`;
     return;
   }
-  const QPS_DAY = 30000;
-  const DAYS_PER_MONTH = 30;
+  const QPS_DAY      = 30_000;       // Raul's first cohort
+  const QPS_DAY_10X  = 300_000;      // 10× scale
+  const DAYS_MONTH   = 30;
+  const DAYS_YEAR    = 365;
+
   const costA = costPerQuery(runA.modelId, runA.prompt_tokens, runA.completion_tokens);
   const costB = costPerQuery(runB.modelId, runB.prompt_tokens, runB.completion_tokens);
-  const monthA = costA == null ? null : costA * QPS_DAY * DAYS_PER_MONTH;
-  const monthB = costB == null ? null : costB * QPS_DAY * DAYS_PER_MONTH;
-  const annualDiff = (monthA != null && monthB != null) ? Math.abs(monthA - monthB) * 12 : null;
-  const fmtUSD = n => n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US");
-  const labelA = `${modelLabelShort(runA.modelId)} (${runA.promptType === "agent" ? "Agent" : "Customer Baseline"})`;
-  const labelB = `${modelLabelShort(runB.modelId)} (${runB.promptType === "agent" ? "Agent" : "Customer Baseline"})`;
-  const diff = (monthA != null && monthB != null) ? Math.abs(monthA - monthB) : null;
-  const cheaper = (monthA != null && monthB != null) ? (monthA < monthB ? "A" : monthA > monthB ? "B" : "tie") : null;
+  const monthA = costA == null ? null : costA * QPS_DAY * DAYS_MONTH;
+  const monthB = costB == null ? null : costB * QPS_DAY * DAYS_MONTH;
+  const yearA10 = costA == null ? null : costA * QPS_DAY_10X * DAYS_YEAR;
+  const yearB10 = costB == null ? null : costB * QPS_DAY_10X * DAYS_YEAR;
+
+  const haveBoth = monthA != null && monthB != null;
+  const annualDiff = haveBoth ? Math.abs(monthA - monthB) * 12 : null;
+  const monthDiff  = haveBoth ? Math.abs(monthA - monthB) : null;
+  const year10Diff = (yearA10 != null && yearB10 != null) ? Math.abs(yearA10 - yearB10) : null;
+  const cheaperLabel = haveBoth
+    ? (monthA < monthB ? `${modelLabelShort(runA.modelId)} (${runA.promptType === "agent" ? "Agent" : "Customer Baseline"})`
+       : monthA > monthB ? `${modelLabelShort(runB.modelId)} (${runB.promptType === "agent" ? "Agent" : "Customer Baseline"})`
+       : "Tie")
+    : null;
+  const cheaperArrow = haveBoth && monthA !== monthB ? "↓" : "";
+
+  // GPT-5.4 reference using the average token profile of A and B
+  // (only count sides that actually returned tokens; otherwise rate-limited
+  // attempts would bias the average to zero).
+  const validRuns = [runA, runB].filter(r => r.prompt_tokens && r.completion_tokens);
+  let gptMonth = null;
+  if (validRuns.length) {
+    const avgPT = validRuns.reduce((s, r) => s + r.prompt_tokens, 0) / validRuns.length;
+    const avgCT = validRuns.reduce((s, r) => s + r.completion_tokens, 0) / validRuns.length;
+    const gptCost = (avgPT * PRICING.gpt54.input + avgCT * PRICING.gpt54.output) / 1_000_000;
+    gptMonth = gptCost * QPS_DAY * DAYS_MONTH;
+  }
+
+  const fmtUSD     = n => n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US");
+  const fmtUSDLong = n => n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US");
+
+  const labelA = `${modelLabelShort(runA.modelId)} · ${runA.promptType === "agent" ? "Agent" : "Customer Baseline"}`;
+  const labelB = `${modelLabelShort(runB.modelId)} · ${runB.promptType === "agent" ? "Agent" : "Customer Baseline"}`;
 
   const someUnverified = [runA, runB].some(r => {
     const p = PRICING_BY_MODEL[r.modelId]; return p && !p.verified;
   });
 
   el.innerHTML = `
-    <div class="roi-headline">At ${QPS_DAY.toLocaleString()} queries/day:</div>
-    <div class="roi-detail">
-      <strong>${escapeHtml(labelA)}</strong> = ${fmtUSD(monthA)}/month &middot;
-      <strong>${escapeHtml(labelB)}</strong> = ${fmtUSD(monthB)}/month
+    <div class="roi-eyebrow">Cost at scale</div>
+    <h3 class="roi-heading">What this means at Raul's volume</h3>
+
+    <div class="roi-stats-row">
+      <div class="roi-big-stat">
+        <div class="roi-big-num">${fmtUSD(monthA)}</div>
+        <div class="roi-big-label">${escapeHtml(labelA)} &middot; per month</div>
+      </div>
+      <div class="roi-big-stat">
+        <div class="roi-big-num">${fmtUSD(monthB)}</div>
+        <div class="roi-big-label">${escapeHtml(labelB)} &middot; per month</div>
+      </div>
+      <div class="roi-big-stat win">
+        <div class="roi-big-num gradient">${haveBoth ? cheaperArrow + " " + fmtUSD(annualDiff) + "/yr" : "—"}</div>
+        <div class="roi-big-label">${
+          haveBoth && monthA !== monthB
+            ? `Annual savings · in favor of <strong>${escapeHtml(cheaperLabel)}</strong>`
+            : haveBoth ? "No difference at this token profile" : "Annual savings unavailable — one or both runs lacked token counts"
+        }</div>
+      </div>
     </div>
-    ${diff != null
-      ? `<div class="roi-detail">Difference: <span class="roi-savings">${fmtUSD(diff)}/month</span> &middot; Annual savings: <span class="roi-savings">${fmtUSD(annualDiff)}</span> in favor of side ${cheaper === "tie" ? "—" : cheaper}.</div>`
-      : `<div class="roi-detail">ROI cannot be computed — token counts unavailable for one or both runs.</div>`}
-    ${someUnverified ? `<div class="roi-warning">Includes estimated rates for at least one model (Fireworks doesn't publish per-token pricing for every model in this catalog).</div>` : ""}
+
+    <p class="roi-context">
+      Based on <strong>30,000 queries/day</strong> (Raul's projected first cohort) using actual token counts from the run above.
+      ${monthDiff != null ? `Monthly difference: <strong>${fmtUSD(monthDiff)}</strong>.` : ""}
+    </p>
+    <p class="roi-context">
+      <strong>At 10× scale (300,000 queries/day):</strong>
+      Side A = ${fmtUSDLong(yearA10)}/yr &middot;
+      Side B = ${fmtUSDLong(yearB10)}/yr
+      ${year10Diff != null ? `&middot; Savings: <strong>${fmtUSDLong(year10Diff)}/yr</strong>.` : "."}
+    </p>
+    <p class="roi-context gpt-ref">
+      For context: <strong>GPT-5.4</strong> at the same volume (30k q/day) using the same token profile = ${fmtUSD(gptMonth)}/month.
+    </p>
+    ${someUnverified
+      ? `<p class="roi-warning">Includes estimated rates for at least one model — Fireworks doesn't publish per-token pricing for every model in this catalog.</p>`
+      : ""}
   `;
 }
 
@@ -2344,7 +2444,7 @@ async function runUnifiedDemo() {
 
   setPanelRunning("ldPanelA", modelA, promptA, q.question);
   setPanelRunning("ldPanelB", modelB, promptB, q.question);
-  document.getElementById("ldRoiSummary").innerHTML = `<div class="roi-headline"><span class="spinner"></span> running both calls in parallel…</div>`;
+  document.getElementById("ldRoiSummary").innerHTML = `<div class="roi-empty"><span class="spinner"></span> running both calls in parallel — cost projection arrives when they land</div>`;
 
   const btn = document.getElementById("ldRunBoth");
   btn.disabled = true;

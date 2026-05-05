@@ -128,7 +128,16 @@
     border-radius: 10px; padding: 12px 14px;
     display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
   }
-  .key-bar label { font-size: 12px; color: var(--text-dim); }
+  .key-bar label {
+    font-size: 15px; color: var(--text); font-weight: 700;
+    letter-spacing: -0.005em;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .key-bar label::before {
+    content: "🔑";
+    font-size: 16px;
+    filter: grayscale(0.2);
+  }
   .key-bar input {
     flex: 1 1 280px; min-width: 220px;
     background: var(--code-bg); color: var(--text);

@@ -76,6 +76,36 @@ edges, not glossy claims.
   - Mean reduction on the 9 fired: 66.9%.
   - Best case: q_002 → 89.8% reduction.
 
+### Why the 15 synthetic questions exist (eval coverage rationale)
+The provided 10-question dev set is well-suited for sanity-checking
+basic JOIN + aggregation behavior, but it's narrow. It contains no
+subqueries, no `CASE` expressions, no self-joins, no date filtering or
+date arithmetic, no `IS NULL` handling, no `UNION`, no correlated
+subqueries, no `COALESCE`, no `LIKE`, and no top-per-group. A model
+that scores 10/10 on the dev set could still fail in production the
+first time a customer asks "how many tracks have 'love' in the name".
+
+`data/synthetic_questions.json` was hand-written to fill those gaps.
+Each question is tagged with the pattern it stresses; the gold SQL is
+executed live against Chinook (`scripts/build_synthetic.py`) so the
+expected results never drift from the database. The qid → pattern map:
+
+```
+s_001  subquery_where        s_009  coalesce
+s_002  case_select           s_010  like_wildcard
+s_003  null_filter           s_011  correlated_subquery
+s_004  date_range            s_012  case_groupby
+s_005  self_join             s_013  date_arithmetic   ← flaky
+s_006  count_distinct        s_014  top_per_group     ← hard miss
+s_007  union                 s_015  like_with_having
+s_008  nested_agg
+```
+
+The two failures (s_013 and s_014) are exactly the patterns the dev
+set didn't cover — a confirmation that this expansion was the right
+call. Without the synthetic set the agent's blind spots would have
+surfaced in front of a real customer instead of in eval.
+
 ## ⚠️ What's flaky
 
 ### s_013 (date arithmetic)

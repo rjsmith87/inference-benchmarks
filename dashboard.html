@@ -795,6 +795,15 @@
   .activity-log .stat.bad { color: #F87171; }
 
   /* Build vs Buy section · Cost tab */
+  .bvb-slider-row {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 14px; margin-top: 4px;
+  }
+  .bvb-slider-context { text-align: right; line-height: 1.4; font-size: 12.5px; }
+  @media (max-width: 580px) {
+    .bvb-slider-row { flex-direction: column; align-items: flex-start; }
+    .bvb-slider-context { text-align: left; }
+  }
   .bvb-grid {
     display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px; margin-top: 16px;
@@ -1189,76 +1198,26 @@ wrote data/dev_answers.json</pre>
       Default position is 30,000 q/day — the projected first cohort.
     </p>
 
-    <div class="calc">
-      <div class="row-flex" style="justify-content: space-between;">
+
+    <div class="sub-section">
+      <h2 class="sub-title">Build vs Buy · why Fireworks</h2>
+
+      <!-- Volume slider — drives every number in the four columns below.
+           Same calcSlider id the JS hooked previously, so calcUpdate +
+           calcBuildVsBuy still wire up unchanged. -->
+      <div class="bvb-slider-row">
         <div>
           <div class="muted">Volume</div>
           <div class="calc-vol"><span id="calcVol">30,000</span> queries/day</div>
         </div>
-        <div class="muted" style="text-align: right;">
+        <div class="muted bvb-slider-context">
           1,000 users × 30 queries/day<br/>
           (projected first cohort)
         </div>
       </div>
       <input type="range" min="1000" max="300000" step="1000" value="30000" class="calc-slider" id="calcSlider" />
 
-      <div class="calc-grid">
-        <div class="calc-cell kimi">
-          <h5>Fireworks · Kimi K2.6</h5>
-          <div class="price">$<span id="kimiDay">28.26</span><span style="font-size:14px;color:var(--text-dim);">/day</span></div>
-          <div class="row"><span>Per query</span><span>$<span id="kimiQ">0.000942</span></span></div>
-          <div class="row"><span>Monthly</span><span>$<span id="kimiMo">848</span></span></div>
-          <div class="row"><span>Rates</span><span>$0.95 in / $4.00 out per 1M</span></div>
-        </div>
-        <div class="calc-cell gpt">
-          <h5>GPT-5.4 baseline</h5>
-          <div class="price">$<span id="gptDay">84.77</span><span style="font-size:14px;color:var(--text-dim);">/day</span></div>
-          <div class="row"><span>Per query</span><span>$<span id="gptQ">0.002825</span></span></div>
-          <div class="row"><span>Monthly</span><span>$<span id="gptMo">2,543</span></span></div>
-          <div class="row"><span>Rates</span><span>$2.50 in / $15.00 out per 1M</span></div>
-        </div>
-      </div>
-
-      <div class="savings">
-        <strong>Savings: $<span id="saveDay">56.51</span>/day &middot; $<span id="saveMo">1,695</span>/month &middot; $<span id="saveYr">20,627</span>/year</strong>
-        <span class="muted"> &middot; <span id="saveRatio">67</span>% less than GPT-5.4 at the same token profile.</span>
-      </div>
-    </div>
-
-    <div class="sub-section">
-      <h2 class="sub-title">10× scale projection · 300,000 q/day</h2>
-      <p style="color: var(--text-dim);">Cohort 2 + ecosystem expansion. At 10× the customer's first-cohort volume, the gap widens proportionally.</p>
-      <table class="data">
-        <thead>
-          <tr><th>Metric</th><th>Fireworks · Kimi K2.6</th><th>GPT-5.4 baseline</th><th>Savings</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Daily</td><td class="num good">$282.59</td><td class="num bad">$847.74</td><td class="num good">$565.16</td></tr>
-          <tr><td>Monthly</td><td class="num good">$8,478</td><td class="num bad">$25,432</td><td class="num good">$16,955</td></tr>
-          <tr><td>Annual</td><td class="num good">$103,144</td><td class="num bad">$309,425</td><td class="num good">$206,281</td></tr>
-        </tbody>
-      </table>
-      <p class="muted" style="margin-top: 10px;">
-        Same per-query token profile, scaled. This is the lower-bound case
-        — a router (Qwen3-8B fast first attempt, Kimi escalation) cuts
-        another ~40% on tier-1 questions and brings the annual savings vs
-        GPT-5.4 to roughly $250k. Fine-tuned Qwen3-class checkpoints push it
-        further.
-      </p>
-    </div>
-
-    <div class="sub-section">
-      <h2 class="sub-title">Honest notes on the comparison</h2>
-      <ul style="color: var(--text-dim);">
-        <li><strong>Single-turn estimate.</strong> Multi-turn adds ~200 tokens per prior exchange (capped at 6 turns by the CLI's <code class="mono">HISTORY_TURN_LIMIT</code>).</li>
-        <li><strong>The baseline is conservative.</strong> We apply GPT-5.4 rates to <em>our</em> token profile. The customer's bare "Convert to SQL" prompt would in practice generate <em>longer</em> free-text answers, not shorter — so the real GPT-5.4 spend would be higher than what we show.</li>
-        <li><strong>The compact-schema rollout cut another ~21%</strong> off our per-query cost vs the verbose schema baseline ($0.001197 → $0.000942) at no quality cost.</li>
-      </ul>
-    </div>
-
-    <div class="sub-section">
-      <h2 class="sub-title">Build vs Buy · why Fireworks</h2>
-      <p style="color: var(--text-dim);">All four columns recompute when you drag the slider above. If you've made runs in the Live Demo, the token profile switches from the benchmark default to the average of your own runs — apples-to-apples across all four options.</p>
+      <p style="color: var(--text-dim); margin-top: 14px;">All four columns recompute when you drag the slider. If you've made runs in the Live Demo, the token profile switches from the benchmark default to the average of your own runs — apples-to-apples across all four options.</p>
       <p class="bvb-token-source" id="bvbTokenSource">Based on benchmark data (665 in / 78 out)</p>
 
       <div class="bvb-grid" id="bvbGrid">
@@ -2334,24 +2293,15 @@ function initDecisions() {
 // ============================================================
 const fmtInt = (n) => Math.round(n).toLocaleString("en-US");
 function calcUpdate() {
-  const v = parseInt(document.getElementById("calcSlider").value, 10);
-  document.getElementById("calcVol").textContent = v.toLocaleString("en-US");
-  const kimiPer = (MEAN_PROMPT_TOKENS * PRICING.kimi.input + MEAN_COMPLETION_TOKENS * PRICING.kimi.output) / 1_000_000;
-  const gptPer  = (MEAN_PROMPT_TOKENS * PRICING.gpt54.input + MEAN_COMPLETION_TOKENS * PRICING.gpt54.output) / 1_000_000;
-  const kimiDay = kimiPer * v, gptDay = gptPer * v;
-
-  document.getElementById("kimiQ").textContent = kimiPer.toFixed(6);
-  document.getElementById("kimiDay").textContent = kimiDay.toFixed(2);
-  document.getElementById("kimiMo").textContent = fmtInt(kimiDay * 30);
-  document.getElementById("gptQ").textContent = gptPer.toFixed(6);
-  document.getElementById("gptDay").textContent = gptDay.toFixed(2);
-  document.getElementById("gptMo").textContent = fmtInt(gptDay * 30);
-
-  const saveDay = gptDay - kimiDay;
-  document.getElementById("saveDay").textContent = saveDay.toFixed(2);
-  document.getElementById("saveMo").textContent  = fmtInt(saveDay * 30);
-  document.getElementById("saveYr").textContent  = fmtInt(saveDay * 365);
-  document.getElementById("saveRatio").textContent = ((1 - kimiPer / gptPer) * 100).toFixed(0);
+  // Slider drives the volume number for the Build vs Buy section, which
+  // recomputes its 4 columns. The legacy 2-card calc-grid + savings bar
+  // were removed — Build vs Buy already shows the same Fireworks vs GPT-5.4
+  // contrast as a single column pair, with three more options alongside.
+  const slider = document.getElementById("calcSlider");
+  const volEl  = document.getElementById("calcVol");
+  if (!slider) return;
+  const v = parseInt(slider.value, 10);
+  if (volEl) volEl.textContent = v.toLocaleString("en-US");
   if (typeof calcBuildVsBuy === "function") calcBuildVsBuy();
 }
 

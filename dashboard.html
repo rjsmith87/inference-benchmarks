@@ -351,18 +351,65 @@
   .score-tile .sub { font-size: 11.5px; color: var(--text-faint); margin-top: 8px; }
 
   /* Architecture diagram */
-  .arch { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 18px 0; }
-  .arch-node {
-    flex: 1 1 130px; min-width: 130px;
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: 9px; padding: 13px;
-    cursor: pointer; transition: border-color 160ms ease, transform 160ms ease;
-    text-align: center; position: relative;
+  .arch { display: block; margin: 18px 0; overflow-x: auto; }
+  .arch-svg {
+    display: block; width: 100%; max-width: 1100px; height: auto;
+    margin: 0 auto;
+    color: var(--text-faint);   /* drives currentColor on default arrow markers */
+    min-width: 720px;            /* keeps the loopback readable on small screens */
   }
-  .arch-node:hover, .arch-node.active { border-color: var(--orange); transform: translateY(-1px); }
-  .arch-node .step { font-size: 10.5px; color: var(--purple); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-  .arch-node .name { margin-top: 6px; font-size: 14px; font-weight: 600; }
-  .arch-node .arrow { position: absolute; right: -14px; top: 50%; color: var(--text-faint); transform: translateY(-50%); font-size: 18px; }
+  .arch-svg .arch-arrow {
+    stroke: var(--text-faint);
+    stroke-width: 1.8;
+    fill: none;
+  }
+  .arch-svg .arch-arrow-error {
+    stroke: var(--orange);
+    stroke-width: 2;
+  }
+  .arch-svg .arch-arrow-loop {
+    stroke: var(--orange);
+    stroke-width: 1.8;
+    stroke-dasharray: 6 4;
+  }
+  .arch-svg .arch-arrow-label {
+    font-size: 11px;
+    fill: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .arch-svg .arch-arrow-label-error,
+  .arch-svg .arch-arrow-loop-label {
+    fill: var(--orange);
+    font-weight: 600;
+  }
+  .arch-svg .arch-rect {
+    fill: var(--surface);
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+    transition: stroke 160ms ease, filter 160ms ease;
+  }
+  .arch-svg .arch-node-svg { cursor: pointer; }
+  .arch-svg .arch-node-svg:hover .arch-rect,
+  .arch-svg .arch-node-svg:focus-visible .arch-rect {
+    stroke: var(--orange);
+    filter: drop-shadow(0 2px 6px rgba(252, 109, 38, 0.20));
+  }
+  .arch-svg .arch-node-svg.active .arch-rect {
+    stroke: var(--orange);
+    stroke-width: 2.5;
+    filter: drop-shadow(0 2px 10px rgba(252, 109, 38, 0.28));
+  }
+  .arch-svg .arch-step-svg {
+    fill: var(--purple);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.12em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .arch-svg .arch-name-svg {
+    fill: var(--text);
+    font-size: 14px; font-weight: 600;
+    letter-spacing: -0.005em;
+  }
   .arch-node:last-child .arrow { display: none; }
   .arch-detail {
     background: var(--surface); border: 1px solid var(--line); border-radius: 11px;
@@ -813,18 +860,7 @@ wrote data/dev_answers.json</pre>
 <section class="tab-panel" data-panel="latency">
   <div class="container">
     <div class="panel-eyebrow">Latency · Raul's hard constraint</div>
-    <h2 class="panel-title">The 3-second P50 question, answered honestly.</h2>
-    <p class="panel-lede">
-      Raul wants &lt;3s P50 end-to-end. On Fireworks's shared serverless
-      tier this is right at the edge — we measured a clean 10/10 dev-set
-      run with median latency <strong>2,901 ms</strong> using the compact
-      schema. But 3 back-to-back perf runs with paced calls showed bimodal
-      latency. The honest answer:
-      <strong>shared serverless gets us under 3s some of the time, but not
-      contractually.</strong> Priority access on Fireworks is
-      account-provisioned, so no request-time flag fixes this — the SLO
-      requires on-demand or dedicated deployment.
-    </p>
+    <h2 class="panel-title">The 3-second P50 question.</h2>
 
     <!-- Session ticker — updates on every Live Demo run -->
     <div class="session-ticker" id="latSessionTicker">
@@ -1813,10 +1849,10 @@ const ARCH_NODES = [
     chosen: "Render schema as one-line-per-table compact form (Album(col:type[pk,fk→...])); trim by question keywords + FK closure when ≥2 tables match.",
     considered: "Tool-calling round trip; embedding-based retrieval; full CREATE TABLE blocks (~1042 prompt tokens).",
     why: "Compact form drops mean prompt tokens 935→665 (29%) with no accuracy regression on the dev set. Trim fires on 9/25 questions, mean 67% reduction on those. For a 1,000-table customer DB we'd swap the trim heuristic for embedding retrieval." },
-  { step: "03", name: "Fireworks API", title: "OpenAI-compatible call · Kimi K2.6",
-    chosen: "JSON mode, temperature 0, max_tokens 1024; 4-step exponential backoff on 429.",
-    considered: "Tool-calling; streaming; higher temperature with self-consistency; 'priority' service_tier param.",
-    why: "JSON mode is supported. Tool-calling adds an extra round trip. Temp 0 maximizes reproducibility. service_tier='priority' is silently accepted but doesn't change behavior — Fireworks priority is account-provisioned." },
+  { step: "03", name: "Fireworks API", title: "OpenAI-compatible call · any Fireworks model",
+    chosen: "OpenAI-compatible chat completions with JSON mode, temperature 0, max_tokens 1024. 4-step exponential backoff on 429. Works with any model in the Fireworks catalog — model is a constructor argument, one-line swap.",
+    considered: "Tool-calling, streaming, higher temperature with self-consistency, proprietary API formats.",
+    why: "JSON mode guarantees parseable output. Temp 0 maximizes reproducibility. OpenAI compatibility means zero vendor lock-in — same code works against any OpenAI-compatible endpoint." },
   { step: "04", name: "JSON parse", title: "Structured output extraction",
     chosen: "JSON object with {sql, rationale}, parsed with native JSON.parse.",
     considered: "Free-text extraction with regex; XML tags; tool-call schema.",
@@ -1825,41 +1861,117 @@ const ARCH_NODES = [
     chosen: "Direct sqlite3 .execute() — no sandbox.",
     considered: "Read-only sandbox; AST validation pre-execute; query rewriting.",
     why: "The system prompt forbids DDL/DML and the agent only emits SELECTs in practice. For production we'd add a read-only connection wrapper; for the POC the simplicity wins." },
-  { step: "06", name: "Repair", title: "Execute-and-repair loop",
-    chosen: "On SQLite error, send the error message back as a follow-up turn; max 2 repairs. On the first repair, swap the trimmed schema for the full one in case trim dropped a needed table.",
-    considered: "Single-shot; AST-level auto-fix; LLM judge loop.",
-    why: "SQLite error messages are crisp ('no such column: tracks.GenreID') — the model fixes them on the next turn. Two repairs is enough; beyond that the model is usually flailing." },
+  { step: "06", name: "Repair Loop", title: "Execute-and-repair loop",
+    chosen: "On SQLite error, feed the error message back to the model as a follow-up turn. Max 2 retries. On the first repair attempt, swap the trimmed schema for the full schema in case trimming dropped a needed table. On the second attempt, the model has the full schema + two error messages — if it still fails, return the error to the user.",
+    considered: "Single-shot (no retry); AST-level auto-fix (rewrite SQL programmatically); LLM judge loop (second model validates first model's output); client-side SQL linting before execution.",
+    why: "SQLite error messages are specific and actionable ('no such column: tracks.GenreID') — the model reliably self-corrects from them. Two retries is enough; beyond that the model is usually repeating the same mistake. Zero retries were needed across all 25 eval questions, but the safety net matters for production edge cases. Full-schema fallback on repair handles the one scenario where trimming could cause a miss.",
+    evidence: "0/25 questions required repair in eval. The mechanism was verified working by deliberately testing with a malformed schema." },
   { step: "07", name: "Result", title: "Rows + rationale to user",
     chosen: "Row table + one-sentence rationale + the SQL.",
     considered: "Just the rows; just the SQL; multi-paragraph explanation.",
     why: "BI users want to see the SQL (trust + verifiability) and the rationale (debuggability). Rows are the headline." },
 ];
 
+// SVG flowchart layout (viewBox 0 0 1100 330).
+// Nodes 0–4 + 6 sit on a top row at y=64; node 5 (Repair) is below the
+// Execute box; the loopback arrow leaves Repair, ducks under the row, and
+// curves back into Fireworks API to make the retry path visually obvious.
+const ARCH_LAYOUT = [
+  { i: 0, x: 20,   y: 64,  w: 160, h: 72 },  // Question
+  { i: 1, x: 200,  y: 64,  w: 160, h: 72 },  // Schema
+  { i: 2, x: 380,  y: 64,  w: 160, h: 72 },  // Fireworks API
+  { i: 3, x: 560,  y: 64,  w: 160, h: 72 },  // JSON parse
+  { i: 4, x: 740,  y: 64,  w: 160, h: 72 },  // Execute
+  { i: 5, x: 740,  y: 200, w: 160, h: 72 },  // Repair (below Execute)
+  { i: 6, x: 920,  y: 64,  w: 160, h: 72 },  // Result
+];
+
+function buildArchSvg() {
+  // Build node elements
+  const nodes = ARCH_LAYOUT.map(n => {
+    const data = ARCH_NODES[n.i];
+    return `
+      <g class="arch-node-svg" data-i="${n.i}" tabindex="0" role="button" aria-label="${data.name}">
+        <rect class="arch-rect" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="8" ry="8"/>
+        <text class="arch-step-svg" x="${n.x + n.w / 2}" y="${n.y + 26}" text-anchor="middle">${data.step}</text>
+        <text class="arch-name-svg" x="${n.x + n.w / 2}" y="${n.y + 52}" text-anchor="middle">${data.name}</text>
+      </g>
+    `;
+  }).join("");
+
+  // Linear arrows along the top row (right-pointing). Each arrow ends just
+  // before the next box's left edge so the marker doesn't overlap the rect.
+  const linearArrows = [
+    [180, 100, 198, 100],   // Question → Schema
+    [360, 100, 378, 100],   // Schema → Fireworks API
+    [540, 100, 558, 100],   // Fireworks API → JSON
+    [720, 100, 738, 100],   // JSON → Execute
+    [900, 100, 918, 100],   // Execute → Result   (success path)
+  ].map(([x1, y1, x2, y2]) =>
+    `<line class="arch-arrow" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" marker-end="url(#archArrow)" />`
+  ).join("");
+
+  // Error path: Execute (bottom center) → Repair (top center)
+  const errorArrow = `
+    <line class="arch-arrow arch-arrow-error" x1="820" y1="136" x2="820" y2="198" marker-end="url(#archArrowOrange)" />
+    <text class="arch-arrow-label arch-arrow-label-error" x="828" y="172">on SQLite error</text>
+  `;
+
+  // Loopback: Repair → down, left, up to Fireworks API bottom
+  const loopback = `
+    <path class="arch-arrow arch-arrow-loop"
+          d="M 820 272 L 820 308 L 460 308 L 460 138"
+          fill="none" marker-end="url(#archArrowOrange)" />
+    <text class="arch-arrow-label arch-arrow-loop-label" x="640" y="304" text-anchor="middle">retry with error message · max 2</text>
+  `;
+
+  return `
+    <svg class="arch-svg" viewBox="0 0 1100 330" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture flowchart">
+      <defs>
+        <marker id="archArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill="currentColor"/>
+        </marker>
+        <marker id="archArrowOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#FC6D26"/>
+        </marker>
+      </defs>
+      ${linearArrows}
+      ${errorArrow}
+      ${loopback}
+      ${nodes}
+    </svg>
+  `;
+}
+
 function renderArchInto(flowId, detailId) {
   const flow = document.getElementById(flowId);
   const detail = document.getElementById(detailId);
   if (!flow || !detail) return;
-  flow.innerHTML = "";
-  ARCH_NODES.forEach((n, i) => {
-    const el = document.createElement("div");
-    el.className = "arch-node";
-    el.dataset.i = i;
-    el.innerHTML = `<div class="step">${n.step}</div><div class="name">${n.name}</div><div class="arrow">›</div>`;
-    el.addEventListener("click", () => showArchInto(i, flowId, detailId));
-    flow.appendChild(el);
+  flow.innerHTML = buildArchSvg();
+  flow.querySelectorAll(".arch-node-svg").forEach(g => {
+    const i = parseInt(g.dataset.i, 10);
+    g.addEventListener("click", () => showArchInto(i, flowId, detailId));
+    g.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showArchInto(i, flowId, detailId); }
+    });
   });
+  // Default open: Schema (the high-leverage node — compact + trim)
   showArchInto(1, flowId, detailId);
 }
 
 function showArchInto(i, flowId, detailId) {
   const n = ARCH_NODES[i];
-  document.querySelectorAll(`#${flowId} .arch-node`).forEach(x =>
+  document.querySelectorAll(`#${flowId} .arch-node-svg`).forEach(x =>
     x.classList.toggle("active", parseInt(x.dataset.i, 10) === i));
+  const evidenceLine = n.evidence
+    ? `<span class="label">Evidence</span><p>${n.evidence}</p>`
+    : "";
   document.getElementById(detailId).innerHTML = `
     <h4>${n.title}</h4>
     <span class="label">What we chose</span><p>${n.chosen}</p>
     <span class="label">Alternatives considered</span><p>${n.considered}</p>
     <span class="label">Why · tradeoff</span><p>${n.why}</p>
+    ${evidenceLine}
   `;
 }
 

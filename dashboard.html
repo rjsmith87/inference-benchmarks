@@ -9,43 +9,40 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Surfaces — GitLab charcoal */
-    --bg: #1F1E24;
-    --surface: #2A2930;
-    --surface-2: #312F38;
-    --surface-elev: #3B3942;
-    --code-bg: #16151A;
+    /* Surfaces — light theme */
+    --bg: #FAFAFA;              /* page background */
+    --surface: #FFFFFF;         /* cards, elevated surfaces */
+    --surface-2: #F2F2F4;       /* table headers, slight recess */
+    --surface-elev: #E8E8EB;    /* slider track, lat-bar track */
+    --code-bg: #F5F5F5;         /* code blocks, key input, calc-cells */
 
-    /* Lines */
-    --line: rgba(255, 255, 255, 0.08);
-    --line-strong: rgba(255, 255, 255, 0.18);
+    /* Lines (dark on light) */
+    --line: rgba(0, 0, 0, 0.08);
+    --line-strong: rgba(0, 0, 0, 0.16);
 
-    /* Text */
-    --text: #F5F5F7;
-    --text-dim: #A8A6B0;
-    --text-faint: #6E6B78;
+    /* Text — GitLab charcoal for body */
+    --text: #1F1E24;            /* primary body + headings */
+    --text-dim: #5C5A66;        /* secondary text */
+    --text-faint: #8B8895;      /* tertiary */
 
-    /* Accents */
+    /* Accents (unchanged hues) */
     --orange: #FC6D26;          /* GitLab primary */
     --orange-2: #E55A1A;
-    --orange-glow: rgba(252, 109, 38, 0.20);
-    --orange-soft: rgba(252, 109, 38, 0.10);
+    --orange-glow: rgba(252, 109, 38, 0.18);
+    --orange-soft: rgba(252, 109, 38, 0.08);
     --purple: #A855F7;          /* Fireworks */
-    --purple-soft: rgba(168, 85, 247, 0.12);
+    --purple-soft: rgba(168, 85, 247, 0.10);
     --purple-2: #6B4FBB;        /* GitLab purple — tertiary */
 
-    /* Status */
-    --green: #4ADE80;
-    --red: #F87171;
-    --yellow: #FBBF24;
+    /* Status — darker hues for AA contrast on white */
+    --green: #16A34A;
+    --red: #DC2626;
+    --yellow: #B45309;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    background:
-      radial-gradient(ellipse 1100px 600px at 15% -10%, rgba(252, 109, 38, 0.08), transparent 60%),
-      radial-gradient(ellipse 900px 500px at 90% 5%, rgba(168, 85, 247, 0.06), transparent 60%),
-      var(--bg);
+    background: var(--bg);
     color: var(--text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 15px;
@@ -61,7 +58,7 @@
   /* ============== Tab bar (sticky) ============== */
   .topbar {
     position: sticky; top: 0; z-index: 60;
-    background: rgba(31, 30, 36, 0.92);
+    background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(18px) saturate(140%);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
     border-bottom: 1px solid var(--line);
@@ -107,14 +104,14 @@
   }
   .tab:hover { color: var(--text); }
   .tab[aria-selected="true"] {
-    color: var(--orange);
+    color: var(--text);
     border-bottom-color: var(--orange);
-    font-weight: 600;
+    font-weight: 700;
   }
   .tab .count {
     margin-left: 7px;
     font-size: 11px; padding: 1px 7px; border-radius: 5px;
-    background: rgba(255,255,255,0.06); color: var(--text-faint);
+    background: rgba(0, 0, 0, 0.05); color: var(--text-faint);
     letter-spacing: 0.04em;
   }
   .tab[aria-selected="true"] .count {
@@ -126,8 +123,8 @@
     position: sticky; top: 95px; z-index: 50;
     margin: 16px 0 0;
     border: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(252, 109, 38, 0.04), rgba(31, 30, 36, 0.85));
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     border-radius: 10px; padding: 12px 14px;
     display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
   }
@@ -187,7 +184,8 @@
   .stat {
     border: 1px solid var(--line);
     border-radius: 12px; padding: 18px 22px; min-width: 168px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
   .stat-num {
     font-size: 30px; font-weight: 700; letter-spacing: -0.02em;
@@ -224,7 +222,7 @@
     font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
   }
   .pill.purple { background: var(--purple-soft); color: var(--purple); }
-  .pill.muted { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+  .pill.muted { background: rgba(0, 0, 0, 0.05); color: var(--text-dim); }
 
   .grid { display: grid; gap: 14px; }
   .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -309,7 +307,7 @@
   .compare-col h4 .label-pill {
     display: inline-block; margin-left: 8px;
     font-size: 10px; padding: 2px 7px; border-radius: 5px;
-    background: rgba(255,255,255,0.06); color: var(--text-dim);
+    background: rgba(0, 0, 0, 0.05); color: var(--text-dim);
     letter-spacing: 0.04em; font-weight: 600;
   }
   .compare-col h4 .label-pill.naive { background: rgba(248,113,113,0.14); color: var(--red); }
@@ -423,7 +421,7 @@
     font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
     border-top: none;
   }
-  table.data tr:hover td { background: rgba(255,255,255,0.02); }
+  table.data tr:hover td { background: rgba(0, 0, 0, 0.025); }
   table.data td.num { font-family: 'JetBrains Mono', monospace; }
   table.data td.good { color: var(--green); }
   table.data td.bad { color: var(--red); }
@@ -447,7 +445,7 @@
     background: linear-gradient(90deg, var(--purple), var(--orange));
     border-radius: 4px;
   }
-  .lat-bar .fill.under { background: linear-gradient(90deg, #4ade80, #22c55e); }
+  .lat-bar .fill.under { background: linear-gradient(90deg, #22C55E, #15803D); }
   .lat-bar .ms { width: 80px; text-align: right; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
 
   /* Roadmap */
@@ -489,7 +487,7 @@
   /* Spinner / muted */
   .spinner {
     display: inline-block; width: 11px; height: 11px;
-    border: 2px solid rgba(255,255,255,0.18);
+    border: 2px solid rgba(0, 0, 0, 0.10);
     border-top-color: var(--orange); border-radius: 50%;
     animation: spin 800ms linear infinite;
     vertical-align: -2px; margin-right: 6px;

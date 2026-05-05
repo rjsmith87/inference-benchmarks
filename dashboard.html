@@ -928,12 +928,12 @@
 
     <div class="tabs" role="tablist" id="tabs">
       <button class="tab" role="tab" data-tab="overview"   aria-selected="true">Overview</button>
+      <button class="tab" role="tab" data-tab="livedemo"   aria-selected="false">Live Demo</button>
       <button class="tab" role="tab" data-tab="quality"    aria-selected="false">Quality<span class="count">23/25</span></button>
       <button class="tab" role="tab" data-tab="latency"    aria-selected="false">Latency</button>
       <button class="tab" role="tab" data-tab="cost"       aria-selected="false">Cost<span class="count">−67%</span></button>
       <button class="tab" role="tab" data-tab="howitworks" aria-selected="false">How It Works</button>
       <button class="tab" role="tab" data-tab="roadmap"    aria-selected="false">Production Roadmap</button>
-      <button class="tab" role="tab" data-tab="livedemo"   aria-selected="false">Live Demo</button>
     </div>
   </div>
 </div>
@@ -2056,7 +2056,7 @@ function initTabs() {
   tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
   // Initial: read hash if valid
   const initial = location.hash.replace(/^#/, "");
-  const valid = ["overview","quality","latency","cost","howitworks","roadmap","livedemo"];
+  const valid = ["overview","livedemo","quality","latency","cost","howitworks","roadmap"];
   activate(valid.includes(initial) ? initial : "overview", { skipHash: !valid.includes(initial), skipScroll: true });
 
   window.addEventListener("hashchange", () => {

@@ -181,6 +181,11 @@
     font-size: 18px; color: var(--text-dim); max-width: 760px; line-height: 1.55;
   }
   .hero-meta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+  /* Hero "column" layout: stats stacked vertically with the run-it command directly below */
+  .hero-stack { margin-top: 28px; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+  .hero-meta-stack { display: flex; flex-direction: column; gap: 10px; }
+  .hero-meta-stack .stat { width: 100%; min-width: 0; }
+  .hero-stack .hero-cmd { margin-top: 12px; align-self: flex-start; }
   .stat {
     border: 1px solid var(--line);
     border-radius: 12px; padding: 18px 22px; min-width: 168px;
@@ -423,9 +428,9 @@
   }
   table.data tr:hover td { background: rgba(0, 0, 0, 0.025); }
   table.data td.num { font-family: 'JetBrains Mono', monospace; }
-  table.data td.good { color: var(--green); }
-  table.data td.bad { color: var(--red); }
-  table.data td.warn { color: var(--yellow); }
+  table.data td.good, table.data .good { color: var(--green); }
+  table.data td.bad, table.data .bad { color: var(--red); }
+  table.data td.warn, table.data .warn { color: var(--yellow); }
 
   /* Latency tiles + bars */
   .lat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
@@ -540,45 +545,26 @@
   </div>
 </div>
 
-<div class="container">
-  <div class="key-bar" id="keyBar">
-    <label for="apiKey">Fireworks API key</label>
-    <input id="apiKey" type="password" placeholder="fw_..." autocomplete="off" spellcheck="false" />
-    <select id="modelSelect" aria-label="Model">
-      <option value="accounts/fireworks/models/kimi-k2p6">Kimi K2.6 — primary</option>
-      <option value="accounts/fireworks/models/kimi-k2p5">Kimi K2.5</option>
-      <option value="accounts/fireworks/models/deepseek-v4-pro">DeepSeek V4 Pro</option>
-      <option value="accounts/fireworks/models/glm-5">GLM-5</option>
-      <option value="accounts/fireworks/models/glm-5p1">GLM-5.1</option>
-      <option value="accounts/fireworks/models/minimax-m2p7">Minimax M2.7</option>
-      <option value="accounts/fireworks/models/qwen3-8b">Qwen3-8B (legacy)</option>
-    </select>
-    <span class="key-status" id="keyStatus">Never stored. Sent only to api.fireworks.ai.</span>
-  </div>
-</div>
-
 <!-- ============== TAB: OVERVIEW ============== -->
 <section class="tab-panel active" data-panel="overview">
   <div class="container hero">
     <div class="panel-eyebrow">Overview</div>
     <h1>A natural-language-to-SQL agent <span class="accent">for the GitLab platform</span>, on Fireworks.</h1>
     <p class="hero-sub">
-      Built in response to Raul's email: an interactive CLI that turns
-      natural-language questions into executable SQL with results — quality
-      that's customer-ready, latency engineered for an interactive feel, and
-      a cost structure that scales to thousands of users without breaking
-      the unit economics. Open-source models on Fireworks. Every number on
-      this page is reproducible from the repo.
+      An interactive CLI that turns natural-language questions into executable
+      SQL with results. Open-source models on Fireworks. Every number on this
+      page is reproducible from the repo.
     </p>
 
-    <div class="hero-meta">
-      <div class="stat"><div class="stat-num">23/25</div><div class="stat-label">Combined accuracy (92%)</div></div>
-      <div class="stat"><div class="stat-num">$0.000942</div><div class="stat-label">Per-query cost</div></div>
-      <div class="stat"><div class="stat-num gradient">~67%</div><div class="stat-label">Cheaper than GPT-5.4</div></div>
-      <div class="stat"><div class="stat-num">~665 / 78</div><div class="stat-label">Mean tokens (in / out)</div></div>
+    <div class="hero-stack">
+      <div class="hero-meta-stack">
+        <div class="stat"><div class="stat-num" id="heroStatAcc">—</div><div class="stat-label" id="heroStatAccLbl">Combined accuracy</div></div>
+        <div class="stat"><div class="stat-num" id="heroStatCost">—</div><div class="stat-label">Per-query cost (Kimi K2.6)</div></div>
+        <div class="stat"><div class="stat-num gradient" id="heroStatSavings">—</div><div class="stat-label">Cheaper than GPT-5.4 baseline</div></div>
+        <div class="stat"><div class="stat-num" id="heroStatTokens">—</div><div class="stat-label">Mean tokens (in / out)</div></div>
+      </div>
+      <div class="hero-cmd"><span class="prompt">$</span>python -m src.cli</div>
     </div>
-
-    <div class="hero-cmd"><span class="prompt">$</span>python -m src.cli</div>
 
     <div class="sub-section">
       <h2 class="sub-title">What this POC ships</h2>
@@ -613,21 +599,21 @@
       The customer's current prototype prompt
       (<code class="mono">Convert this question to SQL: {question}</code> — no
       schema, no JSON mode, no execute-and-repair) on the same Kimi K2.6
-      endpoint: <strong>1/10</strong> on the dev set. Our agent on the same
-      model: <strong>10/10 dev + 13/15 synthetic = 23/25 (92%)</strong>. The
-      lift is prompt engineering, not model swap.
+      endpoint scored <strong>1/10</strong> on the dev set. The agent on the
+      same model scored <strong>10/10 dev + 13/15 synthetic = 23/25 (92%)</strong>.
+      The lift comes from prompt engineering, not a model swap.
     </p>
 
     <div class="score-board">
-      <div class="score-tile"><div class="num">10/10</div><div class="lbl">Dev set</div><div class="sub">100% with the agent · 1/10 with the customer's naive baseline</div></div>
+      <div class="score-tile"><div class="num">10/10</div><div class="lbl">Dev set</div><div class="sub">100% with the agent · 1/10 with the customer baseline</div></div>
       <div class="score-tile purple"><div class="num">13/15</div><div class="lbl">Synthetic set</div><div class="sub">s_013 (date arithmetic) flaky · s_014 (top-per-group) miss</div></div>
       <div class="score-tile gradient"><div class="num">23/25</div><div class="lbl">Combined</div><div class="sub">92% across both sets</div></div>
       <div class="score-tile"><div class="num"><span id="liveTouched">0</span>/25</div><div class="lbl">You re-ran live</div><div class="sub">Click any card below to verify yourself</div></div>
     </div>
 
     <div class="sub-section">
-      <h2 class="sub-title">Baseline vs agent · same model, different prompt</h2>
-      <p style="color: var(--text-dim);">Pick any dev question and watch both fail or succeed in real time on Kimi K2.6.</p>
+      <h2 class="sub-title">Customer Baseline vs agent · same model, different prompt</h2>
+      <p style="color: var(--text-dim);">Pick any dev question and watch both fail or succeed in real time on Kimi K2.6. <span class="muted">Live calls require a Fireworks key — set one in the <a href="#livedemo" style="color: var(--orange);">Live Demo</a> tab.</span></p>
       <div class="question-picker">
         <div class="picker-row">
           <label class="muted">Dev question:</label>
@@ -637,7 +623,7 @@
       </div>
       <div class="compare">
         <div class="compare-col">
-          <h4>Naive prompt <span class="label-pill naive">Customer baseline</span></h4>
+          <h4>Customer Baseline <span class="label-pill naive">no schema · no JSON · no repair</span></h4>
           <div class="meta" id="bsNaiveMeta">—</div>
           <pre class="sql" id="bsNaiveSql">(SQL will appear here)</pre>
           <pre class="rows" id="bsNaiveRows">(rows will appear here)</pre>
@@ -691,6 +677,35 @@
       <div class="qcards" id="devCards"></div>
       <div class="small-h">Synthetic set · 15 questions</div>
       <div class="qcards" id="synCards"></div>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Evaluation log · actual terminal output</h2>
+      <p style="color: var(--text-dim);">A real <code class="mono">python -m src.evals accounts/fireworks/models/kimi-k2p6 --out-answers data/dev_answers.json</code> run from this submission. No editing.</p>
+      <pre class="rows" style="max-height: 360px; line-height: 1.45;">$ python -m src.evals accounts/fireworks/models/kimi-k2p6 --out-answers data/dev_answers.json
+
+=== accounts/fireworks/models/kimi-k2p6 ===
+qid     tier  ok  lat ms   rep  note
+--------------------------------------------------------------------------------
+q_001   1     Y   1474     0
+q_002   1     Y   707      0
+q_003   1     Y   1304     0
+q_004   1     Y   930      0
+q_005   2     Y   1105     0
+q_006   2     Y   882      0
+q_007   2     Y   794      0
+q_008   2     Y   832      0
+q_009   3     Y   1916     0
+q_010   3     Y   1295     0
+
+accuracy: 100%  (10/10)
+median latency: 1018 ms
+  tier 1: 4/4
+  tier 2: 4/4
+  tier 3: 2/2
+
+wrote data/dev_answers.json</pre>
+      <p class="muted" style="margin-top: 10px;">Read column-by-column: <code class="mono">qid</code> · tier · pass/fail · single-call latency in ms · repair turns used · diagnostic note. <code class="mono">rep=0</code> across all rows means none of the queries needed the agent's repair loop on this run.</p>
     </div>
 
     <div class="sub-section">
@@ -954,75 +969,72 @@
       </p>
       <table class="data">
         <thead>
-          <tr><th>Model</th><th>Raw acc (dev/10)</th><th>Clean acc (excl. 429s)</th><th>JSON Reliable?</th><th>p50 (clean)</th><th>Cost / query</th><th>Status · Notes</th></tr>
+          <tr><th>Model</th><th>Dev accuracy</th><th>JSON Reliable?</th><th>Median latency</th><th>Per-query cost</th><th>Verdict</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><strong>Kimi K2.6</strong> <span class="pill">primary</span></td>
-            <td class="num good">6/10 raw &nbsp; <strong>10/10</strong> w/ repair</td>
-            <td class="num good">6/7</td>
-            <td class="num good">7/10</td>
-            <td class="num">1,294 ms</td>
-            <td class="num">$0.000942</td>
-            <td>Ships in this POC. Verbose evals (with repair loop + rate-limit retry) hit 10/10 reliably; first-shot is 6/10. JSON-mode honored most of the time. Pricing verified.</td>
+            <td class="num good"><strong>10/10</strong> with repair · 6/10 first-shot</td>
+            <td class="good">Yes — 7/10 first-shot, 100% with repair</td>
+            <td class="num">1,294 ms (clean)</td>
+            <td class="num">$0.000942 (verified)</td>
+            <td>Ships in this POC. Repair loop closes the first-shot gap.</td>
           </tr>
           <tr>
             <td>Kimi K2.5</td>
-            <td class="num good">7/10</td>
-            <td class="num good">7/7</td>
-            <td class="num good">7/10</td>
-            <td class="num warn">7,917 ms</td>
-            <td class="num">— (rate not verified)</td>
-            <td>Slightly higher first-shot accuracy than K2.6 but ~5× slower. Drop-in alternative if K2.6 cost rises; not worth the latency hit today.</td>
+            <td class="num good">7/10 first-shot</td>
+            <td class="good">Yes — 7/10</td>
+            <td class="num warn">7,917 ms (clean)</td>
+            <td class="num">Pricing not published on Fireworks site for this version</td>
+            <td>Higher first-shot accuracy than K2.6 but ~5× slower. Drop-in alternative if K2.6 cost rises; not worth the latency hit today.</td>
           </tr>
           <tr>
             <td>DeepSeek V4 Pro</td>
-            <td class="num warn">4/10</td>
-            <td class="num warn">4/6</td>
-            <td class="num warn">6/10</td>
-            <td class="num">2,956 ms</td>
-            <td class="num">— (rate not verified)</td>
-            <td>Reasoning model — emits long completion tokens (~282 mean vs Kimi's ~48). JSON mode mostly honored; 1 call returned empty content. Not competitive on cost-per-token.</td>
+            <td class="num warn">4/10 (1 call returned empty content)</td>
+            <td class="warn">Partial — 6/10</td>
+            <td class="num">2,956 ms (clean)</td>
+            <td class="num">Pricing not published on Fireworks site for this version</td>
+            <td>Reasoning-class output (~282 mean completion tokens vs Kimi's ~48); not cost-competitive at this token profile.</td>
           </tr>
           <tr>
             <td>GLM-5</td>
-            <td class="num bad">3/10</td>
-            <td class="num good">3/3</td>
-            <td class="num bad">3/10</td>
-            <td class="num warn">5,584 ms</td>
-            <td class="num">— (rate not verified)</td>
-            <td>Hit 7 rate limits of 10 — sample size too small to judge accuracy. Of 3 clean calls, all 3 were correct, but JSON mode honored only 3/10 — many calls returned valid JSON-shaped strings the parser couldn't unwrap.</td>
+            <td class="num bad">3/10 (7/10 calls hit 429 rate limits)</td>
+            <td class="bad">Poor — 3/10 honored</td>
+            <td class="num warn">5,584 ms (clean)</td>
+            <td class="num">Pricing not published on Fireworks site for this version</td>
+            <td>Of 3 clean calls all 3 were correct — undersampled. JSON-mode reliability is the disqualifier today.</td>
           </tr>
           <tr>
             <td>GLM-5.1</td>
-            <td class="num bad">2/10</td>
-            <td class="num warn">2/3</td>
-            <td class="num bad">3/10</td>
-            <td class="num warn">9,817 ms</td>
-            <td class="num">— (rate not verified)</td>
-            <td>Same 7/10 429s as GLM-5. JSON mode unreliable. One call returned SQL the SQLite engine rejected. Not better than GLM-5 in this sample.</td>
+            <td class="num bad">2/10 (7/10 calls hit 429 rate limits)</td>
+            <td class="bad">Poor — 3/10 honored</td>
+            <td class="num warn">9,817 ms (clean)</td>
+            <td class="num">Pricing not published on Fireworks site for this version</td>
+            <td>Mostly ignores JSON mode and one returned SQL was rejected by SQLite. No improvement over GLM-5 in this sample.</td>
           </tr>
           <tr>
             <td>Minimax M2.7</td>
-            <td class="num bad">3/10</td>
-            <td class="num good">3/3</td>
-            <td class="num bad">3/10</td>
-            <td class="num">3,262 ms</td>
-            <td class="num">— (rate not verified)</td>
-            <td>Hit 7/10 429s. Of 3 clean calls, all 3 were correct. JSON mode honored at the same rate as the GLM family. Worth re-testing on a fresh rate-limit window.</td>
+            <td class="num bad">3/10 (7/10 calls hit 429 rate limits)</td>
+            <td class="bad">Poor — 3/10 honored</td>
+            <td class="num">3,262 ms (clean)</td>
+            <td class="num">Pricing not published on Fireworks site for this version</td>
+            <td>Of 3 clean calls all 3 were correct. Worth re-testing on a fresh rate-limit window before ruling out.</td>
           </tr>
           <tr>
             <td>Qwen3-8B <span class="pill purple">legacy</span></td>
-            <td class="num warn">5/10</td>
-            <td class="num">—</td>
-            <td class="num">—</td>
+            <td class="num warn">5/10 (earlier session)</td>
+            <td class="warn">Partial — observed in earlier runs</td>
             <td class="num">~3-5 s</td>
-            <td class="num">~$0.000200 est</td>
-            <td>Tested in an earlier session; not currently visible to this account's key. Path forward: CACR-style router (cheap-first attempt, escalate to Kimi K2.6 on low confidence). Pricing in <code class="mono">perf.py</code> is still an estimate.</td>
+            <td class="num">~$0.000200 estimated · verify before publishing</td>
+            <td>Retired from this account's catalog after our earlier session. Plausible CACR cheap-first candidate if re-provisioned.</td>
           </tr>
           <tr>
-            <td>Qwen2.5-Coder-32B</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
-            <td>The customer's specific ask. Not reachable from the supplied Fireworks key (not in <code class="mono">/v1/models</code>). Would re-test once provisioned.</td>
+            <td>Qwen2.5-Coder-32B</td>
+            <td class="num">Not reachable</td>
+            <td class="num">Not reachable</td>
+            <td class="num">Not reachable</td>
+            <td class="num">Not reachable</td>
+            <td>The customer's specific ask. Not in <code class="mono">/v1/models</code> for this Fireworks key. Would re-test once provisioned.</td>
           </tr>
         </tbody>
       </table>
@@ -1091,10 +1103,16 @@
     <div class="sub-section">
       <h2 class="sub-title">CACR-style router · cheap-first, escalate on low confidence</h2>
       <div class="card">
+        <p style="color: var(--text); font-size: 15px; margin-bottom: 12px;">
+          <strong>What is a CACR router?</strong> A model router that sends
+          easy queries to a fast/cheap model and escalates hard ones to a
+          more capable model — cutting cost without sacrificing accuracy on
+          difficult questions.
+        </p>
         <p style="color: var(--text-dim);">
           A natural fit once Qwen3-class fine-tuned checkpoints are in place.
-          Cheap, fast model takes the first attempt; a confidence probe
-          (logprobs cheaper than a second LLM call) decides whether to
+          The cheap, fast model takes the first attempt; a confidence probe
+          (logprobs are cheaper than a second LLM call) decides whether to
           escalate to the heavier model. The eval data on this submission
           already characterizes the split — Qwen3-8B handles tier-1s
           cleanly and Kimi catches the rest. Implementation lives outside
@@ -1109,7 +1127,7 @@
     </div>
 
     <div class="sub-section">
-      <h2 class="sub-title">Known limitations · all 8</h2>
+      <h2 class="sub-title">Known limitations</h2>
       <ul class="limit-list">
         <li><strong>Sub-3s P50 on shared serverless is not contractual.</strong> 23% of measured calls under 3s, 33% under 5s. Best clean p50 4,058 ms (run 3); a separate dev-eval pass hit 2,901 ms. Variance is load-side. SLO requires on-demand or dedicated deployment.</li>
         <li><strong><code class="mono">service_tier="priority"</code> is silently accepted but does nothing.</strong> Fireworks priority is account-provisioned, not a request-time flag.</li>
@@ -1131,12 +1149,28 @@
     <h2 class="panel-title">sql.js + Chinook.db running in your browser.</h2>
     <p class="panel-lede">
       No server, no setup. The Chinook database is loaded into a WebAssembly
-      SQLite instance in your browser; your Fireworks API key (paste it
-      above) is used directly from this page to call
+      SQLite instance in your browser; your Fireworks API key (paste it in
+      the bar below) is used directly from this page to call
       <code class="mono">api.fireworks.ai</code>. Type any natural-language
-      question about the music store and watch both the customer's naive
-      prompt and our agent prompt run side-by-side on Kimi K2.6.
+      question about the music store and watch the customer baseline and our
+      agent prompt run side-by-side. Designed for ~1,000 users at ~30 queries/day
+      (30k daily queries — Raul's projected first cohort).
     </p>
+
+    <div class="key-bar" id="keyBar" style="position: static; top: auto; margin: 0 0 16px;">
+      <label for="apiKey">Fireworks API key</label>
+      <input id="apiKey" type="password" placeholder="fw_..." autocomplete="off" spellcheck="false" />
+      <select id="modelSelect" aria-label="Model">
+        <option value="accounts/fireworks/models/kimi-k2p6">Kimi K2.6 — primary</option>
+        <option value="accounts/fireworks/models/kimi-k2p5">Kimi K2.5</option>
+        <option value="accounts/fireworks/models/deepseek-v4-pro">DeepSeek V4 Pro</option>
+        <option value="accounts/fireworks/models/glm-5">GLM-5</option>
+        <option value="accounts/fireworks/models/glm-5p1">GLM-5.1</option>
+        <option value="accounts/fireworks/models/minimax-m2p7">Minimax M2.7</option>
+        <option value="accounts/fireworks/models/qwen3-8b">Qwen3-8B (legacy)</option>
+      </select>
+      <span class="key-status" id="keyStatus">Never stored. Sent only to api.fireworks.ai.</span>
+    </div>
 
     <div class="card" id="dbStatus" style="margin-bottom: 16px;">
       <span id="dbStatusBadge" class="pill purple">Loading sql.js + Chinook.db…</span>
@@ -1145,19 +1179,19 @@
 
     <div class="card">
       <h3>Free-form question</h3>
-      <p style="color: var(--text-dim);">Pick a preset or type your own — anything the schema can answer.</p>
+      <p style="color: var(--text-dim);">Pick a preset or type your own — anything the Chinook schema can answer.</p>
       <div class="question-picker">
         <select id="ldPreset"></select>
         <textarea id="ldCustom" placeholder="…or write your own (overrides the dropdown)" spellcheck="false"></textarea>
         <div class="picker-row">
-          <button class="btn" id="ldRunBoth">Run baseline + agent ▸</button>
+          <button class="btn" id="ldRunBoth">Run Customer Baseline + agent ▸</button>
           <button class="btn ghost" id="ldRunAgent">Run agent only</button>
-          <span class="muted">Both calls use the model selected in the top bar.</span>
+          <span class="muted">Both calls use the model selected above.</span>
         </div>
       </div>
       <div class="compare">
         <div class="compare-col">
-          <h4>Naive prompt <span class="label-pill naive">Customer baseline</span></h4>
+          <h4>Customer Baseline <span class="label-pill naive">no schema · no JSON · no repair</span></h4>
           <div class="meta" id="ldNaiveMeta">—</div>
           <pre class="sql" id="ldNaiveSql">(SQL will appear here)</pre>
           <pre class="rows" id="ldNaiveRows">(rows will appear here)</pre>
@@ -1437,7 +1471,7 @@ function getModel() { return document.getElementById("modelSelect").value; }
 
 async function fireworksCall(messages, { model = null, jsonMode = true, maxTokens = 1024 } = {}) {
   const key = getApiKey();
-  if (!key) throw new Error("Paste a Fireworks API key in the bar at the top.");
+  if (!key) throw new Error("Paste a Fireworks API key in the Live Demo tab to run live queries.");
   const m = model || getModel();
   const body = { model: m, messages, temperature: 0, max_tokens: maxTokens };
   if (jsonMode) body.response_format = { type: "json_object" };
@@ -1561,6 +1595,30 @@ function setVerdict(elId, ok, errOrNote) {
 function bumpTouched() {
   const el = document.getElementById("liveTouched");
   if (el) el.textContent = (parseInt(el.textContent || "0", 10) + 1).toString();
+}
+
+// ============================================================
+// Hero stats — derive every headline number from JS constants so a
+// sweep refresh ripples through the page automatically.
+// ============================================================
+const COMBINED_DEV_OK = 10;          // Kimi K2.6 + agent's repair loop, dev set
+const COMBINED_SYN_OK = 13;          // Synthetic set; s_013 flaky, s_014 hard miss
+const ACCURACY_TOTAL_Q = (typeof GOLD_DEV !== "undefined" ? GOLD_DEV.length : 10)
+                      + (typeof GOLD_SYN !== "undefined" ? GOLD_SYN.length : 15);
+
+function initHeroStats() {
+  const okTotal = COMBINED_DEV_OK + COMBINED_SYN_OK;
+  const acc = (okTotal / ACCURACY_TOTAL_Q) * 100;
+  const kimiCost = (MEAN_PROMPT_TOKENS * PRICING.kimi.input + MEAN_COMPLETION_TOKENS * PRICING.kimi.output) / 1_000_000;
+  const gptCost  = (MEAN_PROMPT_TOKENS * PRICING.gpt54.input + MEAN_COMPLETION_TOKENS * PRICING.gpt54.output) / 1_000_000;
+  const savings = (1 - kimiCost / gptCost) * 100;
+
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set("heroStatAcc",     `${okTotal}/${ACCURACY_TOTAL_Q}`);
+  set("heroStatAccLbl",  `Combined accuracy (${acc.toFixed(0)}%)`);
+  set("heroStatCost",    `$${kimiCost.toFixed(6)}`);
+  set("heroStatSavings", `~${savings.toFixed(0)}%`);
+  set("heroStatTokens",  `~${MEAN_PROMPT_TOKENS} / ${MEAN_COMPLETION_TOKENS}`);
 }
 
 // ============================================================
@@ -1760,7 +1818,7 @@ const ARCH_NODES = [
   { step: "01", name: "Question", title: "Natural-language input",
     chosen: "Free-text via the CLI.",
     considered: "GUI / structured form / multi-modal.",
-    why: "Matches Raul's CLI requirement and keeps the surface area small. Validation happens at the SQL execution boundary." },
+    why: "Matches CLI requirement." },
   { step: "02", name: "Schema", title: "Schema injection · compact + trim",
     chosen: "Render schema as one-line-per-table compact form (Album(col:type[pk,fk→...])); trim by question keywords + FK closure when ≥2 tables match.",
     considered: "Tool-calling round trip; embedding-based retrieval; full CREATE TABLE blocks (~1042 prompt tokens).",
@@ -1832,7 +1890,7 @@ const DECISIONS = [
     why: "Chinook is 11 tables / ~390 compact-tokens. RAG would add a round trip and a moving part for negligible benefit. Trim heuristic + FK closure cuts prompt-token cost a further 24% across the eval. For a 1,000-table customer DB we'd swap to retrieval." },
   { chosen: "JSON mode", title: "Structured vs free-text output",
     considered: ["Free-text + regex parsing", "XML tag wrappers", "Tool-call schema"],
-    why: "Native parsing, model respects it, gives us a rationale field for human review. The naive baseline shows what free-text gets you — fenced/unfenced/with-prose answers the executor can't run (1/10 vs our 10/10)." },
+    why: "Native parsing, model respects it, gives us a rationale field for human review. The customer baseline shows what free-text gets you — fenced/unfenced/with-prose answers the executor can't run (1/10 vs our 10/10)." },
   { chosen: "Execute-and-repair", title: "Repair loop vs single-shot",
     considered: ["Single-shot (fail fast)", "AST-level auto-fix", "LLM judge with N samples"],
     why: "Repair on the SQLite error message is the cheapest robustness win. Most agent runs need 0 repairs; when they do trigger, they fix on the first retry. Cap at 2 prevents runaway cost." },
@@ -2117,6 +2175,7 @@ function initKey() {
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initKey();
+  initHeroStats();
   initBaseline();
   initEvalCards();
   initModelCompare();

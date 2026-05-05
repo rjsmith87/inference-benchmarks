@@ -1,0 +1,119 @@
+{
+  "reports": [
+    {
+      "model": "accounts/fireworks/models/kimi-k2p6",
+      "n": 10,
+      "accuracy": 0.6,
+      "p50_ms": 8296.63697900105,
+      "p90_ms": 39672.728295800334,
+      "p99_ms": 40268.45835427797,
+      "mean_prompt_tokens": 415.6,
+      "mean_completion_tokens": 44.4,
+      "mean_cost_usd": 0.0005724199999999999,
+      "daily_cost_at_volume_usd": 17.1726,
+      "monthly_cost_at_volume_usd": 515.178,
+      "rows": [
+        {
+          "qid": "q_001",
+          "latency_ms": 6181.81483400258,
+          "prompt_tokens": 788,
+          "completion_tokens": 104,
+          "cost_usd": 0.0011646,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_002",
+          "latency_ms": 40334.65058299771,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "cost_usd": 0.0,
+          "correct": false,
+          "repairs": 0,
+          "error": "model call failed: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', 'param': None, 'code': 'RATE_LIMIT_EXCEEDED', 'type': 'error'}, 'request_id': 'chatcmpl-44e4393084734664910e98b47b4b1a70'}"
+        },
+        {
+          "qid": "q_003",
+          "latency_ms": 1144.9608339971746,
+          "prompt_tokens": 787,
+          "completion_tokens": 44,
+          "cost_usd": 0.0009236499999999999,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_004",
+          "latency_ms": 39599.181375000626,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "cost_usd": 0.0,
+          "correct": false,
+          "repairs": 0,
+          "error": "model call failed: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', 'param': None, 'code': 'RATE_LIMIT_EXCEEDED', 'type': 'error'}, 'request_id': 'chatcmpl-e9a399db23ee4c5a8110f322176ae628'}"
+        },
+        {
+          "qid": "q_005",
+          "latency_ms": 39326.13941599993,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "cost_usd": 0.0,
+          "correct": false,
+          "repairs": 0,
+          "error": "model call failed: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', 'param': None, 'code': 'RATE_LIMIT_EXCEEDED', 'type': 'error'}, 'request_id': 'chatcmpl-90c7ee3ed7394443842a5d160429d2b7'}"
+        },
+        {
+          "qid": "q_006",
+          "latency_ms": 10222.655707999365,
+          "prompt_tokens": 493,
+          "completion_tokens": 73,
+          "cost_usd": 0.0007603499999999999,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_007",
+          "latency_ms": 4959.964207999292,
+          "prompt_tokens": 788,
+          "completion_tokens": 57,
+          "cost_usd": 0.0009766,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_008",
+          "latency_ms": 6370.618250002735,
+          "prompt_tokens": 792,
+          "completion_tokens": 56,
+          "cost_usd": 0.0009764,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_009",
+          "latency_ms": 39528.50691600179,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "cost_usd": 0.0,
+          "correct": false,
+          "repairs": 0,
+          "error": "model call failed: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', 'param': None, 'code': 'RATE_LIMIT_EXCEEDED', 'type': 'error'}, 'request_id': 'chatcmpl-46f2239575ed4cf1816dcdbc008469d5'}"
+        },
+        {
+          "qid": "q_010",
+          "latency_ms": 5336.733791002189,
+          "prompt_tokens": 508,
+          "completion_tokens": 110,
+          "cost_usd": 0.0009225999999999999,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        }
+      ]
+    }
+  ]
+}

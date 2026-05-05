@@ -1,0 +1,514 @@
+[
+  {
+    "id": "s_001",
+    "tier": 1,
+    "pattern": "subquery_where",
+    "question": "How many tracks are longer than the average track length (in milliseconds)?",
+    "gold_sql": "SELECT COUNT(*) AS LongerThanAvg FROM Track WHERE Milliseconds > (SELECT AVG(Milliseconds) FROM Track)",
+    "expected_result": [
+      {
+        "LongerThanAvg": 494
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_002",
+    "tier": 2,
+    "pattern": "case_select",
+    "question": "Bucket tracks by length: short (< 3 min), medium (3–5 min), long (> 5 min). How many tracks are in each bucket?",
+    "gold_sql": "SELECT CASE   WHEN Milliseconds < 180000 THEN 'short'   WHEN Milliseconds <= 300000 THEN 'medium'   ELSE 'long' END AS LengthBucket, COUNT(*) AS TrackCount FROM Track GROUP BY LengthBucket ORDER BY TrackCount DESC",
+    "expected_result": [
+      {
+        "LengthBucket": "medium",
+        "TrackCount": 1954
+      },
+      {
+        "LengthBucket": "long",
+        "TrackCount": 1069
+      },
+      {
+        "LengthBucket": "short",
+        "TrackCount": 480
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_003",
+    "tier": 1,
+    "pattern": "null_filter",
+    "question": "Which employees do not report to a manager? Show their full name and title.",
+    "gold_sql": "SELECT FirstName || ' ' || LastName AS EmployeeName, Title FROM Employee WHERE ReportsTo IS NULL",
+    "expected_result": [
+      {
+        "EmployeeName": "Andrew Adams",
+        "Title": "General Manager"
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_004",
+    "tier": 2,
+    "pattern": "date_range",
+    "question": "How many invoices were issued in the first quarter of 2022 (January through March)?",
+    "gold_sql": "SELECT COUNT(*) AS Q1_2022_Invoices FROM Invoice WHERE InvoiceDate >= '2022-01-01' AND InvoiceDate < '2022-04-01'",
+    "expected_result": [
+      {
+        "Q1_2022_Invoices": 21
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_005",
+    "tier": 2,
+    "pattern": "self_join",
+    "question": "List each employee with their manager's name. Include employees who have no manager (show the manager column as NULL).",
+    "gold_sql": "SELECT e.FirstName || ' ' || e.LastName AS Employee, m.FirstName || ' ' || m.LastName AS Manager FROM Employee e LEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId ORDER BY e.EmployeeId",
+    "expected_result": [
+      {
+        "Employee": "Andrew Adams",
+        "Manager": null
+      },
+      {
+        "Employee": "Nancy Edwards",
+        "Manager": "Andrew Adams"
+      },
+      {
+        "Employee": "Jane Peacock",
+        "Manager": "Nancy Edwards"
+      },
+      {
+        "Employee": "Margaret Park",
+        "Manager": "Nancy Edwards"
+      },
+      {
+        "Employee": "Steve Johnson",
+        "Manager": "Nancy Edwards"
+      },
+      {
+        "Employee": "Michael Mitchell",
+        "Manager": "Andrew Adams"
+      },
+      {
+        "Employee": "Robert King",
+        "Manager": "Michael Mitchell"
+      },
+      {
+        "Employee": "Laura Callahan",
+        "Manager": "Michael Mitchell"
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_006",
+    "tier": 1,
+    "pattern": "count_distinct",
+    "question": "How many distinct countries do we have customers in?",
+    "gold_sql": "SELECT COUNT(DISTINCT Country) AS CountryCount FROM Customer",
+    "expected_result": [
+      {
+        "CountryCount": 24
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_007",
+    "tier": 2,
+    "pattern": "union",
+    "question": "List every distinct country that appears either as a customer's country or as an invoice's billing country. Order alphabetically.",
+    "gold_sql": "SELECT Country FROM Customer UNION SELECT BillingCountry FROM Invoice ORDER BY Country",
+    "expected_result": [
+      {
+        "Country": "Argentina"
+      },
+      {
+        "Country": "Australia"
+      },
+      {
+        "Country": "Austria"
+      },
+      {
+        "Country": "Belgium"
+      },
+      {
+        "Country": "Brazil"
+      },
+      {
+        "Country": "Canada"
+      },
+      {
+        "Country": "Chile"
+      },
+      {
+        "Country": "Czech Republic"
+      },
+      {
+        "Country": "Denmark"
+      },
+      {
+        "Country": "Finland"
+      },
+      {
+        "Country": "France"
+      },
+      {
+        "Country": "Germany"
+      },
+      {
+        "Country": "Hungary"
+      },
+      {
+        "Country": "India"
+      },
+      {
+        "Country": "Ireland"
+      },
+      {
+        "Country": "Italy"
+      },
+      {
+        "Country": "Netherlands"
+      },
+      {
+        "Country": "Norway"
+      },
+      {
+        "Country": "Poland"
+      },
+      {
+        "Country": "Portugal"
+      },
+      {
+        "Country": "Spain"
+      },
+      {
+        "Country": "Sweden"
+      },
+      {
+        "Country": "USA"
+      },
+      {
+        "Country": "United Kingdom"
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_008",
+    "tier": 2,
+    "pattern": "nested_agg",
+    "question": "What is the average number of tracks per album, across all albums?",
+    "gold_sql": "SELECT AVG(TrackCount) AS AvgTracksPerAlbum FROM (SELECT COUNT(*) AS TrackCount FROM Track GROUP BY AlbumId)",
+    "expected_result": [
+      {
+        "AvgTracksPerAlbum": 10.095100864553315
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_009",
+    "tier": 2,
+    "pattern": "coalesce",
+    "question": "List all employees and the number of customers they support. Show 0 for employees who support no customers. Order by customer count descending, then by employee name.",
+    "gold_sql": "SELECT e.FirstName || ' ' || e.LastName AS EmployeeName, COALESCE(c.CustomerCount, 0) AS CustomerCount FROM Employee e LEFT JOIN (  SELECT SupportRepId, COUNT(*) AS CustomerCount FROM Customer   GROUP BY SupportRepId) c ON e.EmployeeId = c.SupportRepId ORDER BY CustomerCount DESC, EmployeeName",
+    "expected_result": [
+      {
+        "EmployeeName": "Jane Peacock",
+        "CustomerCount": 21
+      },
+      {
+        "EmployeeName": "Margaret Park",
+        "CustomerCount": 20
+      },
+      {
+        "EmployeeName": "Steve Johnson",
+        "CustomerCount": 18
+      },
+      {
+        "EmployeeName": "Andrew Adams",
+        "CustomerCount": 0
+      },
+      {
+        "EmployeeName": "Laura Callahan",
+        "CustomerCount": 0
+      },
+      {
+        "EmployeeName": "Michael Mitchell",
+        "CustomerCount": 0
+      },
+      {
+        "EmployeeName": "Nancy Edwards",
+        "CustomerCount": 0
+      },
+      {
+        "EmployeeName": "Robert King",
+        "CustomerCount": 0
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_010",
+    "tier": 1,
+    "pattern": "like_wildcard",
+    "question": "How many tracks have the word 'love' (case-insensitive) anywhere in their name?",
+    "gold_sql": "SELECT COUNT(*) AS LoveTrackCount FROM Track WHERE LOWER(Name) LIKE '%love%'",
+    "expected_result": [
+      {
+        "LoveTrackCount": 114
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_011",
+    "tier": 3,
+    "pattern": "correlated_subquery",
+    "question": "What is the longest track in each genre? Show the genre name, the track name, and the length in milliseconds. Order by genre name.",
+    "gold_sql": "SELECT g.Name AS Genre, t.Name AS TrackName, t.Milliseconds FROM Track t JOIN Genre g ON t.GenreId = g.GenreId WHERE t.Milliseconds = (  SELECT MAX(Milliseconds) FROM Track WHERE GenreId = g.GenreId) ORDER BY g.Name",
+    "expected_result": [
+      {
+        "Genre": "Alternative",
+        "TrackName": "Reach Down",
+        "Milliseconds": 672773
+      },
+      {
+        "Genre": "Alternative & Punk",
+        "TrackName": "Homecoming / The Death Of St. Jimmy / East 12th St. / Nobody Likes You / Rock And Roll Girlfriend / We're Coming Home Again",
+        "Milliseconds": 558602
+      },
+      {
+        "Genre": "Blues",
+        "TrackName": "Talkin' 'Bout Women Obviously",
+        "Milliseconds": 589531
+      },
+      {
+        "Genre": "Bossa Nova",
+        "TrackName": "Samba Da Bênção",
+        "Milliseconds": 409965
+      },
+      {
+        "Genre": "Classical",
+        "TrackName": "Adagio for Strings from the String Quartet, Op. 11",
+        "Milliseconds": 596519
+      },
+      {
+        "Genre": "Comedy",
+        "TrackName": "The Job",
+        "Milliseconds": 2541875
+      },
+      {
+        "Genre": "Drama",
+        "TrackName": "Through a Looking Glass",
+        "Milliseconds": 5088838
+      },
+      {
+        "Genre": "Easy Listening",
+        "TrackName": "Mack The Knife",
+        "Milliseconds": 292075
+      },
+      {
+        "Genre": "Electronica/Dance",
+        "TrackName": "Just Another Story",
+        "Milliseconds": 529684
+      },
+      {
+        "Genre": "Heavy Metal",
+        "TrackName": "Dance Of Death",
+        "Milliseconds": 516649
+      },
+      {
+        "Genre": "Hip Hop/Rap",
+        "TrackName": "Se Liga",
+        "Milliseconds": 410409
+      },
+      {
+        "Genre": "Jazz",
+        "TrackName": "My Funny Valentine (Live)",
+        "Milliseconds": 907520
+      },
+      {
+        "Genre": "Latin",
+        "TrackName": "Faroeste Caboclo",
+        "Milliseconds": 543007
+      },
+      {
+        "Genre": "Metal",
+        "TrackName": "Rime of the Ancient Mariner",
+        "Milliseconds": 816509
+      },
+      {
+        "Genre": "Opera",
+        "TrackName": "Die Zauberflöte, K.620: \"Der Hölle Rache Kocht in Meinem Herze\"",
+        "Milliseconds": 174813
+      },
+      {
+        "Genre": "Pop",
+        "TrackName": "Amy Amy Amy (Outro)",
+        "Milliseconds": 663426
+      },
+      {
+        "Genre": "R&B/Soul",
+        "TrackName": "Rehab (Hot Chip Remix)",
+        "Milliseconds": 418293
+      },
+      {
+        "Genre": "Reggae",
+        "TrackName": "Equal Rights Downpresser Man",
+        "Milliseconds": 366733
+      },
+      {
+        "Genre": "Rock",
+        "TrackName": "Dazed And Confused",
+        "Milliseconds": 1612329
+      },
+      {
+        "Genre": "Rock And Roll",
+        "TrackName": "Slow Down",
+        "Milliseconds": 163265
+      },
+      {
+        "Genre": "Sci Fi & Fantasy",
+        "TrackName": "Greetings from Earth, Pt. 1",
+        "Milliseconds": 2960293
+      },
+      {
+        "Genre": "Science Fiction",
+        "TrackName": "Hero",
+        "Milliseconds": 2713755
+      },
+      {
+        "Genre": "Soundtrack",
+        "TrackName": "Always Forever Now",
+        "Milliseconds": 383764
+      },
+      {
+        "Genre": "TV Shows",
+        "TrackName": "Occupation / Precipice",
+        "Milliseconds": 5286953
+      },
+      {
+        "Genre": "World",
+        "TrackName": "I Ka Barra (Your Work)",
+        "Milliseconds": 300605
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_012",
+    "tier": 2,
+    "pattern": "case_groupby",
+    "question": "Bucket invoices by total: small (< $5), medium ($5–$10), large (> $10). Show the count of invoices in each bucket.",
+    "gold_sql": "SELECT CASE   WHEN Total < 5 THEN 'small'   WHEN Total <= 10 THEN 'medium'   ELSE 'large' END AS Bucket, COUNT(*) AS InvoiceCount FROM Invoice GROUP BY Bucket ORDER BY InvoiceCount DESC",
+    "expected_result": [
+      {
+        "Bucket": "small",
+        "InvoiceCount": 233
+      },
+      {
+        "Bucket": "medium",
+        "InvoiceCount": 115
+      },
+      {
+        "Bucket": "large",
+        "InvoiceCount": 64
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_013",
+    "tier": 3,
+    "pattern": "date_arithmetic",
+    "question": "What was the total revenue in the last 6 months of available invoice data?",
+    "gold_sql": "SELECT SUM(Total) AS Last6MoRevenue FROM Invoice WHERE InvoiceDate >= date((SELECT MAX(InvoiceDate) FROM Invoice), '-6 months')",
+    "expected_result": [
+      {
+        "Last6MoRevenue": 238.72
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_014",
+    "tier": 3,
+    "pattern": "top_per_group",
+    "question": "Who is the top-spending customer for each support rep? Show the rep's name, the customer's name, and the customer's total spending. Order by total spending descending.",
+    "gold_sql": "SELECT EmployeeName, CustomerName, TotalSpent FROM (  SELECT e.FirstName || ' ' || e.LastName AS EmployeeName,          c.FirstName || ' ' || c.LastName AS CustomerName,          SUM(i.Total) AS TotalSpent,          ROW_NUMBER() OVER (PARTITION BY e.EmployeeId                             ORDER BY SUM(i.Total) DESC) AS rn   FROM Employee e   JOIN Customer c ON e.EmployeeId = c.SupportRepId   JOIN Invoice i ON c.CustomerId = i.CustomerId   GROUP BY e.EmployeeId, c.CustomerId, e.FirstName, e.LastName,            c.FirstName, c.LastName) WHERE rn = 1 ORDER BY TotalSpent DESC",
+    "expected_result": [
+      {
+        "EmployeeName": "Steve Johnson",
+        "CustomerName": "Helena Holý",
+        "TotalSpent": 49.62
+      },
+      {
+        "EmployeeName": "Margaret Park",
+        "CustomerName": "Richard Cunningham",
+        "TotalSpent": 47.62
+      },
+      {
+        "EmployeeName": "Jane Peacock",
+        "CustomerName": "Ladislav Kovács",
+        "TotalSpent": 45.62
+      }
+    ],
+    "evaluation": "sql_result_match"
+  },
+  {
+    "id": "s_015",
+    "tier": 2,
+    "pattern": "like_with_having",
+    "question": "Which customers in cities starting with 'S' have more than 1 invoice? Show their name, city, and invoice count. Order by invoice count descending, then by customer name.",
+    "gold_sql": "SELECT c.FirstName || ' ' || c.LastName AS CustomerName, c.City,        COUNT(i.InvoiceId) AS InvoiceCount FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId WHERE c.City LIKE 'S%' GROUP BY c.CustomerId, c.City HAVING COUNT(i.InvoiceId) > 1 ORDER BY InvoiceCount DESC, CustomerName",
+    "expected_result": [
+      {
+        "CustomerName": "Alexandre Rocha",
+        "City": "São Paulo",
+        "InvoiceCount": 7
+      },
+      {
+        "CustomerName": "Eduardo Martins",
+        "City": "São Paulo",
+        "InvoiceCount": 7
+      },
+      {
+        "CustomerName": "Joakim Johansson",
+        "City": "Stockholm",
+        "InvoiceCount": 7
+      },
+      {
+        "CustomerName": "Julia Barnett",
+        "City": "Salt Lake City",
+        "InvoiceCount": 7
+      },
+      {
+        "CustomerName": "Leonie Köhler",
+        "City": "Stuttgart",
+        "InvoiceCount": 7
+      },
+      {
+        "CustomerName": "Luis Rojas",
+        "City": "Santiago",
+        "InvoiceCount": 7
+      },
+      {
+        "CustomerName": "Luís Gonçalves",
+        "City": "São José dos Campos",
+        "InvoiceCount": 7
+      },
+      {
+        "CustomerName": "Mark Taylor",
+        "City": "Sidney",
+        "InvoiceCount": 7
+      }
+    ],
+    "evaluation": "sql_result_match"
+  }
+]

@@ -1,0 +1,92 @@
+{
+  "q_001": {
+    "tier": 1,
+    "question": "What are the top 5 best-selling genres by total sales?",
+    "sql": "Here is the SQL query, assuming a typical schema where `sales` links to a `products` table that contains the genre:\n\n```sql\nSELECT \n    p.genre,",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: near \"Here\": syntax error"
+  },
+  "q_002": {
+    "tier": 1,
+    "question": "List all albums by the artist 'AC/DC'.",
+    "sql": "SELECT a.title\nFROM albums a\nJOIN artists ar ON a.artist_id = ar.artist_id\nWHERE ar.name = 'AC/DC'",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: albums"
+  },
+  "q_003": {
+    "tier": 1,
+    "question": "What are the names and email addresses of customers from Brazil?",
+    "sql": "SELECT first_name, last_name, email\nFROM customers\nWHERE country = 'Brazil'",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: customers"
+  },
+  "q_004": {
+    "tier": 1,
+    "question": "What is the most popular media type based on number of tracks?",
+    "sql": "SELECT \n    mt.Name AS MediaType,\n    COUNT(t.TrackId) AS NumberOfTracks\nFROM \n    MediaType mt\nJOIN \n    Track t ON mt.MediaTypeId = t.MediaTypeId\nGROUP BY \n    mt.MediaTypeId, mt.Name\nORDER BY \n    NumberOfTracks DESC\nLIMIT 1",
+    "answer": "MPEG audio file (NumberOfTracks=3034)",
+    "correct": true
+  },
+  "q_005": {
+    "tier": 2,
+    "question": "Which employee has the most customers assigned to them?",
+    "sql": "SELECT \n    e.employee_id,\n    e.first_name,\n    e.last_name,\n    COUNT(c.customer_id) AS customer_count\nFROM \n    employees e\nJOIN \n    customers c ON e.employee_id = c.employee_id\nGROUP BY \n    e.employee_id, e.first_name, e.last_name\nORDER BY \n    customer_count DESC\nLIMIT 1",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: employees"
+  },
+  "q_006": {
+    "tier": 2,
+    "question": "How many tracks are there in each playlist?",
+    "sql": "SELECT \n    p.PlaylistId,\n    p.Name AS playlist_name,\n    COUNT(pt.TrackId) AS number_of_tracks\nFROM playlists p\nLEFT JOIN playlist_track pt \n    ON p.PlaylistId = pt.PlaylistId\nGROUP BY \n    p.PlaylistId, \n    p.Name",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: playlists"
+  },
+  "q_007": {
+    "tier": 2,
+    "question": "What is the total revenue generated in the year 2021?",
+    "sql": "SELECT SUM(revenue) AS total_revenue\nFROM sales\nWHERE order_date >= '2021-01-01' \n  AND order_date < '2022-01-01'",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: sales"
+  },
+  "q_008": {
+    "tier": 2,
+    "question": "What is the average invoice total for each billing country, ordered from highest to lowest?",
+    "sql": "SELECT \n    BillingCountry, \n    AVG(Total) AS AverageInvoiceTotal\nFROM \n    invoices\nGROUP BY \n    BillingCountry\nORDER BY \n    AverageInvoiceTotal DESC",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: invoices"
+  },
+  "q_009": {
+    "tier": 3,
+    "question": "For each customer, what is their total spending and how does it rank compared to other customers? Show the top 5 customers by spending.",
+    "sql": "WITH customer_totals AS (\n  SELECT \n    customer_id,\n    SUM(amount) AS total_spending\n  FROM orders\n  GROUP BY customer_id\n),\nranked_customers AS (\n  SELECT \n    customer_id,\n    total_spending,\n    RANK() OVER (ORDER BY total_spending DESC) AS spending_rank\n  FROM customer_totals\n)\nSELECT \n  customer_id,\n  total_spending,\n  spending_rank\nFROM ranked_customers\nWHERE spending_rank <= 5",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: orders"
+  },
+  "q_010": {
+    "tier": 3,
+    "question": "Which artists have tracks in more than 3 different genres? List the artist name and the number of distinct genres.",
+    "sql": "SELECT \n    a.artist_name,\n    COUNT(DISTINCT t.genre) AS distinct_genre_count\nFROM \n    artists a\nJOIN \n    tracks t ON a.artist_id = t.artist_id\nGROUP BY \n    a.artist_id, a.artist_name\nHAVING \n    COUNT(DISTINCT t.genre) > 3",
+    "answer": "(no rows)",
+    "correct": false,
+    "error": "Error executing query: no such table: artists"
+  },
+  "_summary": {
+    "model": "accounts/fireworks/models/kimi-k2p6 (baseline-prompt)",
+    "approach": "baseline-prompt — 'Convert this question to SQL: {question}'",
+    "accuracy": "1/10",
+    "median_latency_ms": 15628.198063001037,
+    "by_tier": {
+      "1": "1/4",
+      "2": "0/4",
+      "3": "0/2"
+    }
+  }
+}

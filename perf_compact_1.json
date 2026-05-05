@@ -1,0 +1,119 @@
+{
+  "reports": [
+    {
+      "model": "accounts/fireworks/models/kimi-k2p6",
+      "n": 10,
+      "accuracy": 1.0,
+      "p50_ms": 9066.603187999135,
+      "p90_ms": 22064.71507499664,
+      "p99_ms": 22626.24818249853,
+      "mean_prompt_tokens": 665.2,
+      "mean_completion_tokens": 77.5,
+      "mean_cost_usd": 0.0009419399999999999,
+      "daily_cost_at_volume_usd": 28.2582,
+      "monthly_cost_at_volume_usd": 847.746,
+      "rows": [
+        {
+          "qid": "q_001",
+          "latency_ms": 12631.708542001434,
+          "prompt_tokens": 788,
+          "completion_tokens": 104,
+          "cost_usd": 0.0011646,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_002",
+          "latency_ms": 5923.085832997458,
+          "prompt_tokens": 399,
+          "completion_tokens": 50,
+          "cost_usd": 0.00057905,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_003",
+          "latency_ms": 6100.433416999294,
+          "prompt_tokens": 787,
+          "completion_tokens": 44,
+          "cost_usd": 0.0009236499999999999,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_004",
+          "latency_ms": 6149.804166998365,
+          "prompt_tokens": 788,
+          "completion_tokens": 82,
+          "cost_usd": 0.0010765999999999998,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_005",
+          "latency_ms": 11983.402208999905,
+          "prompt_tokens": 506,
+          "completion_tokens": 87,
+          "cost_usd": 0.0008287,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_006",
+          "latency_ms": 22688.64074999874,
+          "prompt_tokens": 493,
+          "completion_tokens": 73,
+          "cost_usd": 0.0007603499999999999,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_007",
+          "latency_ms": 1994.8184999957448,
+          "prompt_tokens": 788,
+          "completion_tokens": 57,
+          "cost_usd": 0.0009766,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_008",
+          "latency_ms": 1127.854792001017,
+          "prompt_tokens": 792,
+          "completion_tokens": 56,
+          "cost_usd": 0.0009764,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_009",
+          "latency_ms": 12046.53091700311,
+          "prompt_tokens": 803,
+          "completion_tokens": 114,
+          "cost_usd": 0.0012188499999999998,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        },
+        {
+          "qid": "q_010",
+          "latency_ms": 21995.389999996405,
+          "prompt_tokens": 508,
+          "completion_tokens": 108,
+          "cost_usd": 0.0009145999999999999,
+          "correct": true,
+          "repairs": 0,
+          "error": null
+        }
+      ]
+    }
+  ]
+}

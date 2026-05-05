@@ -833,10 +833,23 @@
   .bvb-rows .bvb-row.total { border-top: 1px solid var(--line-strong); font-weight: 700; padding-top: 10px; margin-top: 4px; }
   .bvb-rows .bvb-row.total .lbl { color: var(--text); }
   .bvb-rows .bvb-row.total .val { color: var(--orange); }
-  .bvb-notes {
-    margin: 14px 0 0; font-size: 12.5px; color: var(--text-dim);
-    line-height: 1.5; flex-grow: 1;
+  .bvb-subtitle {
+    font-size: 12px; color: var(--text-faint);
+    margin-top: 2px; margin-bottom: 4px;
+    font-style: italic;
   }
+  .bvb-notes {
+    margin: 12px 0 0; font-size: 12.5px; color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .bvb-card .bvb-notes:first-of-type { margin-top: 14px; }
+  .bvb-card .bvb-notes + .bvb-notes { margin-top: 8px; flex-grow: 1; }
+  .bvb-cite {
+    margin: 10px 0 0; font-size: 11.5px; color: var(--text-faint);
+    border-top: 1px dashed var(--line); padding-top: 8px;
+  }
+  .bvb-cite a { color: var(--purple); text-decoration: none; }
+  .bvb-cite a:hover { color: var(--orange); text-decoration: underline; }
   .bvb-token-source {
     margin-top: 12px; font-size: 12.5px; color: var(--text-faint);
     font-style: italic;
@@ -1260,15 +1273,26 @@ wrote data/dev_answers.json</pre>
           <p class="bvb-notes">No infra to manage. Highest cost, proprietary lock-in, 7s latency reported by customer.</p>
         </div>
 
-        <!-- Column 2 · Direct provider APIs -->
+        <!-- Column 2 · Direct API (Moonshot for Kimi K2.6) -->
         <div class="bvb-card">
-          <h4>Direct provider APIs <span class="bvb-tag">estimated</span></h4>
+          <h4>Direct API (Moonshot)</h4>
+          <div class="bvb-subtitle">Same model, direct from provider</div>
           <ul class="bvb-rows">
-            <li class="bvb-row"><span class="lbl">Per query</span><span class="val" id="bvbDirectPerQ">$0.000942</span></li>
-            <li class="bvb-row total"><span class="lbl">Monthly</span><span class="val" id="bvbDirectMonth">$848</span></li>
-            <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbDirectAnnual">$10,176</span></li>
+            <li class="bvb-row"><span class="lbl">Per query</span><span class="val" id="bvbDirectPerQ">$0.000594</span></li>
+            <li class="bvb-row total"><span class="lbl">Monthly</span><span class="val" id="bvbDirectMonth">$535</span></li>
+            <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbDirectAnnual">$6,504</span></li>
           </ul>
-          <p class="bvb-notes">Potentially cheapest per-token. But: multiple vendors, multiple billing relationships, no unified fine-tuning, potential data residency concerns (many providers based outside US/EU), no inference optimization, no SLA guarantees.</p>
+          <p class="bvb-notes">
+            Moonshot direct API is <strong>~37% cheaper per token</strong> than Fireworks ($0.60/$2.50 vs $0.95/$4.00 per 1M). The tradeoff: Fireworks delivers the fastest TTFT (<strong>0.71s vs 3.04s</strong> on Moonshot direct — source: artificialanalysis.ai), plus unified fine-tuning, US region pinning, BYOC, and single-vendor billing.
+          </p>
+          <p class="bvb-notes">
+            For multi-model deployments (Kimi + Qwen + DeepSeek) the direct route also means multiple vendors, multiple billing relationships, no unified fine-tuning across model families, and data-residency concerns (most providers headquartered outside US/EU).
+          </p>
+          <p class="bvb-cite">
+            <a href="https://platform.kimi.ai/docs/pricing/chat" target="_blank" rel="noopener">Moonshot pricing ↗</a>
+            <span class="muted">·</span>
+            <a href="https://artificialanalysis.ai/models/kimi-k2-6/providers" target="_blank" rel="noopener">Provider comparison ↗</a>
+          </p>
         </div>
 
         <!-- Column 3 · Self-host -->
@@ -1292,7 +1316,12 @@ wrote data/dev_answers.json</pre>
             <li class="bvb-row total"><span class="lbl">Monthly</span><span class="val" id="bvbFwMonth">$848</span></li>
             <li class="bvb-row"><span class="lbl">Annual</span><span class="val" id="bvbFwAnnual">$10,176</span></li>
           </ul>
-          <p class="bvb-notes">Optimized inference (FireAttention, speculative decoding). 18+ regions, 8 cloud providers. US/EU/APAC region pinning. BYOC option. Single vendor for all open-source models. Fine-tuning (SFT / RFT / DPO) at base serving price. On-demand tier for latency SLOs.</p>
+          <p class="bvb-notes">
+            <strong>Higher per-token cost than direct Moonshot API.</strong> You're paying for optimized inference (<strong>0.71s TTFT</strong> — fastest tracked provider), fine-tuning pipeline, region pinning, and platform convenience.
+          </p>
+          <p class="bvb-notes">
+            Includes: FireAttention + speculative decoding, 18+ regions across 8 cloud providers, US/EU/APAC region pinning, BYOC option, single vendor for all open-source models, fine-tuning (SFT / RFT / DPO) at base serving price, on-demand tier for latency SLOs.
+          </p>
         </div>
       </div>
 
@@ -2358,7 +2387,9 @@ function calcBuildVsBuy() {
 
   // Per-query costs
   const gptPerQ    = (pt * PRICING.gpt54.input + ct * PRICING.gpt54.output) / 1_000_000;
-  const directPerQ = (pt * PRICING.kimi.input  + ct * PRICING.kimi.output)  / 1_000_000;
+  // Direct Moonshot API for Kimi K2.6 — verified rates from platform.kimi.ai/docs/pricing/chat:
+  // $0.60/M input, $2.50/M output. ~37% cheaper per token than Fireworks-hosted Kimi.
+  const directPerQ = (pt * 0.60 + ct * 2.50) / 1_000_000;
   const fwPerQ     = validRuns.length
     ? (pt * PRICING.kimi.input + ct * PRICING.kimi.output) / 1_000_000
     : 0.000942;  // verified Kimi K2.6 benchmark

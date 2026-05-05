@@ -1,0 +1,1420 @@
+{
+  "reports": [
+    {
+      "model": "accounts/fireworks/models/kimi-k2p6",
+      "n": 10,
+      "correct": 6,
+      "json_ok_count": 7,
+      "json_ok_rate": 0.7,
+      "median_latency_ms": 1678.2961249991786,
+      "mean_prompt_tokens": 454.9,
+      "mean_completion_tokens": 47.7,
+      "cost_per_query_usd": 0.0006229549999999999,
+      "fatal_error": null,
+      "notes": "JSON-mode honored on 7/10 calls",
+      "traces": [
+        {
+          "qid": "q_001",
+          "raw_content": "{\"sql\":\"SELECT g.Name AS Genre, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY TotalSales DESC LIMIT 5\",\"rationale\":\"Joins Genre to Track to InvoiceLine to calculate total revenue per genre, then orders by descending sales and limits to top 5.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT g.Name AS Genre, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY TotalSales DESC LIMIT 5",
+          "rows": [
+            {
+              "Genre": "Rock",
+              "TotalSales": 826.65
+            },
+            {
+              "Genre": "Latin",
+              "TotalSales": 382.14
+            },
+            {
+              "Genre": "Metal",
+              "TotalSales": 261.36
+            },
+            {
+              "Genre": "Alternative & Punk",
+              "TotalSales": 241.56
+            },
+            {
+              "Genre": "TV Shows",
+              "TotalSales": 93.53
+            }
+          ],
+          "correct": true,
+          "latency_ms": 1309.798292000778,
+          "prompt_tokens": 788,
+          "completion_tokens": 101,
+          "error": null
+        },
+        {
+          "qid": "q_002",
+          "raw_content": "{\"sql\":\"SELECT Title FROM Album JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'AC/DC'\",\"rationale\":\"Joins Album with Artist to filter by AC/DC and returns their album titles.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT Title FROM Album JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'AC/DC'",
+          "rows": [
+            {
+              "Title": "For Those About To Rock We Salute You"
+            },
+            {
+              "Title": "Let There Be Rock"
+            }
+          ],
+          "correct": true,
+          "latency_ms": 606.7253329965752,
+          "prompt_tokens": 399,
+          "completion_tokens": 51,
+          "error": null
+        },
+        {
+          "qid": "q_003",
+          "raw_content": "{\"sql\":\"SELECT FirstName, LastName, Email FROM Customer WHERE Country = 'Brazil'\",\"rationale\":\"Selects the first name, last name, and email of all customers whose country is Brazil.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT FirstName, LastName, Email FROM Customer WHERE Country = 'Brazil'",
+          "rows": [
+            {
+              "FirstName": "Luís",
+              "LastName": "Gonçalves",
+              "Email": "luisg@embraer.com.br"
+            },
+            {
+              "FirstName": "Eduardo",
+              "LastName": "Martins",
+              "Email": "eduardo@woodstock.com.br"
+            },
+            {
+              "FirstName": "Alexandre",
+              "LastName": "Rocha",
+              "Email": "alero@uol.com.br"
+            },
+            {
+              "FirstName": "Roberto",
+              "LastName": "Almeida",
+              "Email": "roberto.almeida@riotur.gov.br"
+            },
+            {
+              "FirstName": "Fernanda",
+              "LastName": "Ramos",
+              "Email": "fernadaramos4@uol.com.br"
+            }
+          ],
+          "correct": true,
+          "latency_ms": 498.49220799660543,
+          "prompt_tokens": 787,
+          "completion_tokens": 44,
+          "error": null
+        },
+        {
+          "qid": "q_004",
+          "raw_content": "{\"sql\":\"SELECT mt.Name AS MediaTypeName, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId, mt.Name ORDER BY TrackCount DESC LIMIT 1\",\"rationale\":\"Counts tracks per media type and returns the one with the highest count.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT mt.Name AS MediaTypeName, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId, mt.Name ORDER BY TrackCount DESC LIMIT 1",
+          "rows": [
+            {
+              "MediaTypeName": "MPEG audio file",
+              "TrackCount": 3034
+            }
+          ],
+          "correct": true,
+          "latency_ms": 2292.210999999952,
+          "prompt_tokens": 788,
+          "completion_tokens": 74,
+          "error": null
+        },
+        {
+          "qid": "q_005",
+          "raw_content": "{\"sql\":\"SELECT e.FirstName || ' ' || e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId ORDER BY CustomerCount DESC LIMIT 1\",\"rationale\":\"Joins Employee and Customer on SupportRepId, counts customers per employee, and returns the one with the highest count.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT e.FirstName || ' ' || e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId ORDER BY CustomerCount DESC LIMIT 1",
+          "rows": [
+            {
+              "EmployeeName": "Jane Peacock",
+              "CustomerCount": 21
+            }
+          ],
+          "correct": true,
+          "latency_ms": 1293.5081659961725,
+          "prompt_tokens": 506,
+          "completion_tokens": 87,
+          "error": null
+        },
+        {
+          "qid": "q_006",
+          "raw_content": "{\"sql\":\"SELECT p.Name AS PlaylistName, COUNT(pt.TrackId) AS TrackCount FROM Playlist p JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId GROUP BY p.PlaylistId, p.Name\",\"rationale\":\"Join Playlist with PlaylistTrack to count tracks per playlist, grouping by playlist.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT p.Name AS PlaylistName, COUNT(pt.TrackId) AS TrackCount FROM Playlist p JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId GROUP BY p.PlaylistId, p.Name",
+          "rows": [
+            {
+              "PlaylistName": "Music",
+              "TrackCount": 3290
+            },
+            {
+              "PlaylistName": "TV Shows",
+              "TrackCount": 213
+            },
+            {
+              "PlaylistName": "90’s Music",
+              "TrackCount": 1477
+            },
+            {
+              "PlaylistName": "Music",
+              "TrackCount": 3290
+            },
+            {
+              "PlaylistName": "Music Videos",
+              "TrackCount": 1
+            },
+            {
+              "PlaylistName": "TV Shows",
+              "TrackCount": 213
+            },
+            {
+              "PlaylistName": "Brazilian Music",
+              "TrackCount": 39
+            },
+            {
+              "PlaylistName": "Classical",
+              "TrackCount": 75
+            },
+            {
+              "PlaylistName": "Classical 101 - Deep Cuts",
+              "TrackCount": 25
+            },
+            {
+              "PlaylistName": "Classical 101 - Next Steps",
+              "TrackCount": 25
+            },
+            {
+              "PlaylistName": "Classical 101 - The Basics",
+              "TrackCount": 25
+            },
+            {
+              "PlaylistName": "Grunge",
+              "TrackCount": 15
+            },
+            {
+              "PlaylistName": "Heavy Metal Classic",
+              "TrackCount": 26
+            },
+            {
+              "PlaylistName": "On-The-Go 1",
+              "TrackCount": 1
+            }
+          ],
+          "correct": false,
+          "latency_ms": 1221.3393749989336,
+          "prompt_tokens": 493,
+          "completion_tokens": 66,
+          "error": null
+        },
+        {
+          "qid": "q_007",
+          "raw_content": "{\"sql\":\"SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'\",\"rationale\":\"Sums the Total column from invoices dated in 2021 using strftime to extract the year.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'",
+          "rows": [
+            {
+              "TotalRevenue": 449.46
+            }
+          ],
+          "correct": true,
+          "latency_ms": 2174.7832500041113,
+          "prompt_tokens": 788,
+          "completion_tokens": 54,
+          "error": null
+        },
+        {
+          "qid": "q_008",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1684.5318330015289,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_009",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1782.4294999954873,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_010",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1678.2961249991786,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        }
+      ]
+    },
+    {
+      "model": "accounts/fireworks/models/kimi-k2p5",
+      "n": 10,
+      "correct": 7,
+      "json_ok_count": 7,
+      "json_ok_rate": 0.7,
+      "median_latency_ms": 3404.950000003737,
+      "mean_prompt_tokens": 497.3,
+      "mean_completion_tokens": 59,
+      "cost_per_query_usd": null,
+      "fatal_error": null,
+      "notes": "JSON-mode honored on 7/10 calls",
+      "traces": [
+        {
+          "qid": "q_001",
+          "raw_content": "{\"sql\":\"SELECT g.Name AS Genre, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY TotalSales DESC LIMIT 5\",\"rationale\":\"Joins Genre to Track to InvoiceLine to calculate total sales per genre, then orders by sales descending and limits to top 5.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT g.Name AS Genre, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY TotalSales DESC LIMIT 5",
+          "rows": [
+            {
+              "Genre": "Rock",
+              "TotalSales": 826.65
+            },
+            {
+              "Genre": "Latin",
+              "TotalSales": 382.14
+            },
+            {
+              "Genre": "Metal",
+              "TotalSales": 261.36
+            },
+            {
+              "Genre": "Alternative & Punk",
+              "TotalSales": 241.56
+            },
+            {
+              "Genre": "TV Shows",
+              "TotalSales": 93.53
+            }
+          ],
+          "correct": true,
+          "latency_ms": 11001.513124996563,
+          "prompt_tokens": 788,
+          "completion_tokens": 101,
+          "error": null
+        },
+        {
+          "qid": "q_002",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1616.8453749996843,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_003",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1744.4560420044581,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_004",
+          "raw_content": "{\"sql\":\"SELECT mt.Name AS MediaTypeName, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId, mt.Name ORDER BY TrackCount DESC LIMIT 1\",\"rationale\":\"Count tracks per media type and return the one with the highest count.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT mt.Name AS MediaTypeName, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId, mt.Name ORDER BY TrackCount DESC LIMIT 1",
+          "rows": [
+            {
+              "MediaTypeName": "MPEG audio file",
+              "TrackCount": 3034
+            }
+          ],
+          "correct": true,
+          "latency_ms": 10687.998499997775,
+          "prompt_tokens": 788,
+          "completion_tokens": 74,
+          "error": null
+        },
+        {
+          "qid": "q_005",
+          "raw_content": "{\"sql\":\"SELECT e.FirstName || ' ' || e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId ORDER BY CustomerCount DESC LIMIT 1\",\"rationale\":\"Join Employee and Customer on SupportRepId, count customers per employee, and return the one with the highest count.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT e.FirstName || ' ' || e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId ORDER BY CustomerCount DESC LIMIT 1",
+          "rows": [
+            {
+              "EmployeeName": "Jane Peacock",
+              "CustomerCount": 21
+            }
+          ],
+          "correct": true,
+          "latency_ms": 8317.912750004325,
+          "prompt_tokens": 506,
+          "completion_tokens": 86,
+          "error": null
+        },
+        {
+          "qid": "q_006",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1811.246833000041,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_007",
+          "raw_content": "{\"sql\":\"SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'\",\"rationale\":\"Sums the Total column from Invoice for all invoices dated in 2021 using strftime to extract the year.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'",
+          "rows": [
+            {
+              "TotalRevenue": 449.46
+            }
+          ],
+          "correct": true,
+          "latency_ms": 7916.540209000232,
+          "prompt_tokens": 788,
+          "completion_tokens": 57,
+          "error": null
+        },
+        {
+          "qid": "q_008",
+          "raw_content": "{\"sql\":\"SELECT BillingCountry, AVG(Total) AS AverageInvoiceTotal FROM Invoice GROUP BY BillingCountry ORDER BY AverageInvoiceTotal DESC\",\"rationale\":\"Calculate the average invoice total per billing country by grouping on BillingCountry and ordering results descending by the computed average.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT BillingCountry, AVG(Total) AS AverageInvoiceTotal FROM Invoice GROUP BY BillingCountry ORDER BY AverageInvoiceTotal DESC",
+          "rows": [
+            {
+              "BillingCountry": "Chile",
+              "AverageInvoiceTotal": 6.659999999999999
+            },
+            {
+              "BillingCountry": "Ireland",
+              "AverageInvoiceTotal": 6.517142857142857
+            },
+            {
+              "BillingCountry": "Hungary",
+              "AverageInvoiceTotal": 6.517142857142857
+            },
+            {
+              "BillingCountry": "Czech Republic",
+              "AverageInvoiceTotal": 6.445714285714286
+            },
+            {
+              "BillingCountry": "Austria",
+              "AverageInvoiceTotal": 6.088571428571428
+            },
+            {
+              "BillingCountry": "Finland",
+              "AverageInvoiceTotal": 5.945714285714286
+            },
+            {
+              "BillingCountry": "Netherlands",
+              "AverageInvoiceTotal": 5.8028571428571425
+            },
+            {
+              "BillingCountry": "India",
+              "AverageInvoiceTotal": 5.78923076923077
+            },
+            {
+              "BillingCountry": "USA",
+              "AverageInvoiceTotal": 5.747912087912088
+            },
+            {
+              "BillingCountry": "Norway",
+              "AverageInvoiceTotal": 5.659999999999999
+            },
+            {
+              "BillingCountry": "Germany",
+              "AverageInvoiceTotal": 5.588571428571428
+            },
+            {
+              "BillingCountry": "France",
+              "AverageInvoiceTotal": 5.574285714285714
+            },
+            {
+              "BillingCountry": "Sweden",
+              "AverageInvoiceTotal": 5.517142857142857
+            },
+            {
+              "BillingCountry": "Portugal",
+              "AverageInvoiceTotal": 5.517142857142857
+            },
+            {
+              "BillingCountry": "Brazil",
+              "AverageInvoiceTotal": 5.4314285714285715
+            },
+            {
+              "BillingCountry": "Canada",
+              "AverageInvoiceTotal": 5.4278571428571425
+            },
+            {
+              "BillingCountry": "United Kingdom",
+              "AverageInvoiceTotal": 5.3742857142857146
+            },
+            {
+              "BillingCountry": "Spain",
+              "AverageInvoiceTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Poland",
+              "AverageInvoiceTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Italy",
+              "AverageInvoiceTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Denmark",
+              "AverageInvoiceTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Belgium",
+              "AverageInvoiceTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Australia",
+              "AverageInvoiceTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Argentina",
+              "AverageInvoiceTotal": 5.374285714285714
+            }
+          ],
+          "correct": true,
+          "latency_ms": 3404.950000003737,
+          "prompt_tokens": 792,
+          "completion_tokens": 55,
+          "error": null
+        },
+        {
+          "qid": "q_009",
+          "raw_content": "{\"sql\":\"SELECT c.FirstName || ' ' || c.LastName AS CustomerName, SUM(i.Total) AS TotalSpending, RANK() OVER (ORDER BY SUM(i.Total) DESC) AS SpendingRank FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId, c.FirstName, c.LastName ORDER BY TotalSpending DESC LIMIT 5\",\"rationale\":\"Join Customer and Invoice to sum total spending per customer, use window function RANK to compare against others, and limit to top 5.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT c.FirstName || ' ' || c.LastName AS CustomerName, SUM(i.Total) AS TotalSpending, RANK() OVER (ORDER BY SUM(i.Total) DESC) AS SpendingRank FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId, c.FirstName, c.LastName ORDER BY TotalSpending DESC LIMIT 5",
+          "rows": [
+            {
+              "CustomerName": "Helena Holý",
+              "TotalSpending": 49.62,
+              "SpendingRank": 1
+            },
+            {
+              "CustomerName": "Richard Cunningham",
+              "TotalSpending": 47.62,
+              "SpendingRank": 2
+            },
+            {
+              "CustomerName": "Luis Rojas",
+              "TotalSpending": 46.62,
+              "SpendingRank": 3
+            },
+            {
+              "CustomerName": "Ladislav Kovács",
+              "TotalSpending": 45.62,
+              "SpendingRank": 4
+            },
+            {
+              "CustomerName": "Hugh O'Reilly",
+              "TotalSpending": 45.62,
+              "SpendingRank": 4
+            }
+          ],
+          "correct": true,
+          "latency_ms": 2392.2435000058613,
+          "prompt_tokens": 803,
+          "completion_tokens": 113,
+          "error": null
+        },
+        {
+          "qid": "q_010",
+          "raw_content": "{\"sql\":\"SELECT a.Name AS ArtistName, COUNT(DISTINCT t.GenreId) AS GenreCount FROM Artist a JOIN Album al ON a.ArtistId = al.ArtistId JOIN Track t ON al.AlbumId = t.AlbumId GROUP BY a.ArtistId, a.Name HAVING COUNT(DISTINCT t.GenreId) > 3\",\"rationale\":\"Join Artist to Album to Track, count distinct genres per artist, and filter for those with more than 3 genres.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT a.Name AS ArtistName, COUNT(DISTINCT t.GenreId) AS GenreCount FROM Artist a JOIN Album al ON a.ArtistId = al.ArtistId JOIN Track t ON al.AlbumId = t.AlbumId GROUP BY a.ArtistId, a.Name HAVING COUNT(DISTINCT t.GenreId) > 3",
+          "rows": [
+            {
+              "ArtistName": "Iron Maiden",
+              "GenreCount": 4
+            }
+          ],
+          "correct": true,
+          "latency_ms": 1621.7979159991955,
+          "prompt_tokens": 508,
+          "completion_tokens": 104,
+          "error": null
+        }
+      ]
+    },
+    {
+      "model": "accounts/fireworks/models/deepseek-v4-pro",
+      "n": 10,
+      "correct": 4,
+      "json_ok_count": 6,
+      "json_ok_rate": 0.6,
+      "median_latency_ms": 2889.957207997213,
+      "mean_prompt_tokens": 516.2,
+      "mean_completion_tokens": 281.7,
+      "cost_per_query_usd": null,
+      "fatal_error": null,
+      "notes": "JSON-mode honored on 6/10 calls",
+      "traces": [
+        {
+          "qid": "q_001",
+          "raw_content": "{\n  \"sql\": \"SELECT g.Name AS Genre, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.Name ORDER BY TotalSales DESC LIMIT 5\",\n  \"rationale\": \"Join Genre to Track to InvoiceLine, sum UnitPrice * Quantity per genre, order descending, and limit to 5.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT g.Name AS Genre, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.Name ORDER BY TotalSales DESC LIMIT 5",
+          "rows": [
+            {
+              "Genre": "Rock",
+              "TotalSales": 826.65
+            },
+            {
+              "Genre": "Latin",
+              "TotalSales": 382.14
+            },
+            {
+              "Genre": "Metal",
+              "TotalSales": 261.36
+            },
+            {
+              "Genre": "Alternative & Punk",
+              "TotalSales": 241.56
+            },
+            {
+              "Genre": "TV Shows",
+              "TotalSales": 93.53
+            }
+          ],
+          "correct": true,
+          "latency_ms": 2508.7356660005753,
+          "prompt_tokens": 841,
+          "completion_tokens": 184,
+          "error": null
+        },
+        {
+          "qid": "q_002",
+          "raw_content": "{\n  \"sql\": \"SELECT Album.Title FROM Album JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'AC/DC'\",\n  \"rationale\": \"Join Album and Artist tables to filter by artist name and return album titles.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT Album.Title FROM Album JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'AC/DC'",
+          "rows": [
+            {
+              "Title": "For Those About To Rock We Salute You"
+            },
+            {
+              "Title": "Let There Be Rock"
+            }
+          ],
+          "correct": true,
+          "latency_ms": 2753.9017089948175,
+          "prompt_tokens": 405,
+          "completion_tokens": 200,
+          "error": null
+        },
+        {
+          "qid": "q_003",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1864.1424999950686,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_004",
+          "raw_content": "{\n  \"sql\": \"SELECT mt.Name FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId ORDER BY COUNT(*) DESC LIMIT 1\",\n  \"rationale\": \"Count tracks per media type and return the one with the highest count.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT mt.Name FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId ORDER BY COUNT(*) DESC LIMIT 1",
+          "rows": [
+            {
+              "Name": "MPEG audio file"
+            }
+          ],
+          "correct": false,
+          "latency_ms": 2889.957207997213,
+          "prompt_tokens": 841,
+          "completion_tokens": 246,
+          "error": null
+        },
+        {
+          "qid": "q_005",
+          "raw_content": "{\n  \"sql\": \"SELECT e.FirstName || ' ' || e.LastName AS EmployeeName FROM Customer c JOIN Employee e ON c.SupportRepId = e.EmployeeId WHERE c.SupportRepId IS NOT NULL GROUP BY e.EmployeeId ORDER BY COUNT(*) DESC LIMIT 1\",\n  \"rationale\": \"Count customers per support rep, order by count descending, and limit to one to get the employee with the most assigned customers.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT e.FirstName || ' ' || e.LastName AS EmployeeName FROM Customer c JOIN Employee e ON c.SupportRepId = e.EmployeeId WHERE c.SupportRepId IS NOT NULL GROUP BY e.EmployeeId ORDER BY COUNT(*) DESC LIMIT 1",
+          "rows": [
+            {
+              "EmployeeName": "Jane Peacock"
+            }
+          ],
+          "correct": false,
+          "latency_ms": 8802.044374999241,
+          "prompt_tokens": 533,
+          "completion_tokens": 543,
+          "error": null
+        },
+        {
+          "qid": "q_006",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1589.808124997944,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_007",
+          "raw_content": "{\n  \"sql\": \"SELECT SUM(il.UnitPrice * il.Quantity) AS total_revenue FROM Invoice i JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId WHERE strftime('%Y', i.InvoiceDate) = '2021'\",\n  \"rationale\": \"Revenue is computed as the sum of UnitPrice * Quantity from InvoiceLine for invoices with an InvoiceDate in the year 2021.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT SUM(il.UnitPrice * il.Quantity) AS total_revenue FROM Invoice i JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId WHERE strftime('%Y', i.InvoiceDate) = '2021'",
+          "rows": [
+            {
+              "total_revenue": 449.46
+            }
+          ],
+          "correct": true,
+          "latency_ms": 6661.413249996258,
+          "prompt_tokens": 841,
+          "completion_tokens": 422,
+          "error": null
+        },
+        {
+          "qid": "q_008",
+          "raw_content": "{\n  \"sql\": \"SELECT BillingCountry, AVG(Total) AS AverageTotal FROM Invoice GROUP BY BillingCountry ORDER BY AverageTotal DESC\",\n  \"rationale\": \"Group invoices by billing country and compute the average total, then order from highest to lowest.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT BillingCountry, AVG(Total) AS AverageTotal FROM Invoice GROUP BY BillingCountry ORDER BY AverageTotal DESC",
+          "rows": [
+            {
+              "BillingCountry": "Chile",
+              "AverageTotal": 6.659999999999999
+            },
+            {
+              "BillingCountry": "Ireland",
+              "AverageTotal": 6.517142857142857
+            },
+            {
+              "BillingCountry": "Hungary",
+              "AverageTotal": 6.517142857142857
+            },
+            {
+              "BillingCountry": "Czech Republic",
+              "AverageTotal": 6.445714285714286
+            },
+            {
+              "BillingCountry": "Austria",
+              "AverageTotal": 6.088571428571428
+            },
+            {
+              "BillingCountry": "Finland",
+              "AverageTotal": 5.945714285714286
+            },
+            {
+              "BillingCountry": "Netherlands",
+              "AverageTotal": 5.8028571428571425
+            },
+            {
+              "BillingCountry": "India",
+              "AverageTotal": 5.78923076923077
+            },
+            {
+              "BillingCountry": "USA",
+              "AverageTotal": 5.747912087912088
+            },
+            {
+              "BillingCountry": "Norway",
+              "AverageTotal": 5.659999999999999
+            },
+            {
+              "BillingCountry": "Germany",
+              "AverageTotal": 5.588571428571428
+            },
+            {
+              "BillingCountry": "France",
+              "AverageTotal": 5.574285714285714
+            },
+            {
+              "BillingCountry": "Sweden",
+              "AverageTotal": 5.517142857142857
+            },
+            {
+              "BillingCountry": "Portugal",
+              "AverageTotal": 5.517142857142857
+            },
+            {
+              "BillingCountry": "Brazil",
+              "AverageTotal": 5.4314285714285715
+            },
+            {
+              "BillingCountry": "Canada",
+              "AverageTotal": 5.4278571428571425
+            },
+            {
+              "BillingCountry": "United Kingdom",
+              "AverageTotal": 5.3742857142857146
+            },
+            {
+              "BillingCountry": "Spain",
+              "AverageTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Poland",
+              "AverageTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Italy",
+              "AverageTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Denmark",
+              "AverageTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Belgium",
+              "AverageTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Australia",
+              "AverageTotal": 5.374285714285714
+            },
+            {
+              "BillingCountry": "Argentina",
+              "AverageTotal": 5.374285714285714
+            }
+          ],
+          "correct": true,
+          "latency_ms": 2955.5939999991097,
+          "prompt_tokens": 845,
+          "completion_tokens": 198,
+          "error": null
+        },
+        {
+          "qid": "q_009",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 13379.467958999157,
+          "prompt_tokens": 856,
+          "completion_tokens": 1024,
+          "error": "no SQL extractable"
+        },
+        {
+          "qid": "q_010",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1709.1331249976065,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        }
+      ]
+    },
+    {
+      "model": "accounts/fireworks/models/glm-5",
+      "n": 10,
+      "correct": 3,
+      "json_ok_count": 3,
+      "json_ok_rate": 0.3,
+      "median_latency_ms": 1839.843457993993,
+      "mean_prompt_tokens": 229.7,
+      "mean_completion_tokens": 111,
+      "cost_per_query_usd": null,
+      "fatal_error": null,
+      "notes": "JSON-mode honored on 3/10 calls",
+      "traces": [
+        {
+          "qid": "q_001",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1981.7331249942072,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_002",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1738.0080000002636,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_003",
+          "raw_content": "{\"sql\": \"SELECT FirstName, LastName, Email FROM Customer WHERE Country = 'Brazil'\",\"rationale\": \"Selects the first name, last name, and email of all customers whose country is Brazil.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT FirstName, LastName, Email FROM Customer WHERE Country = 'Brazil'",
+          "rows": [
+            {
+              "FirstName": "Luís",
+              "LastName": "Gonçalves",
+              "Email": "luisg@embraer.com.br"
+            },
+            {
+              "FirstName": "Eduardo",
+              "LastName": "Martins",
+              "Email": "eduardo@woodstock.com.br"
+            },
+            {
+              "FirstName": "Alexandre",
+              "LastName": "Rocha",
+              "Email": "alero@uol.com.br"
+            },
+            {
+              "FirstName": "Roberto",
+              "LastName": "Almeida",
+              "Email": "roberto.almeida@riotur.gov.br"
+            },
+            {
+              "FirstName": "Fernanda",
+              "LastName": "Ramos",
+              "Email": "fernadaramos4@uol.com.br"
+            }
+          ],
+          "correct": true,
+          "latency_ms": 2319.214707997162,
+          "prompt_tokens": 760,
+          "completion_tokens": 143,
+          "error": null
+        },
+        {
+          "qid": "q_004",
+          "raw_content": "{\"sql\":\"SELECT mt.Name, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId ORDER BY TrackCount DESC LIMIT 1\",\"rationale\":\"Joins MediaType with Track, counts tracks per media type, and returns the one with the highest count.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT mt.Name, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId ORDER BY TrackCount DESC LIMIT 1",
+          "rows": [
+            {
+              "Name": "MPEG audio file",
+              "TrackCount": 3034
+            }
+          ],
+          "correct": true,
+          "latency_ms": 5583.535292003944,
+          "prompt_tokens": 761,
+          "completion_tokens": 289,
+          "error": null
+        },
+        {
+          "qid": "q_005",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1839.843457993993,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_006",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1741.793041001074,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_007",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1664.0405420039315,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_008",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1547.2455409981194,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_009",
+          "raw_content": "{\"sql\":\"SELECT c.FirstName || ' ' || c.LastName AS CustomerName, SUM(i.Total) AS TotalSpending, RANK() OVER (ORDER BY SUM(i.Total) DESC) AS SpendingRank FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId, c.FirstName, c.LastName ORDER BY TotalSpending DESC LIMIT 5\",\"rationale\":\"Joins Customer with Invoice to calculate total spending per customer, uses RANK() window function to rank customers by spending, and returns the top 5 spenders.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT c.FirstName || ' ' || c.LastName AS CustomerName, SUM(i.Total) AS TotalSpending, RANK() OVER (ORDER BY SUM(i.Total) DESC) AS SpendingRank FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId, c.FirstName, c.LastName ORDER BY TotalSpending DESC LIMIT 5",
+          "rows": [
+            {
+              "CustomerName": "Helena Holý",
+              "TotalSpending": 49.62,
+              "SpendingRank": 1
+            },
+            {
+              "CustomerName": "Richard Cunningham",
+              "TotalSpending": 47.62,
+              "SpendingRank": 2
+            },
+            {
+              "CustomerName": "Luis Rojas",
+              "TotalSpending": 46.62,
+              "SpendingRank": 3
+            },
+            {
+              "CustomerName": "Ladislav Kovács",
+              "TotalSpending": 45.62,
+              "SpendingRank": 4
+            },
+            {
+              "CustomerName": "Hugh O'Reilly",
+              "TotalSpending": 45.62,
+              "SpendingRank": 4
+            }
+          ],
+          "correct": true,
+          "latency_ms": 9193.720208000741,
+          "prompt_tokens": 776,
+          "completion_tokens": 678,
+          "error": null
+        },
+        {
+          "qid": "q_010",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1517.3027080018073,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        }
+      ]
+    },
+    {
+      "model": "accounts/fireworks/models/glm-5p1",
+      "n": 10,
+      "correct": 2,
+      "json_ok_count": 3,
+      "json_ok_rate": 0.3,
+      "median_latency_ms": 1928.7411670011352,
+      "mean_prompt_tokens": 172.5,
+      "mean_completion_tokens": 122.1,
+      "cost_per_query_usd": null,
+      "fatal_error": null,
+      "notes": "JSON-mode honored on 3/10 calls",
+      "traces": [
+        {
+          "qid": "q_001",
+          "raw_content": "{\n\"sql\": \"SELECT Genre.Name AS Genre, SUM(InvoiceLine.UnitPrice * InvoiceLine.Quantity) AS TotalSales FROM Genre JOIN Track ON Track.GenreId = Genre.GenreId JOIN InvoiceLine ON InvoiceLine.TrackId = Track.TrackId GROUP BY Genre.Name ORDER BY TotalSales DESC LIMIT 5\",\n\"rationale\": \"Joins Genre, Track, and InvoiceLine to compute total sales (SUM of UnitPrice * Quantity) per genre, then returns the top 5 by descending total sales.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT Genre.Name AS Genre, SUM(InvoiceLine.UnitPrice * InvoiceLine.Quantity) AS TotalSales FROM Genre JOIN Track ON Track.GenreId = Genre.GenreId JOIN InvoiceLine ON InvoiceLine.TrackId = Track.TrackId GROUP BY Genre.Name ORDER BY TotalSales DESC LIMIT 5",
+          "rows": [
+            {
+              "Genre": "Rock",
+              "TotalSales": 826.65
+            },
+            {
+              "Genre": "Latin",
+              "TotalSales": 382.14
+            },
+            {
+              "Genre": "Metal",
+              "TotalSales": 261.36
+            },
+            {
+              "Genre": "Alternative & Punk",
+              "TotalSales": 241.56
+            },
+            {
+              "Genre": "TV Shows",
+              "TotalSales": 93.53
+            }
+          ],
+          "correct": true,
+          "latency_ms": 5516.537584000616,
+          "prompt_tokens": 761,
+          "completion_tokens": 163,
+          "error": null
+        },
+        {
+          "qid": "q_002",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1749.190834001638,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_003",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1644.1181659974973,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_004",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1630.7617089987616,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_005",
+          "raw_content": "{\n\"sql\": \"SELECT FirstName || ' ' || LastName AS Name FROM Employee JOIN Customer ON Employee.EmployeeId = Customer.SupportRepId GROUP BY Employee.EmployeeId ORDER BY COUNT(CustomerId) DESC LIMIT 1\",\n\"rationale\": \"Join Employee and Customer on SupportRepId, group by employee, count customers per employee, and return the top one ordered descending.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT FirstName || ' ' || LastName AS Name FROM Employee JOIN Customer ON Employee.EmployeeId = Customer.SupportRepId GROUP BY Employee.EmployeeId ORDER BY COUNT(CustomerId) DESC LIMIT 1",
+          "rows": null,
+          "correct": false,
+          "latency_ms": 9817.325874995731,
+          "prompt_tokens": 487,
+          "completion_tokens": 455,
+          "error": "sqlite: Error executing query: ambiguous column name: FirstName"
+        },
+        {
+          "qid": "q_006",
+          "raw_content": "{\n\"sql\": \"SELECT Playlist.Name, COUNT(PlaylistTrack.TrackId) AS TrackCount FROM Playlist LEFT JOIN PlaylistTrack ON Playlist.PlaylistId = PlaylistTrack.PlaylistId GROUP BY Playlist.PlaylistId, Playlist.Name\",\n\"rationale\": \"Counts the number of tracks per playlist by joining Playlist with the linking table PlaylistTrack and grouping by playlist.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT Playlist.Name, COUNT(PlaylistTrack.TrackId) AS TrackCount FROM Playlist LEFT JOIN PlaylistTrack ON Playlist.PlaylistId = PlaylistTrack.PlaylistId GROUP BY Playlist.PlaylistId, Playlist.Name",
+          "rows": [
+            {
+              "Name": "Music",
+              "TrackCount": 3290
+            },
+            {
+              "Name": "Movies",
+              "TrackCount": 0
+            },
+            {
+              "Name": "TV Shows",
+              "TrackCount": 213
+            },
+            {
+              "Name": "Audiobooks",
+              "TrackCount": 0
+            },
+            {
+              "Name": "90’s Music",
+              "TrackCount": 1477
+            },
+            {
+              "Name": "Audiobooks",
+              "TrackCount": 0
+            },
+            {
+              "Name": "Movies",
+              "TrackCount": 0
+            },
+            {
+              "Name": "Music",
+              "TrackCount": 3290
+            },
+            {
+              "Name": "Music Videos",
+              "TrackCount": 1
+            },
+            {
+              "Name": "TV Shows",
+              "TrackCount": 213
+            },
+            {
+              "Name": "Brazilian Music",
+              "TrackCount": 39
+            },
+            {
+              "Name": "Classical",
+              "TrackCount": 75
+            },
+            {
+              "Name": "Classical 101 - Deep Cuts",
+              "TrackCount": 25
+            },
+            {
+              "Name": "Classical 101 - Next Steps",
+              "TrackCount": 25
+            },
+            {
+              "Name": "Classical 101 - The Basics",
+              "TrackCount": 25
+            },
+            {
+              "Name": "Grunge",
+              "TrackCount": 15
+            },
+            {
+              "Name": "Heavy Metal Classic",
+              "TrackCount": 26
+            },
+            {
+              "Name": "On-The-Go 1",
+              "TrackCount": 1
+            }
+          ],
+          "correct": true,
+          "latency_ms": 11440.120332998049,
+          "prompt_tokens": 477,
+          "completion_tokens": 603,
+          "error": null
+        },
+        {
+          "qid": "q_007",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1934.8332500012475,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_008",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1545.19275000348,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_009",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1752.1009170013713,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_010",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1928.7411670011352,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        }
+      ]
+    },
+    {
+      "model": "accounts/fireworks/models/minimax-m2p7",
+      "n": 10,
+      "correct": 3,
+      "json_ok_count": 3,
+      "json_ok_rate": 0.3,
+      "median_latency_ms": 1843.5655000066618,
+      "mean_prompt_tokens": 236.4,
+      "mean_completion_tokens": 98.6,
+      "cost_per_query_usd": null,
+      "fatal_error": null,
+      "notes": "JSON-mode honored on 3/10 calls",
+      "traces": [
+        {
+          "qid": "q_001",
+          "raw_content": "{\"sql\": \"SELECT g.Name, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM InvoiceLine il JOIN Track t ON il.TrackId = t.TrackId JOIN Genre g ON t.GenreId = g.GenreId GROUP BY g.GenreId, g.Name ORDER BY TotalSales DESC LIMIT 5\", \"rationale\": \"Join InvoiceLine with Track and Genre, sum UnitPrice*Quantity per genre, order descending, and limit to 5 results.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT g.Name, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM InvoiceLine il JOIN Track t ON il.TrackId = t.TrackId JOIN Genre g ON t.GenreId = g.GenreId GROUP BY g.GenreId, g.Name ORDER BY TotalSales DESC LIMIT 5",
+          "rows": [
+            {
+              "Name": "Rock",
+              "TotalSales": 826.65
+            },
+            {
+              "Name": "Latin",
+              "TotalSales": 382.14
+            },
+            {
+              "Name": "Metal",
+              "TotalSales": 261.36
+            },
+            {
+              "Name": "Alternative & Punk",
+              "TotalSales": 241.56
+            },
+            {
+              "Name": "TV Shows",
+              "TotalSales": 93.53
+            }
+          ],
+          "correct": true,
+          "latency_ms": 3261.9207090028794,
+          "prompt_tokens": 788,
+          "completion_tokens": 308,
+          "error": null
+        },
+        {
+          "qid": "q_002",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1656.622750000679,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_003",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1701.9701249955688,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_004",
+          "raw_content": "{\"sql\": \"SELECT MediaType.Name, COUNT(*) AS track_count FROM Track JOIN MediaType ON Track.MediaTypeId = MediaType.MediaTypeId GROUP BY MediaType.MediaTypeId ORDER BY track_count DESC LIMIT 1\", \"rationale\": \"Joins Track with MediaType to count tracks per media type, orders by count descending, and returns the top result.\"}",
+          "json_parsed_ok": true,
+          "sql": "SELECT MediaType.Name, COUNT(*) AS track_count FROM Track JOIN MediaType ON Track.MediaTypeId = MediaType.MediaTypeId GROUP BY MediaType.MediaTypeId ORDER BY track_count DESC LIMIT 1",
+          "rows": [
+            {
+              "Name": "MPEG audio file",
+              "track_count": 3034
+            }
+          ],
+          "correct": true,
+          "latency_ms": 13849.63387499738,
+          "prompt_tokens": 788,
+          "completion_tokens": 455,
+          "error": null
+        },
+        {
+          "qid": "q_005",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1861.772165997536,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_006",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1843.5655000066618,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_007",
+          "raw_content": "{\n\"sql\": \"SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'\",\n\"rationale\": \"Sum the Total column from Invoice table filtered to records where the year of InvoiceDate is 2021.\"\n}",
+          "json_parsed_ok": true,
+          "sql": "SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'",
+          "rows": [
+            {
+              "TotalRevenue": 449.46
+            }
+          ],
+          "correct": true,
+          "latency_ms": 1901.8829170017852,
+          "prompt_tokens": 788,
+          "completion_tokens": 223,
+          "error": null
+        },
+        {
+          "qid": "q_008",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1652.6987090037437,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_009",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1633.7627909961157,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        },
+        {
+          "qid": "q_010",
+          "raw_content": "",
+          "json_parsed_ok": false,
+          "sql": null,
+          "rows": null,
+          "correct": false,
+          "latency_ms": 1837.4687920004362,
+          "prompt_tokens": 0,
+          "completion_tokens": 0,
+          "error": "RateLimitError: Error code: 429 - {'error': {'message': 'You have exceeded your rate limit for this API. Please try again later. For more information, see https://docs.fireworks.ai/guides/quotas_usage/rate-limits.', "
+        }
+      ]
+    }
+  ]
+}

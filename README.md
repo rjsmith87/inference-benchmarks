@@ -92,10 +92,41 @@ A single-shot agent with an execute-and-repair loop, intentionally simple:
 `accounts/fireworks/models/kimi-k2p6` (Kimi K2.6).
 
 The customer asked specifically for Qwen2.5-Coder-32B-Instruct, but it was
-not reachable from the supplied Fireworks key. Kimi K2.6 was selected after
-a short bake-off: it respected `json_object` mode, returned in <1s on
-trivial calls, and went 10/10 on the dev set. The model is a constructor
-arg on `SqlAgent` and a CLI flag (`--model`), so swapping it is one line.
+not reachable from the supplied Fireworks key. Kimi K2.6 was selected
+after a catalog-wide sweep against the 10 dev questions
+(`scripts/model_sweep.py`, results in `data/model_sweep.json`). It was the
+only chat-capable model on this key that combined high JSON-mode
+reliability, sub-3s clean p50, and (with the repair loop) 10/10 dev
+accuracy. The model is a constructor arg on `SqlAgent` and a CLI flag
+(`--model`), so swapping it is one line.
+
+### Catalog sweep — every chat-capable model on this key
+
+`scripts/model_sweep.py` runs the 10 dev questions against each model in a
+single-shot, no-repair, JSON-mode-required configuration so the comparison
+isolates raw model behavior. Pacing 1.5s/call, 30s per-call timeout. Run:
+
+```bash
+PYTHONPATH=. python scripts/model_sweep.py --out data/model_sweep.json
+```
+
+| Model | Raw | Clean (excl. 429s) | JSON honored | p50 (clean) | Notes |
+|---|---|---|---|---|---|
+| **Kimi K2.6** (primary) | 6/10 | 6/7 | 7/10 | 1,294 ms | Ships in this POC. With the agent's repair + retry, hits 10/10 reliably. |
+| Kimi K2.5 | 7/10 | 7/7 | 7/10 | 7,917 ms | Best raw single-shot accuracy, but ~5× slower than K2.6. Drop-in alternative. |
+| DeepSeek V4 Pro | 4/10 | 4/6 | 6/10 | 2,956 ms | Reasoning-class output (~282 mean completion tokens vs Kimi's ~48). 1 call returned empty content. |
+| GLM-5 | 3/10 | 3/3 | 3/10 | 5,584 ms | 7/10 calls hit 429s. Of the 3 clean calls, all 3 were correct, but JSON mode mostly ignored. |
+| GLM-5.1 | 2/10 | 2/3 | 3/10 | 9,817 ms | Same 7/10 429s as GLM-5. JSON unreliable. One SQLite-rejected query. |
+| Minimax M2.7 | 3/10 | 3/3 | 3/10 | 3,262 ms | Same 7/10 429s. Of clean calls, all correct. Worth re-testing on a fresh rate-limit window. |
+| Qwen3-8B (legacy) | 5/10 | — | — | ~3-5 s | Tested in an earlier session; not currently visible to this key. CACR-router candidate. |
+| Qwen2.5-Coder-32B | — | — | — | — | Customer ask · not reachable from supplied key. |
+
+The 429 rate-limit hits during this sweep make the GLM and Minimax
+numbers noisy — small denominators in the "clean" column. The choice to
+ship Kimi K2.6 is reinforced by its repair-loop accuracy (10/10) and the
+fact that pricing is verified for it specifically. Re-running the sweep
+on priority access would let us confirm or rule out the GLM/Minimax tier
+as cheap-first router candidates.
 
 ## Results
 

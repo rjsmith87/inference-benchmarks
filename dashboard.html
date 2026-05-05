@@ -545,8 +545,13 @@
     <label for="apiKey">Fireworks API key</label>
     <input id="apiKey" type="password" placeholder="fw_..." autocomplete="off" spellcheck="false" />
     <select id="modelSelect" aria-label="Model">
-      <option value="accounts/fireworks/models/kimi-k2p6">Kimi K2.6</option>
-      <option value="accounts/fireworks/models/qwen3-8b">Qwen3-8B</option>
+      <option value="accounts/fireworks/models/kimi-k2p6">Kimi K2.6 — primary</option>
+      <option value="accounts/fireworks/models/kimi-k2p5">Kimi K2.5</option>
+      <option value="accounts/fireworks/models/deepseek-v4-pro">DeepSeek V4 Pro</option>
+      <option value="accounts/fireworks/models/glm-5">GLM-5</option>
+      <option value="accounts/fireworks/models/glm-5p1">GLM-5.1</option>
+      <option value="accounts/fireworks/models/minimax-m2p7">Minimax M2.7</option>
+      <option value="accounts/fireworks/models/qwen3-8b">Qwen3-8B (legacy)</option>
     </select>
     <span class="key-status" id="keyStatus">Never stored. Sent only to api.fireworks.ai.</span>
   </div>
@@ -937,18 +942,104 @@
     </div>
 
     <div class="sub-section">
-      <h2 class="sub-title">Model comparison · what we tried</h2>
+      <h2 class="sub-title">Model comparison · the full decision matrix</h2>
+      <p style="color: var(--text-dim); max-width: 820px;">
+        Every chat-capable model on this Fireworks key, swept against the
+        10 dev questions in a single-shot, no-repair configuration to make
+        the comparison apples-to-apples. The 429 column is critical context:
+        rate limits hit several models hard during this sweep; the
+        <strong>raw accuracy</strong> column is what literally happened, the
+        <strong>clean acc</strong> column excludes 429-failed calls. Sweep
+        data is in <code class="mono">data/model_sweep.json</code>.
+      </p>
       <table class="data">
         <thead>
-          <tr><th>Model</th><th>Dev acc</th><th>Median latency</th><th>Per-query cost</th><th>Verdict</th></tr>
+          <tr><th>Model</th><th>Raw acc (dev/10)</th><th>Clean acc (excl. 429s)</th><th>JSON Reliable?</th><th>p50 (clean)</th><th>Cost / query</th><th>Status · Notes</th></tr>
         </thead>
         <tbody>
-          <tr><td><strong>Kimi K2.6</strong></td><td class="num good">10/10</td><td class="num">2.9s clean / 6.3s mixed</td><td class="num">$0.000942</td><td>Primary · ships in this POC</td></tr>
-          <tr><td>Qwen3-8B</td><td class="num warn">5/10</td><td class="num">~3-5s</td><td class="num">~$0.000200 (est)</td><td>Fast first attempt in a CACR router · not a solo replacement</td></tr>
-          <tr><td>Qwen2.5-Coder-32B</td><td>—</td><td>—</td><td>—</td><td>Customer ask · not reachable from supplied key</td></tr>
-          <tr><td>DeepSeek-V3 / V3.1</td><td>—</td><td>—</td><td>—</td><td>Considered, not benchmarked in the 4-hour budget</td></tr>
+          <tr>
+            <td><strong>Kimi K2.6</strong> <span class="pill">primary</span></td>
+            <td class="num good">6/10 raw &nbsp; <strong>10/10</strong> w/ repair</td>
+            <td class="num good">6/7</td>
+            <td class="num good">7/10</td>
+            <td class="num">1,294 ms</td>
+            <td class="num">$0.000942</td>
+            <td>Ships in this POC. Verbose evals (with repair loop + rate-limit retry) hit 10/10 reliably; first-shot is 6/10. JSON-mode honored most of the time. Pricing verified.</td>
+          </tr>
+          <tr>
+            <td>Kimi K2.5</td>
+            <td class="num good">7/10</td>
+            <td class="num good">7/7</td>
+            <td class="num good">7/10</td>
+            <td class="num warn">7,917 ms</td>
+            <td class="num">— (rate not verified)</td>
+            <td>Slightly higher first-shot accuracy than K2.6 but ~5× slower. Drop-in alternative if K2.6 cost rises; not worth the latency hit today.</td>
+          </tr>
+          <tr>
+            <td>DeepSeek V4 Pro</td>
+            <td class="num warn">4/10</td>
+            <td class="num warn">4/6</td>
+            <td class="num warn">6/10</td>
+            <td class="num">2,956 ms</td>
+            <td class="num">— (rate not verified)</td>
+            <td>Reasoning model — emits long completion tokens (~282 mean vs Kimi's ~48). JSON mode mostly honored; 1 call returned empty content. Not competitive on cost-per-token.</td>
+          </tr>
+          <tr>
+            <td>GLM-5</td>
+            <td class="num bad">3/10</td>
+            <td class="num good">3/3</td>
+            <td class="num bad">3/10</td>
+            <td class="num warn">5,584 ms</td>
+            <td class="num">— (rate not verified)</td>
+            <td>Hit 7 rate limits of 10 — sample size too small to judge accuracy. Of 3 clean calls, all 3 were correct, but JSON mode honored only 3/10 — many calls returned valid JSON-shaped strings the parser couldn't unwrap.</td>
+          </tr>
+          <tr>
+            <td>GLM-5.1</td>
+            <td class="num bad">2/10</td>
+            <td class="num warn">2/3</td>
+            <td class="num bad">3/10</td>
+            <td class="num warn">9,817 ms</td>
+            <td class="num">— (rate not verified)</td>
+            <td>Same 7/10 429s as GLM-5. JSON mode unreliable. One call returned SQL the SQLite engine rejected. Not better than GLM-5 in this sample.</td>
+          </tr>
+          <tr>
+            <td>Minimax M2.7</td>
+            <td class="num bad">3/10</td>
+            <td class="num good">3/3</td>
+            <td class="num bad">3/10</td>
+            <td class="num">3,262 ms</td>
+            <td class="num">— (rate not verified)</td>
+            <td>Hit 7/10 429s. Of 3 clean calls, all 3 were correct. JSON mode honored at the same rate as the GLM family. Worth re-testing on a fresh rate-limit window.</td>
+          </tr>
+          <tr>
+            <td>Qwen3-8B <span class="pill purple">legacy</span></td>
+            <td class="num warn">5/10</td>
+            <td class="num">—</td>
+            <td class="num">—</td>
+            <td class="num">~3-5 s</td>
+            <td class="num">~$0.000200 est</td>
+            <td>Tested in an earlier session; not currently visible to this account's key. Path forward: CACR-style router (cheap-first attempt, escalate to Kimi K2.6 on low confidence). Pricing in <code class="mono">perf.py</code> is still an estimate.</td>
+          </tr>
+          <tr>
+            <td>Qwen2.5-Coder-32B</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+            <td>The customer's specific ask. Not reachable from the supplied Fireworks key (not in <code class="mono">/v1/models</code>). Would re-test once provisioned.</td>
+          </tr>
         </tbody>
       </table>
+      <p class="muted" style="margin-top: 14px;">
+        <strong>Methodology.</strong> Single-shot, JSON-mode-required, 30s
+        per-call timeout, 1.5s pacing between calls, 8s between models. No
+        repair loop, no rate-limit retry — those would mask cross-model
+        differences. The full agent ships with a 4-step exponential backoff
+        on 429 and a 2-turn repair loop, which is why Kimi K2.6 hits 10/10
+        in <code class="mono">python -m src.evals</code> end-to-end (vs 6/10
+        first-shot). <strong>Caveat.</strong> Several models hit 429s during
+        this sweep — shared serverless was loaded today. The "Clean acc"
+        column factors that out, but the small denominators (e.g. 3/3 for
+        GLM-5 and Minimax) mean accuracy on those models is undersampled.
+        A Fireworks engineer with priority access could re-sweep cleanly
+        in a couple of minutes.
+      </p>
     </div>
   </div>
 </section>
@@ -1061,7 +1152,7 @@
         <div class="picker-row">
           <button class="btn" id="ldRunBoth">Run baseline + agent ▸</button>
           <button class="btn ghost" id="ldRunAgent">Run agent only</button>
-          <span class="muted">Both calls go to Kimi K2.6.</span>
+          <span class="muted">Both calls use the model selected in the top bar.</span>
         </div>
       </div>
       <div class="compare">
@@ -1966,7 +2057,10 @@ async function runLiveDemo({ both }) {
   }
   await dbReady;
   try {
-    const model = "accounts/fireworks/models/kimi-k2p6";
+    // Live Demo respects the dropdown selection so the user can compare any
+    // tested model in the playground; the curated Kimi-vs-Qwen3 panel in the
+    // Quality tab keeps its hardcoded pair.
+    const model = getModel();
     const tasks = both
       ? [
           runNaiveOnce(question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),

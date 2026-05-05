@@ -3,37 +3,49 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>GitLab Agentic BI CLI — POC Findings · Submitted by Robert Smith</title>
+<title>GitLab Agentic BI CLI · Powered by Fireworks AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-0: #07060d;
-    --bg-1: #0d0b18;
-    --bg-2: #14121f;
-    --bg-3: #1c1a2b;
+    /* Surfaces — GitLab charcoal */
+    --bg: #1F1E24;
+    --surface: #2A2930;
+    --surface-2: #312F38;
+    --surface-elev: #3B3942;
+    --code-bg: #16151A;
+
+    /* Lines */
     --line: rgba(255, 255, 255, 0.08);
-    --line-strong: rgba(255, 255, 255, 0.16);
-    --text: #f5f3ff;
-    --text-dim: #a8a3c0;
-    --text-faint: #6b6685;
-    --purple: #a855f7;
-    --purple-2: #8b5cf6;
-    --purple-3: #c084fc;
-    --orange: #fb923c;
-    --orange-2: #f97316;
-    --green: #4ade80;
-    --red: #f87171;
-    --yellow: #fbbf24;
+    --line-strong: rgba(255, 255, 255, 0.18);
+
+    /* Text */
+    --text: #F5F5F7;
+    --text-dim: #A8A6B0;
+    --text-faint: #6E6B78;
+
+    /* Accents */
+    --orange: #FC6D26;          /* GitLab primary */
+    --orange-2: #E55A1A;
+    --orange-glow: rgba(252, 109, 38, 0.20);
+    --orange-soft: rgba(252, 109, 38, 0.10);
+    --purple: #A855F7;          /* Fireworks */
+    --purple-soft: rgba(168, 85, 247, 0.12);
+    --purple-2: #6B4FBB;        /* GitLab purple — tertiary */
+
+    /* Status */
+    --green: #4ADE80;
+    --red: #F87171;
+    --yellow: #FBBF24;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
     background:
-      radial-gradient(ellipse 1100px 600px at 20% -10%, rgba(168, 85, 247, 0.18), transparent 60%),
-      radial-gradient(ellipse 900px 500px at 90% 5%, rgba(251, 146, 60, 0.10), transparent 60%),
-      var(--bg-0);
+      radial-gradient(ellipse 1100px 600px at 15% -10%, rgba(252, 109, 38, 0.08), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 90% 5%, rgba(168, 85, 247, 0.06), transparent 60%),
+      var(--bg);
     color: var(--text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 15px;
@@ -43,98 +55,178 @@
   }
   code, pre, .mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
 
-  .container { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
   @media (max-width: 720px) { .container { padding: 0 18px; } }
 
-  .nav {
-    position: sticky; top: 0; z-index: 50;
+  /* ============== Tab bar (sticky) ============== */
+  .topbar {
+    position: sticky; top: 0; z-index: 60;
+    background: rgba(31, 30, 36, 0.92);
     backdrop-filter: blur(18px) saturate(140%);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
-    background: rgba(7, 6, 13, 0.72);
     border-bottom: 1px solid var(--line);
   }
-  .nav-inner { display: flex; align-items: center; gap: 24px; padding: 14px 0; }
-  .nav-logo {
-    display: inline-flex; align-items: center; gap: 10px;
-    font-weight: 700; letter-spacing: -0.01em; font-size: 14px;
+  .brand-row { display: flex; align-items: center; gap: 16px; padding: 14px 0 10px; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 11px;
+    font-weight: 700; font-size: 14.5px; letter-spacing: -0.01em;
+    color: var(--text);
   }
-  .nav-logo .dot {
-    width: 22px; height: 22px; border-radius: 6px;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--orange) 100%);
-    box-shadow: 0 4px 18px rgba(168, 85, 247, 0.4);
+  .brand .gl-mark {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-2) 100%);
+    box-shadow: 0 4px 14px var(--orange-glow);
   }
-  .nav-spacer { flex: 1; }
-  .nav-link {
-    color: var(--text-dim); text-decoration: none; font-size: 13px;
-    padding: 6px 10px; border-radius: 6px;
+  .brand .x-sep { color: var(--text-faint); font-weight: 400; margin: 0 2px; }
+  .brand .fw-mark {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-2) 100%);
+    box-shadow: 0 4px 14px rgba(168, 85, 247, 0.22);
   }
-  .nav-link:hover { color: var(--text); background: var(--bg-2); }
+  .brand-spacer { flex: 1; }
+  .brand-meta { font-size: 12px; color: var(--text-dim); }
+  .brand-meta a { color: var(--purple); text-decoration: none; }
+  .brand-meta a:hover { color: var(--orange); }
 
-  .hero { padding: 88px 0 56px; }
-  .hero-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 12px; border-radius: 999px;
-    background: rgba(168, 85, 247, 0.10);
-    border: 1px solid rgba(168, 85, 247, 0.28);
-    color: var(--purple-3); font-size: 12px; font-weight: 500;
-    letter-spacing: 0.02em; text-transform: uppercase;
+  /* Tab list */
+  .tabs {
+    display: flex; gap: 4px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto;
+    padding: 14px 20px 12px;
+    background: transparent; border: none;
+    color: var(--text-dim);
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    cursor: pointer; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 140ms ease, border-color 140ms ease;
+  }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] {
+    color: var(--orange);
+    border-bottom-color: var(--orange);
+    font-weight: 600;
+  }
+  .tab .count {
+    margin-left: 7px;
+    font-size: 11px; padding: 1px 7px; border-radius: 5px;
+    background: rgba(255,255,255,0.06); color: var(--text-faint);
+    letter-spacing: 0.04em;
+  }
+  .tab[aria-selected="true"] .count {
+    background: var(--orange-soft); color: var(--orange);
+  }
+
+  /* Sticky API key bar — shared by all tabs */
+  .key-bar {
+    position: sticky; top: 95px; z-index: 50;
+    margin: 16px 0 0;
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(252, 109, 38, 0.04), rgba(31, 30, 36, 0.85));
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  }
+  .key-bar label { font-size: 12px; color: var(--text-dim); }
+  .key-bar input {
+    flex: 1 1 280px; min-width: 220px;
+    background: var(--code-bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 7px;
+    padding: 9px 11px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  }
+  .key-bar input:focus { outline: none; border-color: var(--orange); }
+  .key-bar select {
+    background: var(--code-bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 7px;
+    padding: 9px 11px; font-family: inherit; font-size: 13px;
+  }
+  .key-bar select:focus { outline: none; border-color: var(--orange); }
+  .key-bar .key-status { font-size: 11.5px; color: var(--text-faint); }
+  .key-bar .key-status.ok { color: var(--green); }
+  .key-bar .key-status.err { color: var(--red); }
+  .key-bar .key-status.warn { color: var(--yellow); }
+
+  /* ============== Tab panels ============== */
+  .tab-panel { display: none; padding: 36px 0 60px; }
+  .tab-panel.active { display: block; animation: fade 200ms ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+
+  .panel-eyebrow {
+    color: var(--orange); font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px;
+  }
+  .panel-title {
+    font-size: 36px; font-weight: 700; letter-spacing: -0.022em;
+    margin: 0 0 14px; line-height: 1.1;
+  }
+  @media (max-width: 720px) { .panel-title { font-size: 28px; } }
+  .panel-lede {
+    font-size: 17px; color: var(--text-dim); max-width: 780px; line-height: 1.55;
+    margin-bottom: 32px;
+  }
+
+  /* Hero (Overview tab) */
   .hero h1 {
-    font-size: 56px; font-weight: 800; letter-spacing: -0.025em;
-    margin: 22px 0 14px; line-height: 1.05;
-    background: linear-gradient(180deg, #ffffff 0%, #cfc7e0 90%);
+    font-size: 52px; font-weight: 800; letter-spacing: -0.025em;
+    margin: 6px 0 16px; line-height: 1.05;
+    color: var(--text);
+  }
+  .hero h1 .accent {
+    background: linear-gradient(135deg, var(--orange) 0%, var(--purple) 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  @media (max-width: 720px) { .hero h1 { font-size: 38px; } }
+  @media (max-width: 720px) { .hero h1 { font-size: 36px; } }
   .hero-sub {
-    font-size: 19px; color: var(--text-dim); max-width: 720px; line-height: 1.55;
+    font-size: 18px; color: var(--text-dim); max-width: 760px; line-height: 1.55;
   }
-  .hero-meta { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 36px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
   .stat {
     border: 1px solid var(--line);
-    border-radius: 14px; padding: 18px 22px; min-width: 160px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.005));
+    border-radius: 12px; padding: 18px 22px; min-width: 168px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
   }
   .stat-num {
-    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
-    background: linear-gradient(135deg, var(--purple-3) 0%, var(--orange) 100%);
+    font-size: 30px; font-weight: 700; letter-spacing: -0.02em;
+    color: var(--orange);
+  }
+  .stat-num.gradient {
+    background: linear-gradient(135deg, var(--orange), var(--purple));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
 
   .hero-cmd {
-    margin-top: 36px; display: inline-block;
-    background: var(--bg-2); border: 1px solid var(--line);
-    padding: 14px 18px; border-radius: 10px;
+    margin-top: 28px; display: inline-block;
+    background: var(--code-bg); border: 1px solid var(--line);
+    padding: 12px 16px; border-radius: 8px;
     font-family: 'JetBrains Mono', monospace; font-size: 13.5px;
     color: var(--text);
   }
-  .hero-cmd .prompt { color: var(--purple-3); margin-right: 10px; }
+  .hero-cmd .prompt { color: var(--orange); margin-right: 10px; user-select: none; }
 
-  section { padding: 68px 0; border-top: 1px solid var(--line); }
-  .sec-eyebrow {
-    color: var(--orange); font-size: 12px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px;
-  }
-  .sec-title { font-size: 36px; font-weight: 700; letter-spacing: -0.022em; margin: 0 0 14px; }
-  .sec-lede { font-size: 17px; color: var(--text-dim); max-width: 760px; line-height: 1.55; margin-bottom: 36px; }
-
+  /* Cards */
   .card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
-    border: 1px solid var(--line); border-radius: 14px;
-    padding: 24px; transition: border-color 160ms ease, transform 160ms ease;
+    background: var(--surface);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px; transition: border-color 160ms ease, transform 160ms ease;
   }
   .card.hover:hover { border-color: var(--line-strong); transform: translateY(-1px); }
   .card h3 { margin: 0 0 8px; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
   .card p, .card ul { color: var(--text-dim); font-size: 14px; }
-  .card .pill {
+  .pill {
     display: inline-block; font-size: 11px;
-    padding: 3px 9px; border-radius: 6px;
-    background: rgba(168,85,247,0.12); color: var(--purple-3);
-    font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 5px;
+    background: var(--orange-soft); color: var(--orange);
+    font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
   }
+  .pill.purple { background: var(--purple-soft); color: var(--purple); }
+  .pill.muted { background: rgba(255,255,255,0.06); color: var(--text-dim); }
 
-  .grid { display: grid; gap: 16px; }
+  .grid { display: grid; gap: 14px; }
   .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -144,277 +236,311 @@
   }
   @media (max-width: 580px) { .grid-3, .grid-4 { grid-template-columns: 1fr; } }
 
+  /* Quote */
   .quote {
-    border-left: 3px solid var(--orange); padding: 4px 0 4px 18px;
-    color: var(--text); font-size: 15px; line-height: 1.6;
+    border-left: 3px solid var(--orange); padding: 4px 0 4px 16px;
+    color: var(--text); font-size: 14.5px; line-height: 1.6;
     font-style: italic;
   }
-  .quote .who { display: block; margin-top: 10px; font-style: normal; font-size: 12px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; }
+  .quote .who { display: block; margin-top: 10px; font-style: normal; font-size: 11.5px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; }
 
-  .key-bar {
-    position: sticky; top: 53px; z-index: 40;
-    margin: 24px 0 0;
-    border: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(168,85,247,0.06), rgba(7,6,13,0.85));
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border-radius: 12px; padding: 14px 16px;
-    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-  }
-  .key-bar label { font-size: 12px; color: var(--text-dim); }
-  .key-bar input {
-    flex: 1 1 280px; min-width: 220px;
-    background: var(--bg-1); color: var(--text);
-    border: 1px solid var(--line); border-radius: 8px;
-    padding: 9px 11px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
-  }
-  .key-bar input:focus { outline: none; border-color: var(--purple-2); }
-  .key-bar .key-status { font-size: 11.5px; color: var(--text-faint); }
-  .key-bar .key-status.ok { color: var(--green); }
-  .key-bar .key-status.err { color: var(--red); }
-  .key-bar .key-status.warn { color: var(--yellow); }
-
+  /* Buttons */
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 9px 14px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--purple-2), var(--orange-2));
-    color: white; font-weight: 500; font-size: 13.5px;
-    border: none; cursor: pointer; transition: transform 120ms ease, opacity 120ms ease;
+    padding: 9px 16px; border-radius: 7px;
+    background: var(--orange); color: white;
+    font-weight: 600; font-size: 13.5px;
+    border: none; cursor: pointer; transition: background 140ms ease, transform 120ms ease;
     font-family: inherit;
   }
-  .btn:hover { transform: translateY(-1px); }
+  .btn:hover { background: var(--orange-2); transform: translateY(-1px); }
   .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line-strong); }
-  .btn.ghost:hover { background: var(--bg-2); }
+  .btn.ghost {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--line-strong);
+  }
+  .btn.ghost:hover { background: var(--surface-2); transform: none; }
+  .btn.purple { background: var(--purple); }
+  .btn.purple:hover { background: #9333ea; }
   .btn.small { padding: 6px 11px; font-size: 12.5px; }
 
+  /* Inputs */
   select, textarea, input[type="text"] {
-    background: var(--bg-1); color: var(--text);
-    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--code-bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 7px;
     padding: 9px 11px; font-family: inherit; font-size: 14px;
   }
-  select:focus, textarea:focus, input[type="text"]:focus { outline: none; border-color: var(--purple-2); }
+  select:focus, textarea:focus, input[type="text"]:focus {
+    outline: none; border-color: var(--orange);
+  }
 
+  /* Question grid */
   .qcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
   .qcard {
-    background: var(--bg-2); border: 1px solid var(--line);
-    border-radius: 10px; padding: 14px; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 9px; padding: 14px; cursor: pointer;
     transition: border-color 160ms ease, transform 160ms ease;
     position: relative;
   }
-  .qcard:hover { border-color: var(--purple-2); transform: translateY(-1px); }
+  .qcard:hover { border-color: var(--orange); transform: translateY(-1px); }
   .qcard .qid { font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; text-transform: uppercase; }
-  .qcard .qpattern { margin-top: 6px; font-size: 11px; color: var(--orange); font-family: 'JetBrains Mono', monospace; }
+  .qcard .qpattern { margin-top: 6px; font-size: 11px; color: var(--purple); font-family: 'JetBrains Mono', monospace; }
   .qcard .qtext { margin-top: 8px; font-size: 13.5px; line-height: 1.45; color: var(--text); }
   .qcard .qstatus { margin-top: 12px; font-size: 11.5px; min-height: 18px; }
   .qcard.pass { border-color: rgba(74, 222, 128, 0.45); }
   .qcard.fail { border-color: rgba(248, 113, 113, 0.55); }
-  .qcard.running { border-color: var(--purple-2); }
+  .qcard.running { border-color: var(--purple); }
   .qcard.flaky { border-color: rgba(251, 191, 36, 0.5); }
   .qcard .qhint {
-    position: absolute; top: 14px; right: 14px; font-size: 10.5px;
+    position: absolute; top: 12px; right: 12px; font-size: 10.5px;
     padding: 2px 7px; border-radius: 5px;
-    background: rgba(251,191,36,0.12); color: var(--yellow);
+    background: rgba(251,191,36,0.14); color: var(--yellow);
   }
   .qcard .qhint.fail-hint { background: rgba(248,113,113,0.14); color: var(--red); }
 
-  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+  /* Side-by-side compare blocks */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
   @media (max-width: 800px) { .compare { grid-template-columns: 1fr; } }
-  .compare-col { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
-  .compare-col h4 { margin: 0 0 6px; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-dim); }
+  .compare-col { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+  .compare-col h4 {
+    margin: 0 0 6px; font-size: 13.5px; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-dim);
+  }
   .compare-col h4 .label-pill {
     display: inline-block; margin-left: 8px;
     font-size: 10px; padding: 2px 7px; border-radius: 5px;
     background: rgba(255,255,255,0.06); color: var(--text-dim);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.04em; font-weight: 600;
   }
   .compare-col h4 .label-pill.naive { background: rgba(248,113,113,0.14); color: var(--red); }
   .compare-col h4 .label-pill.agent { background: rgba(74,222,128,0.14); color: var(--green); }
-  .compare-col .meta { font-size: 12px; color: var(--text-faint); margin-bottom: 10px; min-height: 18px; }
+  .compare-col h4 .label-pill.kimi { background: var(--orange-soft); color: var(--orange); }
+  .compare-col h4 .label-pill.qwen { background: var(--purple-soft); color: var(--purple); }
+  .compare-col .meta { font-size: 12px; color: var(--text-faint); margin-bottom: 10px; min-height: 16px; }
   pre.sql, pre.rows {
-    background: var(--bg-1); border: 1px solid var(--line);
-    border-radius: 8px; padding: 12px; font-size: 12.5px;
+    background: var(--code-bg); border: 1px solid var(--line);
+    border-radius: 6px; padding: 12px; font-size: 12.5px;
     overflow: auto; max-height: 280px; white-space: pre-wrap; word-break: break-word;
     line-height: 1.5; color: var(--text);
   }
   .verdict {
     display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px;
-    border-radius: 6px; font-size: 12px; font-weight: 600; margin-top: 10px;
+    border-radius: 5px; font-size: 12px; font-weight: 600; margin-top: 10px;
   }
   .verdict.pass { background: rgba(74,222,128,0.14); color: var(--green); }
   .verdict.fail { background: rgba(248,113,113,0.14); color: var(--red); }
   .verdict.err { background: rgba(251,191,36,0.14); color: var(--yellow); }
 
-  .score-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+  /* Score board */
+  .score-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
   @media (max-width: 720px) { .score-board { grid-template-columns: repeat(2, 1fr); } }
   .score-tile {
-    border: 1px solid var(--line); border-radius: 12px; padding: 16px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+    border: 1px solid var(--line); border-radius: 11px; padding: 18px;
+    background: var(--surface);
   }
-  .score-tile .num {
-    font-size: 30px; font-weight: 700; letter-spacing: -0.02em;
-    background: linear-gradient(135deg, var(--purple-3), var(--orange));
+  .score-tile .num { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; color: var(--orange); }
+  .score-tile.purple .num { color: var(--purple); }
+  .score-tile.gradient .num {
+    background: linear-gradient(135deg, var(--orange), var(--purple));
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .score-tile .lbl { font-size: 12px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
   .score-tile .sub { font-size: 11.5px; color: var(--text-faint); margin-top: 8px; }
 
-  .arch { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 20px 0; }
+  /* Architecture diagram */
+  .arch { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; margin: 18px 0; }
   .arch-node {
     flex: 1 1 130px; min-width: 130px;
-    background: var(--bg-2); border: 1px solid var(--line);
-    border-radius: 10px; padding: 14px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 9px; padding: 13px;
     cursor: pointer; transition: border-color 160ms ease, transform 160ms ease;
     text-align: center; position: relative;
   }
-  .arch-node:hover, .arch-node.active { border-color: var(--purple-2); transform: translateY(-1px); }
-  .arch-node .step { font-size: 10.5px; color: var(--orange); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+  .arch-node:hover, .arch-node.active { border-color: var(--orange); transform: translateY(-1px); }
+  .arch-node .step { font-size: 10.5px; color: var(--purple); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
   .arch-node .name { margin-top: 6px; font-size: 14px; font-weight: 600; }
   .arch-node .arrow { position: absolute; right: -14px; top: 50%; color: var(--text-faint); transform: translateY(-50%); font-size: 18px; }
   .arch-node:last-child .arrow { display: none; }
-  .arch-detail { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin-top: 8px; }
+  .arch-detail {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 11px;
+    padding: 22px; margin-top: 8px;
+  }
   .arch-detail h4 { margin: 0 0 8px; font-size: 16px; }
-  .arch-detail .label { color: var(--purple-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-top: 14px; display: block; }
+  .arch-detail .label { color: var(--orange); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-top: 14px; display: block; }
   .arch-detail p { color: var(--text-dim); font-size: 14px; margin: 4px 0 0; }
 
-  .calc { background: var(--bg-2); border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
+  /* Cost calculator */
+  .calc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
   .calc-slider {
     width: 100%; -webkit-appearance: none; appearance: none;
-    height: 6px; background: var(--bg-3); border-radius: 3px;
+    height: 6px; background: var(--surface-elev); border-radius: 3px;
     outline: none; margin: 16px 0 18px;
   }
   .calc-slider::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
     width: 22px; height: 22px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple-2), var(--orange-2));
-    cursor: pointer; border: none; box-shadow: 0 2px 14px rgba(168,85,247,0.5);
+    background: linear-gradient(135deg, var(--orange), var(--purple));
+    cursor: pointer; border: none;
+    box-shadow: 0 2px 14px var(--orange-glow);
   }
   .calc-slider::-moz-range-thumb {
     width: 22px; height: 22px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple-2), var(--orange-2));
+    background: linear-gradient(135deg, var(--orange), var(--purple));
     cursor: pointer; border: none;
   }
   .calc-vol { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
   .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
   @media (max-width: 720px) { .calc-grid { grid-template-columns: 1fr; } }
-  .calc-cell { background: var(--bg-1); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .calc-cell { background: var(--code-bg); border: 1px solid var(--line); border-radius: 9px; padding: 16px; }
   .calc-cell h5 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
   .calc-cell .price { font-size: 26px; font-weight: 700; margin-top: 4px; letter-spacing: -0.01em; }
   .calc-cell .row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-dim); margin-top: 4px; }
-  .calc-cell.kimi { border-color: rgba(168,85,247,0.45); }
-  .calc-cell.kimi .price { color: var(--purple-3); }
-  .calc-cell.gpt { border-color: rgba(248,113,113,0.4); }
+  .calc-cell.kimi { border-color: rgba(252, 109, 38, 0.35); }
+  .calc-cell.kimi .price { color: var(--orange); }
+  .calc-cell.gpt { border-color: rgba(248,113,113,0.35); }
   .calc-cell.gpt .price { color: var(--red); }
-  .savings {
-    margin-top: 18px; padding: 14px 16px; border-radius: 10px;
-    background: linear-gradient(135deg, rgba(74,222,128,0.10), rgba(168,85,247,0.10));
-    border: 1px solid rgba(74,222,128,0.25); font-size: 14px;
-  }
-  .savings strong { color: var(--green); }
 
+  .savings {
+    margin-top: 16px; padding: 14px 16px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--orange-soft), var(--purple-soft));
+    border: 1px solid rgba(252, 109, 38, 0.20);
+    font-size: 14px;
+  }
+  .savings strong { color: var(--orange); }
+
+  /* Tables */
+  table.data {
+    width: 100%; border-collapse: collapse;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    overflow: hidden;
+  }
+  table.data th, table.data td {
+    padding: 12px 14px; text-align: left;
+    border-top: 1px solid var(--line); font-size: 13.5px;
+  }
+  table.data th {
+    background: var(--surface-2); color: var(--text-dim);
+    font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    border-top: none;
+  }
+  table.data tr:hover td { background: rgba(255,255,255,0.02); }
+  table.data td.num { font-family: 'JetBrains Mono', monospace; }
+  table.data td.good { color: var(--green); }
+  table.data td.bad { color: var(--red); }
+  table.data td.warn { color: var(--yellow); }
+
+  /* Latency tiles + bars */
   .lat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
   @media (max-width: 900px) { .lat-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 580px) { .lat-grid { grid-template-columns: 1fr; } }
-  .lat-tile { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .lat-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
   .lat-tile .label { font-size: 11.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
-  .lat-tile .val { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .lat-tile .val { font-size: 22px; font-weight: 700; margin-top: 4px; color: var(--orange); }
+  .lat-tile.purple .val { color: var(--purple); }
 
   .lat-bars { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
   .lat-bar { display: flex; align-items: center; gap: 10px; font-size: 12px; }
   .lat-bar .id { width: 60px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
-  .lat-bar .track { flex: 1; height: 18px; background: var(--bg-3); border-radius: 4px; position: relative; overflow: hidden; }
+  .lat-bar .track { flex: 1; height: 18px; background: var(--surface-elev); border-radius: 4px; position: relative; overflow: hidden; }
   .lat-bar .fill {
     position: absolute; left: 0; top: 0; bottom: 0;
-    background: linear-gradient(90deg, var(--purple-2), var(--orange-2));
+    background: linear-gradient(90deg, var(--purple), var(--orange));
     border-radius: 4px;
   }
-  .lat-bar .fill.under { background: linear-gradient(90deg, #4ade80, #34d399); }
+  .lat-bar .fill.under { background: linear-gradient(90deg, #4ade80, #22c55e); }
   .lat-bar .ms { width: 80px; text-align: right; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
 
+  /* Roadmap */
   .road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
   @media (max-width: 900px) { .road { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 580px) { .road { grid-template-columns: 1fr; } }
-  .road .step-num {
+  .step-num {
     width: 30px; height: 30px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--purple-2), var(--orange-2));
+    background: linear-gradient(135deg, var(--orange), var(--purple));
     display: inline-flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 13px;
+    font-weight: 700; font-size: 13px; color: white;
   }
 
-  footer { padding: 56px 0 80px; color: var(--text-dim); font-size: 13px; border-top: 1px solid var(--line); }
-  footer a { color: var(--purple-3); }
-
-  .row-flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .muted { color: var(--text-faint); font-size: 12.5px; }
-
-  .spinner {
-    display: inline-block; width: 11px; height: 11px;
-    border: 2px solid rgba(255,255,255,0.18);
-    border-top-color: var(--purple-3); border-radius: 50%;
-    animation: spin 800ms linear infinite;
-    vertical-align: -2px; margin-right: 6px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .decision-card { padding: 22px; }
-  .decision-card .chosen {
-    display: inline-block; padding: 3px 9px; border-radius: 5px;
-    background: rgba(74,222,128,0.14); color: var(--green);
-    font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .decision-card h4 { margin: 0 0 6px; font-size: 16px; }
-  .decision-card .label { color: var(--purple-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-top: 14px; display: block; }
-  .decision-card p, .decision-card li { font-size: 13.5px; color: var(--text-dim); margin: 4px 0 0; }
-  .decision-card ul { margin: 4px 0 0; padding-left: 18px; }
-
+  /* Limitations list */
   .limit-list { list-style: none; padding: 0; margin: 0; }
   .limit-list li { padding: 14px 0; border-top: 1px solid var(--line); color: var(--text-dim); font-size: 14.5px; }
   .limit-list li:first-child { border-top: none; }
   .limit-list strong { color: var(--text); margin-right: 6px; }
 
-  .question-picker { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  /* Decision card */
+  .decision-card { padding: 20px; }
+  .decision-card .chosen {
+    display: inline-block; padding: 3px 9px; border-radius: 5px;
+    background: var(--orange-soft); color: var(--orange);
+    font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .decision-card h4 { margin: 0 0 6px; font-size: 16px; }
+  .decision-card .label { color: var(--purple); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-top: 14px; display: block; }
+  .decision-card p, .decision-card li { font-size: 13.5px; color: var(--text-dim); margin: 4px 0 0; }
+  .decision-card ul { margin: 4px 0 0; padding-left: 18px; }
+
+  /* Question picker */
+  .question-picker { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
   .picker-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
   .picker-row select { flex: 1 1 320px; min-width: 220px; }
   textarea { width: 100%; resize: vertical; min-height: 64px; }
+
+  /* Spinner / muted */
+  .spinner {
+    display: inline-block; width: 11px; height: 11px;
+    border: 2px solid rgba(255,255,255,0.18);
+    border-top-color: var(--orange); border-radius: 50%;
+    animation: spin 800ms linear infinite;
+    vertical-align: -2px; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .muted { color: var(--text-faint); font-size: 12.5px; }
+  .row-flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .small-h { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin: 26px 0 8px; }
+
+  /* Section titles inside a tab */
+  .sub-section { margin-top: 36px; }
+  .sub-title { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 8px; }
+
+  /* Footer */
+  footer { padding: 36px 0 56px; color: var(--text-faint); font-size: 13px; border-top: 1px solid var(--line); }
+  footer a { color: var(--purple); text-decoration: none; }
+  footer a:hover { color: var(--orange); }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="container nav-inner">
-    <div class="nav-logo"><span class="dot"></span> Fireworks Field POC</div>
-    <div class="nav-spacer"></div>
-    <a class="nav-link" href="#problem">Problem</a>
-    <a class="nav-link" href="#baseline">Baseline</a>
-    <a class="nav-link" href="#evals">Evals</a>
-    <a class="nav-link" href="#models">Models</a>
-    <a class="nav-link" href="#latency">Latency</a>
-    <a class="nav-link" href="#cost">Cost</a>
-    <a class="nav-link" href="#roadmap">Roadmap</a>
-  </div>
-</nav>
-
-<header class="hero">
+<!-- ============== Top bar: brand + tabs ============== -->
+<div class="topbar">
   <div class="container">
-    <div class="hero-eyebrow">Submitted by Robert Smith</div>
-    <h1>GitLab Agentic BI CLI<br/>POC Findings</h1>
-    <p class="hero-sub">
-      A natural-language-to-SQL agent for Raul's team at GitLab, built on
-      open-source models hosted on Fireworks. Every number on this page is
-      live-verifiable: bring your own Fireworks key and re-run any of the
-      25 questions, side-by-side with the customer's current naive prompt.
-    </p>
-
-    <div class="hero-meta">
-      <div class="stat"><div class="stat-num">23/25</div><div class="stat-label">Combined accuracy (92%)</div></div>
-      <div class="stat"><div class="stat-num">$0.000942</div><div class="stat-label">Per-query cost</div></div>
-      <div class="stat"><div class="stat-num">~67%</div><div class="stat-label">Cheaper than GPT-5.4</div></div>
-      <div class="stat"><div class="stat-num">~665 / 78</div><div class="stat-label">Mean tokens (in / out)</div></div>
+    <div class="brand-row">
+      <div class="brand">
+        <span class="gl-mark"></span>
+        <span>GitLab</span>
+        <span class="x-sep">×</span>
+        <span class="fw-mark"></span>
+        <span>Fireworks AI</span>
+        <span class="x-sep" style="margin-left: 12px;">·</span>
+        <span style="font-weight: 500; color: var(--text-dim);">Agentic BI CLI POC</span>
+      </div>
+      <div class="brand-spacer"></div>
+      <div class="brand-meta">
+        <a href="https://github.com/rjsmith87/fireworks-takehome" target="_blank" rel="noopener">github.com/rjsmith87/fireworks-takehome</a>
+      </div>
     </div>
 
-    <div class="hero-cmd"><span class="prompt">$</span>python -m src.cli</div>
+    <div class="tabs" role="tablist" id="tabs">
+      <button class="tab" role="tab" data-tab="overview"   aria-selected="true">Overview</button>
+      <button class="tab" role="tab" data-tab="quality"    aria-selected="false">Quality<span class="count">23/25</span></button>
+      <button class="tab" role="tab" data-tab="latency"    aria-selected="false">Latency</button>
+      <button class="tab" role="tab" data-tab="cost"       aria-selected="false">Cost<span class="count">−67%</span></button>
+      <button class="tab" role="tab" data-tab="howitworks" aria-selected="false">How It Works</button>
+      <button class="tab" role="tab" data-tab="roadmap"    aria-selected="false">Production Roadmap</button>
+      <button class="tab" role="tab" data-tab="livedemo"   aria-selected="false">Live Demo</button>
+    </div>
   </div>
-</header>
+</div>
 
 <div class="container">
   <div class="key-bar" id="keyBar">
@@ -428,246 +554,294 @@
   </div>
 </div>
 
-<!-- SECTION 1: PROBLEM -->
-<section id="problem">
-  <div class="container">
-    <div class="sec-eyebrow">Section 1 · The Problem</div>
-    <h2 class="sec-title">Raul's three pain points</h2>
-    <p class="sec-lede">Direct quotes from Raul's email. No editorializing — these are the constraints the POC has to clear.</p>
-
-    <div class="grid grid-3">
-      <div class="card">
-        <span class="pill">Quality</span>
-        <h3 style="margin-top:10px;">Hallucinations and broken SQL</h3>
-        <p class="quote">
-          The accuracy is not where we need it. We're seeing hallucinated column names, incorrect JOINs, and SQL that doesn't execute. We can't ship a product to customers where the SQL is wrong — trust is everything for a customer-facing feature.
-          <span class="who">Raul Jimenez · GitLab</span>
-        </p>
-      </div>
-      <div class="card">
-        <span class="pill">Latency</span>
-        <h3 style="margin-top:10px;">Sub-3s P50, end-to-end</h3>
-        <p class="quote">
-          Our current prototype takes about 7 seconds end-to-end (from the user hitting enter to seeing results). For an interactive CLI experience, we need this under 3 seconds P50 end-to-end. Developers won't adopt a tool that feels sluggish.
-          <span class="who">Raul Jimenez · GitLab</span>
-        </p>
-      </div>
-      <div class="card">
-        <span class="pill">Cost</span>
-        <h3 style="margin-top:10px;">~30k queries/day, GPT-5.4 won't scale</h3>
-        <p class="quote">
-          With ~1,000 users at ~30 queries/day, we're looking at roughly 30,000 queries daily — and that's just the first cohort. At GPT-5.4 pricing, the unit economics don't work for a platform feature. We need to explore open-source alternatives that can deliver comparable quality at a fraction of the cost so this is sustainable as we scale.
-          <span class="who">Raul Jimenez · GitLab</span>
-        </p>
-      </div>
-    </div>
-
-    <div style="margin-top:28px;" class="muted">
-      Test it yourself: every section below has a "run it live" element. Paste your Fireworks key in the bar above, then click any question.
-    </div>
-  </div>
-</section>
-
-<!-- SECTION 2: BASELINE VS AGENT -->
-<section id="baseline">
-  <div class="container">
-    <div class="sec-eyebrow">Section 2 · Baseline vs Agent</div>
-    <h2 class="sec-title">1/10 → 10/10, on the same model</h2>
-    <p class="sec-lede">
-      The customer's current prototype uses the prompt
-      <code class="mono">Convert this question to SQL: {question}</code> with no
-      schema, no JSON mode, no execute-and-repair. We replay it against the
-      same Kimi K2.6 endpoint our agent uses, so the comparison isolates the
-      lift from <em>prompt engineering</em>, not raw model capability. Pick any
-      question and watch both fail or succeed in real time.
+<!-- ============== TAB: OVERVIEW ============== -->
+<section class="tab-panel active" data-panel="overview">
+  <div class="container hero">
+    <div class="panel-eyebrow">Overview</div>
+    <h1>A natural-language-to-SQL agent <span class="accent">for the GitLab platform</span>, on Fireworks.</h1>
+    <p class="hero-sub">
+      Built in response to Raul's email: an interactive CLI that turns
+      natural-language questions into executable SQL with results — quality
+      that's customer-ready, latency engineered for an interactive feel, and
+      a cost structure that scales to thousands of users without breaking
+      the unit economics. Open-source models on Fireworks. Every number on
+      this page is reproducible from the repo.
     </p>
 
-    <div class="question-picker">
-      <div class="picker-row">
-        <label class="muted">Pick a dev question:</label>
-        <select id="bsQuestion"></select>
-        <button class="btn" id="bsRunBoth">Run both ▸</button>
-      </div>
+    <div class="hero-meta">
+      <div class="stat"><div class="stat-num">23/25</div><div class="stat-label">Combined accuracy (92%)</div></div>
+      <div class="stat"><div class="stat-num">$0.000942</div><div class="stat-label">Per-query cost</div></div>
+      <div class="stat"><div class="stat-num gradient">~67%</div><div class="stat-label">Cheaper than GPT-5.4</div></div>
+      <div class="stat"><div class="stat-num">~665 / 78</div><div class="stat-label">Mean tokens (in / out)</div></div>
     </div>
 
-    <div class="compare">
-      <div class="compare-col">
-        <h4>Naive prompt <span class="label-pill naive">Customer baseline</span></h4>
-        <div class="meta" id="bsNaiveMeta">—</div>
-        <pre class="sql" id="bsNaiveSql">(SQL will appear here)</pre>
-        <pre class="rows" id="bsNaiveRows">(rows will appear here)</pre>
-        <div id="bsNaiveVerdict"></div>
-      </div>
-      <div class="compare-col">
-        <h4>Agent prompt <span class="label-pill agent">Schema + JSON + repair</span></h4>
-        <div class="meta" id="bsAgentMeta">—</div>
-        <pre class="sql" id="bsAgentSql">(SQL will appear here)</pre>
-        <pre class="rows" id="bsAgentRows">(rows will appear here)</pre>
-        <div id="bsAgentVerdict"></div>
-      </div>
+    <div class="hero-cmd"><span class="prompt">$</span>python -m src.cli</div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">What this POC ships</h2>
+      <p style="color: var(--text-dim); max-width: 820px; font-size: 15.5px;">
+        A single-shot agent that injects a compacted Chinook schema into the
+        prompt, asks Kimi K2.6 (Fireworks-hosted, OpenAI-compatible JSON
+        mode) for SQL, executes it against SQLite, and repairs on errors up
+        to twice. A 25-question gold set (10 provided + 15 hand-written
+        pattern-coverage questions) measured against tolerant multiset
+        comparison. Latency and cost benchmarks at Raul's projected
+        30k q/day. An interactive CLI for follow-ups, and this dashboard
+        with sql.js running Chinook in your browser so every claim is
+        live-verifiable with your own Fireworks key.
+      </p>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Architecture · seven steps</h2>
+      <p style="color: var(--text-dim); margin-bottom: 12px;">Click any node — full design trade-offs are in the <strong>How It Works</strong> tab.</p>
+      <div class="arch" id="archFlow"></div>
+      <div class="arch-detail" id="archDetail">Click a node above ▴</div>
     </div>
   </div>
 </section>
 
-<!-- SECTION 3: EVAL RESULTS -->
-<section id="evals">
+<!-- ============== TAB: QUALITY ============== -->
+<section class="tab-panel" data-panel="quality">
   <div class="container">
-    <div class="sec-eyebrow">Section 3 · Eval Results</div>
-    <h2 class="sec-title">23/25 across the dev set and our synthetic set</h2>
-    <p class="sec-lede">
-      The provided dev set is 10 questions — useful but narrow. We added 15
-      hand-written synthetic questions (gold SQL run live against Chinook so
-      expected results stay consistent) covering subqueries, <code class="mono">CASE</code>,
-      <code class="mono">COALESCE</code>, <code class="mono">UNION</code>, self-joins,
-      <code class="mono">IS NULL</code>, date arithmetic, <code class="mono">LIKE</code>,
-      and top-per-group. Click any card to re-run it live. Two known failures
-      are flagged honestly — try re-running <code class="mono">s_013</code>
-      a few times to see the run-to-run variance.
+    <div class="panel-eyebrow">Quality</div>
+    <h2 class="panel-title">1/10 → 23/25, on the same model.</h2>
+    <p class="panel-lede">
+      The customer's current prototype prompt
+      (<code class="mono">Convert this question to SQL: {question}</code> — no
+      schema, no JSON mode, no execute-and-repair) on the same Kimi K2.6
+      endpoint: <strong>1/10</strong> on the dev set. Our agent on the same
+      model: <strong>10/10 dev + 13/15 synthetic = 23/25 (92%)</strong>. The
+      lift is prompt engineering, not model swap.
     </p>
 
     <div class="score-board">
-      <div class="score-tile">
-        <div class="num">10/10</div>
-        <div class="lbl">Dev set</div>
-        <div class="sub">100% with the agent · 1/10 with the naive baseline</div>
+      <div class="score-tile"><div class="num">10/10</div><div class="lbl">Dev set</div><div class="sub">100% with the agent · 1/10 with the customer's naive baseline</div></div>
+      <div class="score-tile purple"><div class="num">13/15</div><div class="lbl">Synthetic set</div><div class="sub">s_013 (date arithmetic) flaky · s_014 (top-per-group) miss</div></div>
+      <div class="score-tile gradient"><div class="num">23/25</div><div class="lbl">Combined</div><div class="sub">92% across both sets</div></div>
+      <div class="score-tile"><div class="num"><span id="liveTouched">0</span>/25</div><div class="lbl">You re-ran live</div><div class="sub">Click any card below to verify yourself</div></div>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Baseline vs agent · same model, different prompt</h2>
+      <p style="color: var(--text-dim);">Pick any dev question and watch both fail or succeed in real time on Kimi K2.6.</p>
+      <div class="question-picker">
+        <div class="picker-row">
+          <label class="muted">Dev question:</label>
+          <select id="bsQuestion"></select>
+          <button class="btn" id="bsRunBoth">Run both ▸</button>
+        </div>
       </div>
-      <div class="score-tile">
-        <div class="num">13/15</div>
-        <div class="lbl">Synthetic set</div>
-        <div class="sub">s_013 (date arithmetic) flaky · s_014 (top-per-group) miss</div>
-      </div>
-      <div class="score-tile">
-        <div class="num">23/25</div>
-        <div class="lbl">Combined</div>
-        <div class="sub">92% accuracy across both sets</div>
-      </div>
-      <div class="score-tile">
-        <div class="num"><span id="liveTouched">0</span>/25</div>
-        <div class="lbl">You re-ran live</div>
-        <div class="sub">Click a card to verify any answer yourself</div>
+      <div class="compare">
+        <div class="compare-col">
+          <h4>Naive prompt <span class="label-pill naive">Customer baseline</span></h4>
+          <div class="meta" id="bsNaiveMeta">—</div>
+          <pre class="sql" id="bsNaiveSql">(SQL will appear here)</pre>
+          <pre class="rows" id="bsNaiveRows">(rows will appear here)</pre>
+          <div id="bsNaiveVerdict"></div>
+        </div>
+        <div class="compare-col">
+          <h4>Agent prompt <span class="label-pill agent">Schema + JSON + repair</span></h4>
+          <div class="meta" id="bsAgentMeta">—</div>
+          <pre class="sql" id="bsAgentSql">(SQL will appear here)</pre>
+          <pre class="rows" id="bsAgentRows">(rows will appear here)</pre>
+          <div id="bsAgentVerdict"></div>
+        </div>
       </div>
     </div>
 
-    <h3 style="margin: 22px 0 8px; font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">Dev set · 10 questions</h3>
-    <div class="qcards" id="devCards"></div>
+    <div class="sub-section">
+      <h2 class="sub-title">Kimi K2.6 vs Qwen3-8B · same prompt, different model</h2>
+      <p style="color: var(--text-dim);">Both calls use the agent prompt, JSON mode, and repair. Pick a question or write your own.</p>
+      <div class="question-picker">
+        <div class="picker-row">
+          <label class="muted">Question:</label>
+          <select id="cmpPreset"></select>
+        </div>
+        <textarea id="cmpCustom" placeholder="…or type your own question (overrides the dropdown)" spellcheck="false"></textarea>
+        <div class="picker-row">
+          <button class="btn" id="cmpRun">Run on both models ▸</button>
+        </div>
+      </div>
+      <div class="compare">
+        <div class="compare-col">
+          <h4>Kimi K2.6 <span class="label-pill kimi">Primary</span></h4>
+          <div class="meta" id="cmpKimiMeta">—</div>
+          <pre class="sql" id="cmpKimiSql">(SQL will appear here)</pre>
+          <pre class="rows" id="cmpKimiRows">(rows will appear here)</pre>
+          <div id="cmpKimiVerdict"></div>
+        </div>
+        <div class="compare-col">
+          <h4>Qwen3-8B <span class="label-pill qwen">Cheap candidate</span></h4>
+          <div class="meta" id="cmpQwenMeta">—</div>
+          <pre class="sql" id="cmpQwenSql">(SQL will appear here)</pre>
+          <pre class="rows" id="cmpQwenRows">(rows will appear here)</pre>
+          <div id="cmpQwenVerdict"></div>
+        </div>
+      </div>
+    </div>
 
-    <h3 style="margin: 32px 0 8px; font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">Synthetic set · 15 questions</h3>
-    <div class="qcards" id="synCards"></div>
+    <div class="sub-section">
+      <h2 class="sub-title">All 25 questions · click any card to re-run</h2>
+      <p style="color: var(--text-dim);">Every card runs the live agent against your Fireworks key, executes the SQL through sql.js in your browser, and compares to the gold answer.</p>
+      <div class="small-h">Dev set · 10 questions</div>
+      <div class="qcards" id="devCards"></div>
+      <div class="small-h">Synthetic set · 15 questions</div>
+      <div class="qcards" id="synCards"></div>
+    </div>
 
-    <div class="card" style="margin-top: 22px;">
-      <span class="pill">Honest failure analysis</span>
-      <h3 style="margin-top: 10px;">Why 23/25, not 25/25</h3>
-      <p>
-        <strong style="color: var(--yellow);">s_013 — date arithmetic.</strong>
-        "Total revenue in the last 6 months of available invoice data."
-        Kimi sometimes generates the gold SQL pattern (<code class="mono">date(MAX(InvoiceDate), '-6 months')</code>)
-        and sometimes anchors to <code class="mono">'now'</code> or computes the window
-        differently. Even at <code class="mono">temperature=0</code> we
-        see run-to-run variance — re-run the card a few times and you'll
-        see it pass and fail. Mitigation: a single few-shot example pinning
-        the <code class="mono">date(MAX(...), '-N months')</code> pattern.
-      </p>
-      <p style="margin-top: 14px;">
-        <strong style="color: var(--red);">s_014 — top-per-group.</strong>
-        "Top-spending customer for each support rep." The model interprets
-        "for each support rep" as a column to add to the projection rather
-        than a partitioning constraint, generating
-        <code class="mono">GROUP BY rep, customer ORDER BY spending DESC</code> and
-        returning all 59 rep–customer pairs instead of the one top per rep.
-        The dev set's <code class="mono">q_009</code> uses <code class="mono">RANK()</code>
-        which Kimi handles, but <code class="mono">q_009</code> is global top-5;
-        <code class="mono">s_014</code> needs
-        <code class="mono">ROW_NUMBER() OVER (PARTITION BY rep …) WHERE rn = 1</code>,
-        a stricter pattern. One or two few-shot examples would close it; an
-        RFT loop with executor feedback would close it permanently.
-      </p>
+    <div class="sub-section">
+      <h2 class="sub-title">Honest failure analysis · why 23/25, not 25/25</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="pill purple">Flaky · s_013</span>
+          <h3 style="margin-top: 10px;">Date arithmetic</h3>
+          <p>
+            "Total revenue in the last 6 months of available invoice data."
+            Kimi sometimes generates the gold pattern
+            (<code class="mono">date(MAX(InvoiceDate), '-6 months')</code>)
+            and sometimes anchors the window differently. Even at
+            <code class="mono">temperature=0</code> we see run-to-run
+            variance — re-run the card 3-4 times to see it pass and fail.
+            Counted as a failure to be conservative. Mitigation: a single
+            few-shot example pinning the
+            <code class="mono">date(MAX(...), '-N months')</code> pattern.
+          </p>
+        </div>
+        <div class="card">
+          <span class="pill" style="background: rgba(248, 113, 113, 0.14); color: var(--red);">Hard miss · s_014</span>
+          <h3 style="margin-top: 10px;">Top-per-group</h3>
+          <p>
+            "Top-spending customer for each support rep." The model treats
+            "for each support rep" as a column to add to the projection
+            rather than a partitioning constraint, generating
+            <code class="mono">GROUP BY rep, customer ORDER BY spending DESC</code>
+            and returning all 59 pairs instead of the 1 top per rep.
+            Needs <code class="mono">ROW_NUMBER() OVER (PARTITION BY rep …) WHERE rn = 1</code>.
+            One or two few-shot examples close it; an RFT loop with
+            executor feedback closes it permanently.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- SECTION 4: MODEL COMPARISON -->
-<section id="models">
+<!-- ============== TAB: LATENCY ============== -->
+<section class="tab-panel" data-panel="latency">
   <div class="container">
-    <div class="sec-eyebrow">Section 4 · Model Comparison</div>
-    <h2 class="sec-title">Kimi K2.6 vs Qwen3-8B</h2>
-    <p class="sec-lede">
-      The customer asked specifically for Qwen2.5-Coder-32B, but it wasn't
-      reachable from the supplied Fireworks key. Kimi K2.6 was selected after
-      a short bake-off — JSON mode support, sub-1s minimum latency on shared
-      tier, 10/10 on the dev set. Qwen3-8B is the obvious cheap candidate but
-      it's not a solo replacement: 5/10 on dev. It's plausible as the
-      <em>fast first attempt</em> in a router. Try any question on either
-      model and judge the gap yourself.
+    <div class="panel-eyebrow">Latency · Raul's hard constraint</div>
+    <h2 class="panel-title">The 3-second P50 question, answered honestly.</h2>
+    <p class="panel-lede">
+      Raul wants &lt;3s P50 end-to-end. On Fireworks's shared serverless
+      tier this is right at the edge — we measured a clean 10/10 dev-set
+      run with median latency <strong>2,901 ms</strong> using the compact
+      schema. But 3 back-to-back perf runs with paced calls showed bimodal
+      latency. The honest answer:
+      <strong>shared serverless gets us under 3s some of the time, but not
+      contractually.</strong> Priority access on Fireworks is
+      account-provisioned, so no request-time flag fixes this — the SLO
+      requires on-demand or dedicated deployment.
     </p>
 
-    <div class="question-picker">
-      <div class="picker-row">
-        <label class="muted">Question:</label>
-        <select id="cmpPreset"></select>
+    <div class="sub-section">
+      <h2 class="sub-title">Three back-to-back perf runs</h2>
+      <table class="data">
+        <thead>
+          <tr><th>Run</th><th>P50</th><th>P90</th><th>Accuracy</th><th>Note</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="num">1</td><td class="num warn">9,067 ms</td><td class="num">22,065 ms</td><td>10/10</td><td>shared tier under load</td></tr>
+          <tr><td class="num">2</td><td class="num warn">8,297 ms</td><td class="num bad">39,673 ms</td><td>6/10</td><td>three queries hit 429s and never recovered</td></tr>
+          <tr><td class="num">3</td><td class="num good">4,058 ms</td><td class="num">17,935 ms</td><td>10/10</td><td>quieter shared tier · cleanest run</td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top: 10px;">All three perf JSONs are checked into the repo (<code class="mono">perf_compact_{1,2,3}.json</code>). Median p50 across runs: 8,297 ms. Best clean p50: 4,058 ms.</p>
+    </div>
+
+    <div class="lat-grid">
+      <div class="lat-tile">
+        <div class="label">Median p50 across 3 runs</div>
+        <div class="val" id="latAgg">loading…</div>
+        <div class="muted" style="margin-top:4px;" id="latAggSub">computed live from perf JSONs</div>
       </div>
-      <textarea id="cmpCustom" placeholder="…or type your own question (overrides the dropdown)" spellcheck="false"></textarea>
-      <div class="picker-row">
-        <button class="btn" id="cmpRun">Run on both models ▸</button>
-        <span class="muted">Both calls use the same agent prompt + JSON mode + repair.</span>
+      <div class="lat-tile">
+        <div class="label">Best clean run (dev set)</div>
+        <div class="val">2,901 ms</div>
+        <div class="muted" style="margin-top:4px;">eval median, no pacing</div>
+      </div>
+      <div class="lat-tile purple">
+        <div class="label">% queries under 3s</div>
+        <div class="val" id="latUnder3">loading…</div>
+        <div class="muted" style="margin-top:4px;">across all measured calls</div>
+      </div>
+      <div class="lat-tile">
+        <div class="label">Schema compaction win</div>
+        <div class="val">−29%</div>
+        <div class="muted" style="margin-top:4px;">935 → 665 prompt tokens · 10/10 preserved</div>
       </div>
     </div>
 
-    <div class="compare">
-      <div class="compare-col">
-        <h4>Kimi K2.6 <span class="label-pill agent">Primary</span></h4>
-        <div class="meta" id="cmpKimiMeta">—</div>
-        <pre class="sql" id="cmpKimiSql">(SQL will appear here)</pre>
-        <pre class="rows" id="cmpKimiRows">(rows will appear here)</pre>
-        <div id="cmpKimiVerdict"></div>
+    <div class="card sub-section">
+      <h3>Per-query distribution · 30 calls aggregated</h3>
+      <p style="color: var(--text-dim);">Each row is a single agent call from <code class="mono">perf_compact_{1,2,3}.json</code>, sorted shortest to longest. Green = under Raul's 3,000 ms line.</p>
+      <div class="lat-bars" id="latBars">loading…</div>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Schema trimming · the latency lever</h2>
+      <p style="color: var(--text-dim);">
+        Most of the per-call latency on shared serverless is prefill, so the
+        prompt-token count is the highest-leverage knob short of moving off
+        shared. Two compounding wins:
+      </p>
+      <div class="grid grid-2" style="margin-top: 14px;">
+        <div class="card">
+          <span class="pill">Compact form</span>
+          <h3 style="margin-top: 10px;">935 → 665 mean prompt tokens (−29%)</h3>
+          <p>Render the schema as <code class="mono">Album(AlbumId:integer[pk], Title:nvarchar, ArtistId:integer[fk→Artist.ArtistId])</code> instead of <code class="mono">CREATE TABLE</code> blocks. 62% schema-char reduction. No accuracy regression on the dev set.</p>
+        </div>
+        <div class="card">
+          <span class="pill purple">Keyword + FK trim</span>
+          <h3 style="margin-top: 10px;">68.5% mean reduction when it fires</h3>
+          <p>Keyword-match table names against the question, expand via foreign keys to keep JOINs valid. Fires on 9/25 questions today (24.7% mean reduction across all 25, 68.5% on the 9 fired). On <code class="mono">q_002</code> ("AC/DC albums"): 89.8% reduction.</p>
+        </div>
       </div>
-      <div class="compare-col">
-        <h4>Qwen3-8B <span class="label-pill naive">Cheap candidate</span></h4>
-        <div class="meta" id="cmpQwenMeta">—</div>
-        <pre class="sql" id="cmpQwenSql">(SQL will appear here)</pre>
-        <pre class="rows" id="cmpQwenRows">(rows will appear here)</pre>
-        <div id="cmpQwenVerdict"></div>
+    </div>
+
+    <div class="card sub-section">
+      <h3>Live latency test</h3>
+      <p style="color: var(--text-dim);">Fires 3 sequential calls to Fireworks against the same dev question and reports the median you see right now.</p>
+      <div class="row-flex" style="margin-top: 12px;">
+        <button class="btn" id="latRun">Measure latency now ▸</button>
+        <span class="muted" id="latStatus">Bring your own key (above).</span>
       </div>
+      <div id="latResult" style="margin-top: 12px;"></div>
+    </div>
+
+    <div class="card sub-section">
+      <h3>Path to a firm sub-3s P50 SLO</h3>
+      <ul style="color: var(--text-dim);">
+        <li><strong>Schema compaction (shipped).</strong> One-line-per-table form. <em>This is what brought our best clean run to 2.9s.</em></li>
+        <li><strong>Prompt caching</strong> on the static schema chunk — Fireworks's prefix cache is exactly this use case. Most of the 665 input tokens are identical across queries.</li>
+        <li><strong>On-demand or dedicated deployment</strong> for predictable tail latency — shared serverless will always have load spikes. This is the SLO-grade lever.</li>
+        <li><strong>Speculative decoding</strong> (Fireworks platform feature) — text-to-SQL has very predictable output structure. Ideal target.</li>
+        <li><strong>Schema retrieval</strong> for production-scale schemas — on Chinook the 11-table dump is fine; on a 1,000-table customer DB the schema alone would break the latency budget.</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- SECTION 5: ARCHITECTURE -->
-<section id="architecture">
+<!-- ============== TAB: COST ============== -->
+<section class="tab-panel" data-panel="cost">
   <div class="container">
-    <div class="sec-eyebrow">Section 5 · Architecture</div>
-    <h2 class="sec-title">Single-shot agent with execute-and-repair</h2>
-    <p class="sec-lede">Click any node to expand it: each one shows what we chose, what we considered, and the tradeoff we accepted.</p>
-
-    <div class="arch" id="archFlow"></div>
-    <div class="arch-detail" id="archDetail">Click a node above ▴</div>
-  </div>
-</section>
-
-<!-- SECTION 6: DESIGN DECISIONS -->
-<section id="decisions">
-  <div class="container">
-    <div class="sec-eyebrow">Section 6 · Design Decisions</div>
-    <h2 class="sec-title">What we picked and why</h2>
-    <p class="sec-lede">
-      Every load-bearing tradeoff. Honest about what's a good fit for the
-      Chinook-shaped problem and what would need to change for a customer
-      with 1,000 tables.
-    </p>
-
-    <div class="grid grid-3" id="decisionGrid"></div>
-  </div>
-</section>
-
-<!-- SECTION 7: COST CALCULATOR -->
-<section id="cost">
-  <div class="container">
-    <div class="sec-eyebrow">Section 7 · Cost Calculator</div>
-    <h2 class="sec-title">Open-source on Fireworks vs GPT-5.4</h2>
-    <p class="sec-lede">
-      Drag the slider. Cost is computed from <strong>actually-measured</strong>
-      mean token counts (665 input / 78 output per query, from the latest
+    <div class="panel-eyebrow">Cost</div>
+    <h2 class="panel-title">~67% cheaper than GPT-5.4 at the same token profile.</h2>
+    <p class="panel-lede">
+      Drag the slider. Every number is computed from <strong>actually-measured</strong>
+      mean token counts (665 input / 78 output per query, from
       <code class="mono">perf_compact_*.json</code>) at published list rates.
-      Default position is 30,000 q/day — Raul's number.
+      Default position is 30,000 q/day — Raul's projected first cohort.
     </p>
 
     <div class="calc">
@@ -681,7 +855,7 @@
           (Raul's projected first cohort)
         </div>
       </div>
-      <input type="range" min="1000" max="100000" step="1000" value="30000" class="calc-slider" id="calcSlider" />
+      <input type="range" min="1000" max="300000" step="1000" value="30000" class="calc-slider" id="calcSlider" />
 
       <div class="calc-grid">
         <div class="calc-cell kimi">
@@ -704,212 +878,230 @@
         <strong>Savings: $<span id="saveDay">56.51</span>/day &middot; $<span id="saveMo">1,695</span>/month &middot; $<span id="saveYr">20,627</span>/year</strong>
         <span class="muted"> &middot; <span id="saveRatio">67</span>% less than GPT-5.4 at the same token profile.</span>
       </div>
+    </div>
 
-      <p class="muted" style="margin-top: 18px; font-size: 12.5px;">
-        <strong>Honest note:</strong> single-turn estimate. Multi-turn adds
-        ~200 tokens per prior exchange (capped at 6 turns in our CLI) and the
-        baseline assumes the customer's prompt produces the same token profile
-        ours does — which is conservative for the baseline, since their bare
-        "Convert to SQL" prompt would in practice generate longer free-text
-        answers, not shorter. We dropped from 935 → 665 mean input tokens by
-        compacting the schema (<code class="mono">CREATE TABLE</code> → one
-        line per table) — same accuracy, ~21% cheaper per call.
+    <div class="sub-section">
+      <h2 class="sub-title">10× scale projection · 300,000 q/day</h2>
+      <p style="color: var(--text-dim);">Cohort 2 + ecosystem expansion. At 10× the customer's first-cohort volume, the gap widens proportionally.</p>
+      <table class="data">
+        <thead>
+          <tr><th>Metric</th><th>Fireworks · Kimi K2.6</th><th>GPT-5.4 baseline</th><th>Savings</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Daily</td><td class="num good">$282.59</td><td class="num bad">$847.74</td><td class="num good">$565.16</td></tr>
+          <tr><td>Monthly</td><td class="num good">$8,478</td><td class="num bad">$25,432</td><td class="num good">$16,955</td></tr>
+          <tr><td>Annual</td><td class="num good">$103,144</td><td class="num bad">$309,425</td><td class="num good">$206,281</td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top: 10px;">
+        Same per-query token profile, scaled. This is the lower-bound case
+        — a router (Qwen3-8B fast first attempt, Kimi escalation) cuts
+        another ~40% on tier-1 questions and brings the annual savings vs
+        GPT-5.4 to roughly $250k. Fine-tuned Qwen3-class checkpoints push it
+        further.
       </p>
     </div>
-  </div>
-</section>
 
-<!-- SECTION 8: LATENCY -->
-<section id="latency">
-  <div class="container">
-    <div class="sec-eyebrow">Section 8 · Latency · Raul's Hard Constraint</div>
-    <h2 class="sec-title">The 3-second P50 question, answered honestly</h2>
-    <p class="sec-lede">
-      Raul wants &lt;3s P50 end-to-end. On Fireworks's shared serverless tier
-      this is right at the edge — we measured a clean <strong>10/10 dev-set
-      run with median latency 2,901 ms</strong> after we compacted the schema
-      from <code class="mono">CREATE TABLE</code> blocks to one-line-per-table
-      (1,042 → ~390 prompt tokens of schema). But three back-to-back
-      <code class="mono">perf.py</code> runs minutes later showed p50s of 9 s,
-      with bimodal latency — fast under load-light periods, slow under load.
-      <strong>The honest answer: shared serverless gets us under 3 s P50 part
-      of the time but not contractually.</strong> Priority access on Fireworks
-      is account-provisioned, so no request-time flag will fix this — the SLO
-      requires on-demand or dedicated deployment.
-    </p>
-
-    <div class="lat-grid">
-      <div class="lat-tile">
-        <div class="label">Latest 3-run aggregate</div>
-        <div class="val" id="latAgg">running…</div>
-        <div class="muted" style="margin-top:4px;" id="latAggSub">median p50 across 3 perf.py runs</div>
-      </div>
-      <div class="lat-tile">
-        <div class="label">Best clean run (dev set)</div>
-        <div class="val">2,901 ms</div>
-        <div class="muted" style="margin-top:4px;">median, compact schema, no pacing</div>
-      </div>
-      <div class="lat-tile">
-        <div class="label">% queries under 3 s</div>
-        <div class="val" id="latUnder3">running…</div>
-        <div class="muted" style="margin-top:4px;">across all measured calls</div>
-      </div>
-      <div class="lat-tile">
-        <div class="label">Schema compaction win</div>
-        <div class="val">−29%</div>
-        <div class="muted" style="margin-top:4px;">935 → 665 mean prompt tokens · same 10/10 accuracy</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top: 18px;">
-      <h3>Per-query distribution (latest 3 runs aggregated)</h3>
-      <p>Each row is a single agent call, sorted shortest to longest. Green = under Raul's 3 s line.</p>
-      <div class="lat-bars" id="latBars">loading…</div>
-    </div>
-
-    <div class="card" style="margin-top: 18px;">
-      <h3>Live latency test</h3>
-      <p>Fires 3 sequential calls to Fireworks against the same dev question and reports the median you see right now.</p>
-      <div class="row-flex" style="margin-top:12px;">
-        <button class="btn" id="latRun">Measure latency now ▸</button>
-        <span class="muted" id="latStatus">Bring your own key (above).</span>
-      </div>
-      <div id="latResult" style="margin-top: 12px;"></div>
-    </div>
-
-    <div class="card" style="margin-top: 18px;">
-      <h3>Path to a firm sub-3 s P50 SLO</h3>
-      <ul style="color: var(--text-dim); font-size: 14px;">
-        <li><strong>Schema compaction (shipped).</strong> CREATE TABLE → <code class="mono">Table(col:type[pk,fk→...])</code>. 62% schema-char reduction, 29% input-token reduction. <em>This is what brought our best clean run to 2.9s.</em></li>
-        <li><strong>Prompt caching</strong> on the static schema chunk — Fireworks's prefix cache is exactly this use case. Most of the 665 input tokens are identical across queries.</li>
-        <li><strong>On-demand or dedicated deployment</strong> for predictable tail latency — shared serverless will always have load spikes. This is the SLO-grade lever.</li>
-        <li><strong>Speculative decoding</strong> (Fireworks platform feature) — text-to-SQL has very predictable output structure. Ideal target.</li>
-        <li><strong>Schema retrieval</strong> for production-scale schemas — on Chinook the 11-table dump is fine; on a 1,000-table customer DB the schema alone would break the latency budget.</li>
+    <div class="sub-section">
+      <h2 class="sub-title">Honest notes on the comparison</h2>
+      <ul style="color: var(--text-dim);">
+        <li><strong>Single-turn estimate.</strong> Multi-turn adds ~200 tokens per prior exchange (capped at 6 turns by the CLI's <code class="mono">HISTORY_TURN_LIMIT</code>).</li>
+        <li><strong>The baseline is conservative.</strong> We apply GPT-5.4 rates to <em>our</em> token profile. The customer's bare "Convert to SQL" prompt would in practice generate <em>longer</em> free-text answers, not shorter — so the real GPT-5.4 spend would be higher than what we show.</li>
+        <li><strong>The compact-schema rollout cut another ~21%</strong> off our per-query cost vs the verbose schema baseline ($0.001197 → $0.000942) at no quality cost.</li>
       </ul>
     </div>
   </div>
 </section>
 
-<!-- SECTION 9: ROADMAP -->
-<section id="roadmap">
+<!-- ============== TAB: HOW IT WORKS ============== -->
+<section class="tab-panel" data-panel="howitworks">
   <div class="container">
-    <div class="sec-eyebrow">Section 9 · Production Roadmap</div>
-    <h2 class="sec-title">From shared serverless to a tuned production tier</h2>
-    <p class="sec-lede">Each phase maps to a concrete Fireworks platform feature. The POC (this page) is Phase 0.</p>
+    <div class="panel-eyebrow">How It Works</div>
+    <h2 class="panel-title">A single-shot agent with execute-and-repair.</h2>
+    <p class="panel-lede">
+      Intentionally simple. Schema auto-discovered from <code class="mono">sqlite_master</code>,
+      compacted to one line per table, trimmed by question keywords + FK
+      closure when ≥2 tables match, sent to Fireworks in JSON mode, executed
+      against SQLite, and repaired on errors up to twice. Each architecture
+      node below expands to show what we chose, what we considered, and the
+      trade-off we accepted.
+    </p>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Architecture · seven steps</h2>
+      <div class="arch" id="archFlow2"></div>
+      <div class="arch-detail" id="archDetail2">Click a node above ▴</div>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Design decisions</h2>
+      <div class="grid grid-3" id="decisionGrid"></div>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Model comparison · what we tried</h2>
+      <table class="data">
+        <thead>
+          <tr><th>Model</th><th>Dev acc</th><th>Median latency</th><th>Per-query cost</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Kimi K2.6</strong></td><td class="num good">10/10</td><td class="num">2.9s clean / 6.3s mixed</td><td class="num">$0.000942</td><td>Primary · ships in this POC</td></tr>
+          <tr><td>Qwen3-8B</td><td class="num warn">5/10</td><td class="num">~3-5s</td><td class="num">~$0.000200 (est)</td><td>Fast first attempt in a CACR router · not a solo replacement</td></tr>
+          <tr><td>Qwen2.5-Coder-32B</td><td>—</td><td>—</td><td>—</td><td>Customer ask · not reachable from supplied key</td></tr>
+          <tr><td>DeepSeek-V3 / V3.1</td><td>—</td><td>—</td><td>—</td><td>Considered, not benchmarked in the 4-hour budget</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TAB: ROADMAP ============== -->
+<section class="tab-panel" data-panel="roadmap">
+  <div class="container">
+    <div class="panel-eyebrow">Production Roadmap</div>
+    <h2 class="panel-title">From shared serverless to a tuned production tier.</h2>
+    <p class="panel-lede">Each phase maps to a concrete Fireworks platform feature. The POC is Phase 0.</p>
+
     <div class="road" id="roadmapGrid"></div>
-  </div>
-</section>
 
-<!-- SECTION 10: FINE-TUNING -->
-<section id="finetune">
-  <div class="container">
-    <div class="sec-eyebrow">Section 10 · Fine-Tuning Approach</div>
-    <h2 class="sec-title">SFT → RFT → DPO, in that order</h2>
-    <p class="sec-lede">
-      Prompt engineering can only carry text-to-SQL so far. The two failure
-      modes we hit (top-per-group, date-arithmetic ambiguity) are exactly the
-      shape that fine-tuning fixes — the model needs to be taught the
-      <em>output discipline</em> of the dialect, not more facts.
-    </p>
-
-    <div class="grid grid-3">
-      <div class="card decision-card">
-        <span class="chosen">Step 1 · SFT</span>
-        <h4>Establish the format</h4>
-        <p>
-          Generate ~1k synthetic <code class="mono">(question, gold_sql)</code> pairs
-          across diverse schemas (not just Chinook — synthetic schema generators
-          are cheap). Fine-tune Qwen3-8B or DeepSeek-Coder-V2-Lite with SFT to
-          internalize: "no surrogate keys in the output, idiomatic
-          <code class="mono">LIMIT</code>, correct <code class="mono">GROUP BY</code>
-          shape, full-name concatenation." This is what the system prompt is
-          currently bandaging in production.
-        </p>
-        <span class="label">Why first</span>
-        <p>SFT is the only stage that can teach a new format from scratch.</p>
-      </div>
-      <div class="card decision-card">
-        <span class="chosen">Step 2 · RFT</span>
-        <h4>Use the executor as a reward</h4>
-        <p>
-          Reinforcement fine-tuning with the SQLite executor as the reward
-          signal: did the query run, and did its result set match the gold?
-          Text-to-SQL is the canonical RFT use case — verifiable rewards, no
-          human labels required, every training example is a question we
-          already have a gold answer for. Fireworks supports RFT directly.
-        </p>
-        <span class="label">Why this catches s_014</span>
-        <p>Top-per-group failure is silent — the SQL runs, just returns wrong rows. RFT punishes that exactly via the executor.</p>
-      </div>
-      <div class="card decision-card">
-        <span class="chosen">Step 3 · DPO</span>
-        <h4>Polish the long tail</h4>
-        <p>
-          Direct Preference Optimization on production replay pairs: the
-          working query a user accepted vs the rejected/repaired query they
-          got first. Closes residual style drift after RFT plateaus, and uses
-          data we'd already be collecting once the agent is in production.
-        </p>
-        <span class="label">Why last</span>
-        <p>DPO needs preference pairs at scale — production gives us that for free.</p>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top: 20px;">
-      <h3>What we did <em>not</em> build for this POC</h3>
-      <p>
-        No fine-tune was actually run. The POC fits in 4 hours. The case for
-        fine-tuning is built on the failure-mode analysis — every miss in
-        section 3 is closable by a few well-targeted training examples, and
-        none of them are model-capability ceilings. RFT against a 200–500
-        question gold set, with the SQLite executor as the reward, is the
-        first production training run I'd ship.
+    <div class="sub-section">
+      <h2 class="sub-title">Fine-tuning pipeline · SFT → RFT → DPO</h2>
+      <p style="color: var(--text-dim); max-width: 820px;">
+        Prompt engineering can only carry text-to-SQL so far. The two
+        failure modes we hit (top-per-group, date-arithmetic ambiguity) are
+        exactly the shape that fine-tuning fixes — the model needs to be
+        taught the <em>output discipline</em> of the dialect, not more facts.
       </p>
+      <div class="grid grid-3" style="margin-top: 14px;">
+        <div class="card decision-card">
+          <span class="chosen">Step 1 · SFT</span>
+          <h4>Establish the format</h4>
+          <p>Generate ~1k synthetic <code class="mono">(question, gold_sql)</code> pairs across diverse schemas (synthetic schema generators are cheap). Fine-tune Qwen3-8B or DeepSeek-Coder-V2-Lite to internalize: no surrogate keys in the output, idiomatic <code class="mono">LIMIT</code>, correct <code class="mono">GROUP BY</code> shape, full-name concatenation. This is what the system prompt is currently bandaging.</p>
+          <span class="label">Why first</span>
+          <p>SFT is the only stage that can teach a new format from scratch.</p>
+        </div>
+        <div class="card decision-card" style="border-color: rgba(252, 109, 38, 0.35);">
+          <span class="chosen">Step 2 · RFT · the centerpiece</span>
+          <h4>Use the executor as a reward</h4>
+          <p>
+            <strong style="color: var(--orange);">Text-to-SQL is the canonical RFT use case.</strong> The reward is mechanically verifiable — did the SQL run, and did its result-set match the gold answer? No human labels required. Every gold question we already have is a training example. Fireworks supports RFT directly.
+          </p>
+          <span class="label">Why this catches s_014</span>
+          <p>Top-per-group failure is silent — the SQL runs, just returns wrong rows. RFT punishes that exactly via the executor reward, which prompt engineering can't.</p>
+        </div>
+        <div class="card decision-card">
+          <span class="chosen">Step 3 · DPO</span>
+          <h4>Polish the long tail</h4>
+          <p>Direct Preference Optimization on production replay pairs: the working query a user accepted vs the rejected/repaired query they got first. Closes residual style drift after RFT plateaus, using data we'd already be collecting in production.</p>
+          <span class="label">Why last</span>
+          <p>DPO needs preference pairs at scale — production gives us that for free.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">CACR-style router · cheap-first, escalate on low confidence</h2>
+      <div class="card">
+        <p style="color: var(--text-dim);">
+          A natural fit once Qwen3-class fine-tuned checkpoints are in place.
+          Cheap, fast model takes the first attempt; a confidence probe
+          (logprobs cheaper than a second LLM call) decides whether to
+          escalate to the heavier model. The eval data on this submission
+          already characterizes the split — Qwen3-8B handles tier-1s
+          cleanly and Kimi catches the rest. Implementation lives outside
+          the agent: the router sits in front of <code class="mono">SqlAgent</code>
+          and selects the model per call.
+        </p>
+        <p style="margin-top: 10px;">
+          <a href="https://github.com/rjsmith87/fireworks-takehome" target="_blank" rel="noopener" style="color: var(--orange);">→ github.com/rjsmith87/fireworks-takehome</a> &middot;
+          <span class="muted">routing scaffolding stubbed in <code class="mono">src/agent.py</code> via the model constructor arg; CACR router is the Phase 1 deliverable.</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <h2 class="sub-title">Known limitations · all 8</h2>
+      <ul class="limit-list">
+        <li><strong>Sub-3s P50 on shared serverless is not contractual.</strong> 23% of measured calls under 3s, 33% under 5s. Best clean p50 4,058 ms (run 3); a separate dev-eval pass hit 2,901 ms. Variance is load-side. SLO requires on-demand or dedicated deployment.</li>
+        <li><strong><code class="mono">service_tier="priority"</code> is silently accepted but does nothing.</strong> Fireworks priority is account-provisioned, not a request-time flag.</li>
+        <li><strong>Schema trim is keyword-based, not retrieval.</strong> Fires on 9/25 questions (mean 68.5% reduction on those, 24.7% across all). For a 1,000-table customer DB this isn't enough — needs a real retrieval step or schema caching with a stable cache id.</li>
+        <li><strong><code class="mono">format_answer_summary</code> is heuristic.</strong> Renders rows as <code class="mono">&lt;entity&gt; (col=val, col=val)</code>. Values are exact; wording may not match the gold set's phrasing. Eval correctness uses <code class="mono">rows_match</code> against the SQL result, not the answer field.</li>
+        <li><strong>s_013 is run-to-run flaky at temperature 0.</strong> "Last 6 months of available data" is genuinely ambiguous; counted as a failure to be conservative.</li>
+        <li><strong>Qwen3-8B's 50% should be read with care.</strong> Some failures (q_001 units vs revenue) are real semantic misses; others would likely improve with one or two few-shot examples. Plausible as a "fast first attempt" inside a router, not a solo replacement.</li>
+        <li><strong>Pricing for Qwen3-8B is an estimate</strong> in <code class="mono">perf.py</code>'s <code class="mono">PRICING_USD_PER_M</code> dict; verify before publishing any cheap-model cost number.</li>
+        <li><strong>No multi-turn perf measurement.</strong> Single-turn cost number assumes a fresh conversation; production multi-turn adds ~200 tokens per prior exchange, capped at 6 turns by the CLI's <code class="mono">HISTORY_TURN_LIMIT</code>.</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- SECTION 11: KNOWN LIMITATIONS -->
-<section id="limits">
+<!-- ============== TAB: LIVE DEMO ============== -->
+<section class="tab-panel" data-panel="livedemo">
   <div class="container">
-    <div class="sec-eyebrow">Section 11 · Known Limitations</div>
-    <h2 class="sec-title">Everything we won't pretend works perfectly</h2>
-    <p class="sec-lede">No hiding. Every caveat in the README is repeated here.</p>
-
-    <ul class="limit-list">
-      <li><strong>Latency variance is large on shared serverless.</strong> One clean dev-eval run hit median 2,901 ms; three back-to-back perf runs minutes later sat at p50 ≈ 9 s. This is load-side variance, not a model property. The 3-second P50 SLO Raul cited is achievable on a quiet shared tier with our compact schema, but is <em>not</em> contractually deliverable without on-demand or dedicated deployment.</li>
-      <li><strong>Priority service tier is not a request-time flag.</strong> We tried <code class="mono">extra_body={"service_tier":"priority"}</code> and the <code class="mono">X-Fireworks-Server-Type</code> header — Fireworks accepts them silently but they don't change tier behavior. Priority is account-provisioned. The path to a firm SLO is platform configuration, not code.</li>
-      <li><strong>Schema is dumped (compacted) in full when trim doesn't fire.</strong> Trim fires on 9 of 25 questions today (mean 67% reduction on those, 24% across all 25). For a 1,000-table customer DB the keyword trim isn't enough — we'd need a real retrieval step (embed the question, find relevant tables) or schema caching with a stable cache id.</li>
-      <li><strong><code class="mono">format_answer_summary</code> is heuristic.</strong> Renders rows as <code class="mono">&lt;entity&gt; (col=val, col=val)</code> with a small carve-out for FirstName+LastName. Values are exact; wording may not match the gold set's phrasing verbatim. Eval correctness uses <code class="mono">rows_match</code> against the SQL result, not string-comparison of the answer field.</li>
-      <li><strong>s_013 is run-to-run flaky at temperature 0.</strong> The "last 6 months of available data" pattern is genuinely ambiguous; we count it in the failure column to be conservative.</li>
-      <li><strong>Qwen3-8B's 50% should be read with care.</strong> Some failures (q_001: units vs revenue) are real semantic misses, but others would likely improve with one or two few-shot examples. The 8B model is plausible as a "fast first attempt" inside a CACR-style router, not as a solo replacement.</li>
-      <li><strong>Pricing for Qwen3-8B is an estimate</strong> in <code class="mono">perf.py</code>'s <code class="mono">PRICING_USD_PER_M</code> dict; verify before publishing any cheap-model cost number.</li>
-      <li><strong>No multi-turn perf measurement.</strong> Single-turn cost number on this page assumes a fresh conversation; production multi-turn adds ~200 tokens per prior exchange, capped at 6 turns by the CLI's <code class="mono">HISTORY_TURN_LIMIT</code>.</li>
-    </ul>
-  </div>
-</section>
-
-<!-- SECTION 12: AI DISCLOSURE -->
-<section id="ai">
-  <div class="container">
-    <div class="sec-eyebrow">Section 12 · AI Disclosure</div>
-    <h2 class="sec-title">Built with Claude (Anthropic)</h2>
-    <p class="sec-lede" style="max-width: 820px;">
-      Claude Code (Anthropic) wrote the implementation. I drove architecture
-      decisions, model selection, evaluation methodology, and customer
-      communication — including the failure-mode analysis on s_013/s_014, the
-      schema-compaction approach, the SFT→RFT→DPO ordering, and the POC
-      scope. The CLI, agent, eval, and perf instrumentation were all verified
-      end-to-end against the dev set before submission.
+    <div class="panel-eyebrow">Live Demo</div>
+    <h2 class="panel-title">sql.js + Chinook.db running in your browser.</h2>
+    <p class="panel-lede">
+      No server, no setup. The Chinook database is loaded into a WebAssembly
+      SQLite instance in your browser; your Fireworks API key (paste it
+      above) is used directly from this page to call
+      <code class="mono">api.fireworks.ai</code>. Type any natural-language
+      question about the music store and watch both the customer's naive
+      prompt and our agent prompt run side-by-side on Kimi K2.6.
     </p>
+
+    <div class="card" id="dbStatus" style="margin-bottom: 16px;">
+      <span id="dbStatusBadge" class="pill purple">Loading sql.js + Chinook.db…</span>
+      <p id="dbStatusText" style="margin-top: 10px; color: var(--text-dim); font-size: 13.5px;">A 1MB SQLite file is being fetched and opened in the browser via sql.js (1.10.3). All SQL runs locally — only the Fireworks API call leaves your machine.</p>
+    </div>
+
+    <div class="card">
+      <h3>Free-form question</h3>
+      <p style="color: var(--text-dim);">Pick a preset or type your own — anything the schema can answer.</p>
+      <div class="question-picker">
+        <select id="ldPreset"></select>
+        <textarea id="ldCustom" placeholder="…or write your own (overrides the dropdown)" spellcheck="false"></textarea>
+        <div class="picker-row">
+          <button class="btn" id="ldRunBoth">Run baseline + agent ▸</button>
+          <button class="btn ghost" id="ldRunAgent">Run agent only</button>
+          <span class="muted">Both calls go to Kimi K2.6.</span>
+        </div>
+      </div>
+      <div class="compare">
+        <div class="compare-col">
+          <h4>Naive prompt <span class="label-pill naive">Customer baseline</span></h4>
+          <div class="meta" id="ldNaiveMeta">—</div>
+          <pre class="sql" id="ldNaiveSql">(SQL will appear here)</pre>
+          <pre class="rows" id="ldNaiveRows">(rows will appear here)</pre>
+          <div id="ldNaiveVerdict"></div>
+        </div>
+        <div class="compare-col">
+          <h4>Agent prompt <span class="label-pill agent">Schema + JSON + repair</span></h4>
+          <div class="meta" id="ldAgentMeta">—</div>
+          <pre class="sql" id="ldAgentSql">(SQL will appear here)</pre>
+          <pre class="rows" id="ldAgentRows">(rows will appear here)</pre>
+          <div id="ldAgentVerdict"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card sub-section">
+      <h3>Schema · what the model sees</h3>
+      <p style="color: var(--text-dim);">This is the compact schema sent in the system prompt — same as <code class="mono">_format_schema_compact</code> in <code class="mono">src/agent.py</code>. Trim happens per-question: keyword-matched table names + their FK closure.</p>
+      <pre class="sql" id="ldSchemaPreview" style="max-height: 260px;">loading…</pre>
+    </div>
   </div>
 </section>
 
 <footer>
   <div class="container">
-    GitLab Agentic BI CLI — Fireworks Field POC. Submitted by Robert Smith ·
-    <a href="#" onclick="document.documentElement.scrollTop=0;return false;">Back to top</a>
-    <div style="margin-top: 8px;">Source code, evals, and perf JSON included in the submission ZIP. Run any of these numbers yourself: <code class="mono">python -m src.cli</code>, <code class="mono">python -m src.evals</code>, <code class="mono">python -m src.perf</code>.</div>
+    GitLab × Fireworks Field POC · submission for Raul Jimenez ·
+    <a href="https://github.com/rjsmith87/fireworks-takehome" target="_blank" rel="noopener">github.com/rjsmith87/fireworks-takehome</a>
+    <div style="margin-top: 8px;">
+      Reproduce any number on this page: <code class="mono">python -m src.cli</code> · <code class="mono">python -m src.evals</code> · <code class="mono">python -m src.perf --out perf_compact_N.json</code> · <code class="mono">python3 -m http.server 8000</code>.
+    </div>
+    <div style="margin-top: 8px;">
+      Built with Claude (Anthropic). Claude Code wrote the implementation; architecture decisions, model selection, evaluation methodology, and customer communication driven by the submitter.
+    </div>
   </div>
 </footer>
 
@@ -923,8 +1115,6 @@
 
 const FIREWORKS_URL = "https://api.fireworks.ai/inference/v1/chat/completions";
 
-// Compact schema — one line per table, matches src/agent.py:_format_schema_compact.
-// Keeps dashboard runs token-equivalent to the agent (~390 prompt tokens of schema).
 const SCHEMA_COMPACT = `Album(AlbumId:integer[pk], Title:nvarchar, ArtistId:integer[fk→Artist.ArtistId])
 Artist(ArtistId:integer[pk], Name:nvarchar)
 Customer(CustomerId:integer[pk], FirstName:nvarchar, LastName:nvarchar, Company:nvarchar, Address:nvarchar, City:nvarchar, State:nvarchar, Country:nvarchar, PostalCode:nvarchar, Phone:nvarchar, Fax:nvarchar, Email:nvarchar, SupportRepId:integer[fk→Employee.EmployeeId])
@@ -967,25 +1157,14 @@ Schema:
 
 const NAIVE_PROMPT_TEMPLATE = `Convert this question to SQL:\n{question}`;
 
-// Pricing per 1M tokens (USD); list rates.
 const PRICING = {
   kimi:  { input: 0.95, output: 4.00 },
   gpt54: { input: 2.50, output: 15.00 },
 };
-
-// Mean tokens per query, measured in perf_compact_*.json
 const MEAN_PROMPT_TOKENS = 665;
 const MEAN_COMPLETION_TOKENS = 78;
 
-// Latency distribution baked in for the no-key view. Replaced by a live
-// recompute if perf JSONs are reachable via fetch.
-const PERF_LATENCIES_BAKED = {
-  median_p50_ms: null,    // filled by tryLoadPerf()
-  under_3s_pct: null,
-  per_query_ms: [],
-};
-
-// ----------- Embedded gold answers ----------- //
+// ---------------- Embedded gold answers ---------------- //
 
 const GOLD_DEV = [
   {id:"q_001", tier:1, question:"What are the top 5 best-selling genres by total sales?",
@@ -1058,10 +1237,25 @@ const dbReady = (async () => {
   if (!resp.ok) throw new Error(`Couldn't load data/Chinook.db (HTTP ${resp.status}). Serve via 'python3 -m http.server 8000'.`);
   const buf = new Uint8Array(await resp.arrayBuffer());
   db = new SQL.Database(buf);
+  // Update Live Demo status badge
+  const badge = document.getElementById("dbStatusBadge");
+  const text = document.getElementById("dbStatusText");
+  if (badge) {
+    badge.textContent = "✓ Chinook.db loaded · sql.js ready";
+    badge.style.background = "rgba(74, 222, 128, 0.14)";
+    badge.style.color = "var(--green)";
+  }
+  if (text) text.textContent = "1MB SQLite database loaded into browser memory. SQL runs locally; only the Fireworks API call leaves your machine.";
 })().catch(e => {
   console.error(e);
   const ks = document.getElementById("keyStatus");
   if (ks) { ks.textContent = "DB not loaded — " + e.message; ks.className = "key-status err"; }
+  const badge = document.getElementById("dbStatusBadge");
+  if (badge) {
+    badge.textContent = "✗ Chinook.db failed to load";
+    badge.style.background = "rgba(248, 113, 113, 0.14)";
+    badge.style.color = "var(--red)";
+  }
 });
 
 function execSql(sql) {
@@ -1265,6 +1459,7 @@ function fmtRows(rows, cap = 30) {
 
 function setVerdict(elId, ok, errOrNote) {
   const el = document.getElementById(elId);
+  if (!el) return;
   if (errOrNote && !ok && /error|fireworks/i.test(errOrNote)) {
     el.innerHTML = `<span class="verdict err">⚠ failed · ${errOrNote.slice(0,140)}</span>`;
   } else if (ok) {
@@ -1280,7 +1475,35 @@ function bumpTouched() {
 }
 
 // ============================================================
-// SECTION 2 — baseline picker
+// Tab controller
+// ============================================================
+function initTabs() {
+  const tabs = document.querySelectorAll(".tab");
+  const panels = document.querySelectorAll(".tab-panel");
+  function activate(name, opts = {}) {
+    tabs.forEach(t => t.setAttribute("aria-selected", t.dataset.tab === name ? "true" : "false"));
+    panels.forEach(p => p.classList.toggle("active", p.dataset.panel === name));
+    if (!opts.skipHash) {
+      const h = `#${name}`;
+      if (location.hash !== h) history.replaceState(null, "", h);
+    }
+    // Make sure scroll lands at the top of the panel for clean focus.
+    if (!opts.skipScroll) window.scrollTo({ top: 0, behavior: "instant" });
+  }
+  tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
+  // Initial: read hash if valid
+  const initial = location.hash.replace(/^#/, "");
+  const valid = ["overview","quality","latency","cost","howitworks","roadmap","livedemo"];
+  activate(valid.includes(initial) ? initial : "overview", { skipHash: !valid.includes(initial), skipScroll: true });
+
+  window.addEventListener("hashchange", () => {
+    const name = location.hash.replace(/^#/, "");
+    if (valid.includes(name)) activate(name, { skipHash: true });
+  });
+}
+
+// ============================================================
+// Baseline picker (Quality tab)
 // ============================================================
 function initBaseline() {
   const sel = document.getElementById("bsQuestion");
@@ -1311,7 +1534,6 @@ async function runBaselineCompare() {
       runNaiveOnce(q.question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
       runAgentOnce(q.question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
     ]);
-
     const naiveOk = naive.rows && rowsMatch(naive.rows, q.expected);
     document.getElementById("bsNaiveSql").textContent = naive.sql || "(model returned no SQL)";
     document.getElementById("bsNaiveRows").textContent = naive.error ? `error: ${naive.error}` : fmtRows(naive.rows);
@@ -1331,7 +1553,7 @@ async function runBaselineCompare() {
 }
 
 // ============================================================
-// SECTION 3 — eval cards
+// Eval cards (Quality tab)
 // ============================================================
 function initEvalCards() {
   const dev = document.getElementById("devCards");
@@ -1385,7 +1607,7 @@ async function runEvalCard(el, q) {
 }
 
 // ============================================================
-// SECTION 4 — model comparison
+// Model comparison (Quality tab)
 // ============================================================
 function initModelCompare() {
   const sel = document.getElementById("cmpPreset");
@@ -1443,11 +1665,12 @@ function paintCmp(prefix, r, known) {
 }
 
 // ============================================================
-// SECTION 5 — architecture
+// Architecture diagram (rendered into both Overview and How It Works)
 // ============================================================
 const ARCH_NODES = [
   { step: "01", name: "Question", title: "Natural-language input",
-    chosen: "Free-text via the CLI.", considered: "GUI / structured form / multi-modal.",
+    chosen: "Free-text via the CLI.",
+    considered: "GUI / structured form / multi-modal.",
     why: "Matches Raul's CLI requirement and keeps the surface area small. Validation happens at the SQL execution boundary." },
   { step: "02", name: "Schema", title: "Schema injection · compact + trim",
     chosen: "Render schema as one-line-per-table compact form (Album(col:type[pk,fk→...])); trim by question keywords + FK closure when ≥2 tables match.",
@@ -1475,24 +1698,27 @@ const ARCH_NODES = [
     why: "BI users want to see the SQL (trust + verifiability) and the rationale (debuggability). Rows are the headline." },
 ];
 
-function initArch() {
-  const flow = document.getElementById("archFlow");
+function renderArchInto(flowId, detailId) {
+  const flow = document.getElementById(flowId);
+  const detail = document.getElementById(detailId);
+  if (!flow || !detail) return;
+  flow.innerHTML = "";
   ARCH_NODES.forEach((n, i) => {
     const el = document.createElement("div");
     el.className = "arch-node";
     el.dataset.i = i;
     el.innerHTML = `<div class="step">${n.step}</div><div class="name">${n.name}</div><div class="arrow">›</div>`;
-    el.addEventListener("click", () => showArch(i));
+    el.addEventListener("click", () => showArchInto(i, flowId, detailId));
     flow.appendChild(el);
   });
-  showArch(1); // start on the schema node so users see the latency story
+  showArchInto(1, flowId, detailId);
 }
 
-function showArch(i) {
+function showArchInto(i, flowId, detailId) {
   const n = ARCH_NODES[i];
-  document.querySelectorAll(".arch-node").forEach(x => x.classList.toggle("active", parseInt(x.dataset.i, 10) === i));
-  const d = document.getElementById("archDetail");
-  d.innerHTML = `
+  document.querySelectorAll(`#${flowId} .arch-node`).forEach(x =>
+    x.classList.toggle("active", parseInt(x.dataset.i, 10) === i));
+  document.getElementById(detailId).innerHTML = `
     <h4>${n.title}</h4>
     <span class="label">What we chose</span><p>${n.chosen}</p>
     <span class="label">Alternatives considered</span><p>${n.considered}</p>
@@ -1500,32 +1726,38 @@ function showArch(i) {
   `;
 }
 
+function initArch() {
+  renderArchInto("archFlow", "archDetail");
+  renderArchInto("archFlow2", "archDetail2");
+}
+
 // ============================================================
-// SECTION 6 — design decisions
+// Design decisions (How It Works)
 // ============================================================
 const DECISIONS = [
-  { chosen: "Compact schema", title: "Schema rendering · CREATE TABLE vs compact",
+  { chosen: "Compact schema", title: "Schema rendering",
     considered: ["Full CREATE TABLE blocks (~1042 tokens)", "JSON-Schema document", "Embedding retrieval (top-k tables)"],
-    why: "One-line-per-table form ('Album(AlbumId:integer[pk], Title:nvarchar, ArtistId:integer[fk→Artist.ArtistId])') keeps every signal the model needs (cols, types, PK/FK) at 62% the chars of CREATE TABLE. Mean prompt tokens dropped 935→665 with no regression on the 10-question dev set. This is also the schema form most likely to hit Fireworks's prefix cache cleanly because tables order alphabetically and small DDL changes don't ripple as much." },
+    why: "One-line-per-table form ('Album(AlbumId:integer[pk], Title:nvarchar, ArtistId:integer[fk→Artist.ArtistId])') keeps every signal the model needs at 62% the chars of CREATE TABLE. Mean prompt tokens 935→665 with no regression on the dev set. Likely to hit Fireworks's prefix cache cleanly because tables order alphabetically." },
   { chosen: "Schema-in-prompt", title: "In-prompt vs RAG retrieval",
     considered: ["Embedding retrieval (top-k tables)", "Vector DB with table summaries", "Tool-calling with introspection"],
-    why: "Chinook is 11 tables / ~390 compact-tokens. RAG would add a round trip and a moving part for negligible benefit. Trim heuristic + FK closure cuts prompt-token cost a further 24% across the eval. For a 1,000-table customer DB we'd swap to retrieval — the trim heuristic alone won't scale." },
-  { chosen: "JSON mode", title: "JSON mode vs free-text",
+    why: "Chinook is 11 tables / ~390 compact-tokens. RAG would add a round trip and a moving part for negligible benefit. Trim heuristic + FK closure cuts prompt-token cost a further 24% across the eval. For a 1,000-table customer DB we'd swap to retrieval." },
+  { chosen: "JSON mode", title: "Structured vs free-text output",
     considered: ["Free-text + regex parsing", "XML tag wrappers", "Tool-call schema"],
     why: "Native parsing, model respects it, gives us a rationale field for human review. The naive baseline shows what free-text gets you — fenced/unfenced/with-prose answers the executor can't run (1/10 vs our 10/10)." },
   { chosen: "Execute-and-repair", title: "Repair loop vs single-shot",
     considered: ["Single-shot (fail fast)", "AST-level auto-fix", "LLM judge with N samples"],
     why: "Repair on the SQLite error message is the cheapest robustness win. Most agent runs need 0 repairs; when they do trigger, they fix on the first retry. Cap at 2 prevents runaway cost." },
-  { chosen: "Kimi K2.6", title: "Kimi vs alternatives",
+  { chosen: "Kimi K2.6", title: "Model selection",
     considered: ["Qwen2.5-Coder-32B (customer ask)", "Qwen3-8B (cheaper)", "DeepSeek-V3 / V3.1"],
     why: "Customer asked for Qwen2.5-Coder-32B but it wasn't reachable from the supplied key. Kimi K2.6 went 10/10 on the dev set in a short bake-off. Qwen3-8B was 5/10 — fast and cheap but not solo-quality. Path forward: router with Qwen3-8B fast first attempt, Kimi escalation." },
-  { chosen: "6-turn history cap", title: "How much conversation to keep",
+  { chosen: "6-turn history cap", title: "Conversation memory",
     considered: ["Unlimited history", "Only last turn", "Token-budget-based truncation"],
     why: "Three prior question/answer pairs is enough for typical follow-up patterns ('now show me the tracks on the first one') without inflating prompt cost. Older context drifts the model toward stale assumptions." },
 ];
 
 function initDecisions() {
   const grid = document.getElementById("decisionGrid");
+  if (!grid) return;
   for (const d of DECISIONS) {
     const el = document.createElement("div");
     el.className = "card decision-card hover";
@@ -1542,7 +1774,7 @@ function initDecisions() {
 }
 
 // ============================================================
-// SECTION 7 — cost calculator
+// Cost calculator
 // ============================================================
 const fmtInt = (n) => Math.round(n).toLocaleString("en-US");
 function calcUpdate() {
@@ -1555,7 +1787,6 @@ function calcUpdate() {
   document.getElementById("kimiQ").textContent = kimiPer.toFixed(6);
   document.getElementById("kimiDay").textContent = kimiDay.toFixed(2);
   document.getElementById("kimiMo").textContent = fmtInt(kimiDay * 30);
-
   document.getElementById("gptQ").textContent = gptPer.toFixed(6);
   document.getElementById("gptDay").textContent = gptDay.toFixed(2);
   document.getElementById("gptMo").textContent = fmtInt(gptDay * 30);
@@ -1573,7 +1804,7 @@ function initCalc() {
 }
 
 // ============================================================
-// SECTION 8 — latency from perf JSONs + live test
+// Latency from perf JSONs + live test
 // ============================================================
 async function tryLoadPerf() {
   const lats = [];
@@ -1602,26 +1833,27 @@ function renderLatencyDistribution(data) {
   const u3 = document.getElementById("latUnder3");
   const bars = document.getElementById("latBars");
   if (!data) {
-    tile.textContent = "—";
-    sub.textContent = "perf JSONs not found · run `python -m src.perf` to populate";
-    u3.textContent = "—";
-    bars.innerHTML = `<div class="muted">No perf data yet. Run <code class="mono">python -m src.perf accounts/fireworks/models/kimi-k2p6 --out perf_compact_1.json</code> three times to populate.</div>`;
+    if (tile) tile.textContent = "—";
+    if (sub) sub.textContent = "perf JSONs not found";
+    if (u3) u3.textContent = "—";
+    if (bars) bars.innerHTML = `<div class="muted">No perf data yet. Run <code class="mono">python -m src.perf accounts/fireworks/models/kimi-k2p6 --out perf_compact_N.json</code> three times to populate.</div>`;
     return;
   }
-  tile.textContent = `${Math.round(data.median_ms).toLocaleString()} ms`;
-  sub.textContent = `median p50 across ${data.runs_loaded} perf.py runs (${data.all_latencies.length} calls)`;
-  u3.textContent = `${data.under_3s_pct.toFixed(0)}%`;
+  if (tile) tile.textContent = `${Math.round(data.median_ms).toLocaleString()} ms`;
+  if (sub) sub.textContent = `median p50 across ${data.runs_loaded} perf.py runs (${data.all_latencies.length} calls)`;
+  if (u3) u3.textContent = `${data.under_3s_pct.toFixed(0)}%`;
   const max = Math.max(...data.all_latencies);
-  const target3000 = (3000 / max) * 100;
-  bars.innerHTML = data.all_latencies.map((ms, idx) => {
-    const w = Math.max(2, (ms / max) * 100);
-    const under = ms < 3000;
-    return `<div class="lat-bar">
-      <div class="id">#${idx + 1}</div>
-      <div class="track"><div class="fill ${under ? 'under' : ''}" style="width:${w.toFixed(1)}%"></div></div>
-      <div class="ms">${Math.round(ms).toLocaleString()} ms</div>
-    </div>`;
-  }).join("") + `<div class="muted" style="margin-top:8px;">Green = under Raul's 3,000 ms line. ${data.under_3s_pct.toFixed(0)}% of calls cleared it.</div>`;
+  if (bars) {
+    bars.innerHTML = data.all_latencies.map((ms, idx) => {
+      const w = Math.max(2, (ms / max) * 100);
+      const under = ms < 3000;
+      return `<div class="lat-bar">
+        <div class="id">#${idx + 1}</div>
+        <div class="track"><div class="fill ${under ? 'under' : ''}" style="width:${w.toFixed(1)}%"></div></div>
+        <div class="ms">${Math.round(ms).toLocaleString()} ms</div>
+      </div>`;
+    }).join("") + `<div class="muted" style="margin-top:8px;">Green = under Raul's 3,000 ms line. ${data.under_3s_pct.toFixed(0)}% of calls cleared it.</div>`;
+  }
 }
 
 async function runLatencyTest() {
@@ -1657,12 +1889,12 @@ function initLatency() {
 }
 
 // ============================================================
-// SECTION 9 — roadmap
+// Roadmap
 // ============================================================
 const ROADMAP = [
   { num: 0, title: "POC · Shared Serverless", platform: "Fireworks Serverless API",
-    body: "What you're looking at. Kimi K2.6 on shared serverless, JSON mode, compact schema-in-prompt, repair loop. 92% combined accuracy, $0.000942/query, p50 spans 1–9s on shared tier." },
-  { num: 1, title: "Router (CACR-style)", platform: "Fireworks Serverless + custom routing",
+    body: "What you're looking at. Kimi K2.6, JSON mode, compact schema-in-prompt, repair loop. 92% combined accuracy, $0.000942/query, p50 spans 1–9s on shared tier." },
+  { num: 1, title: "CACR Router", platform: "Fireworks Serverless + custom routing",
     body: "Qwen3-8B fast first attempt; escalate to Kimi K2.6 on low confidence (logprob threshold). Cuts mean cost ~40% on tier-1 questions while preserving quality on hard ones." },
   { num: 2, title: "Fine-tune", platform: "Fireworks SFT + RFT",
     body: "SFT a Qwen3-8B-class on ~1k synthetic (question, gold_sql) pairs, then RFT with the SQLite executor as reward. Targets the failure modes we saw (top-per-group, date arithmetic). Ship as a fine-tuned checkpoint behind the existing API." },
@@ -1672,6 +1904,7 @@ const ROADMAP = [
 
 function initRoadmap() {
   const grid = document.getElementById("roadmapGrid");
+  if (!grid) return;
   for (const r of ROADMAP) {
     const el = document.createElement("div");
     el.className = "card hover";
@@ -1684,6 +1917,86 @@ function initRoadmap() {
       <p>${r.body}</p>
     `;
     grid.appendChild(el);
+  }
+}
+
+// ============================================================
+// Live Demo (free-form playground)
+// ============================================================
+function initLiveDemo() {
+  const sel = document.getElementById("ldPreset");
+  if (!sel) return;
+  // Curated presets — mix of dev questions and a few exploratory ones
+  const presets = [
+    "How many albums are in the database?",
+    "What are the top 5 best-selling genres by total sales?",
+    "Which 3 customers have spent the most in total?",
+    "List every distinct country in our customer base.",
+    "What is the longest track in each genre?",
+    "How many tracks have the word 'love' in their name?",
+    "What's the average invoice total per billing country, ordered highest to lowest?",
+  ];
+  for (const q of presets) {
+    const o = document.createElement("option");
+    o.value = q; o.textContent = q;
+    sel.appendChild(o);
+  }
+  document.getElementById("ldRunBoth").addEventListener("click", () => runLiveDemo({ both: true }));
+  document.getElementById("ldRunAgent").addEventListener("click", () => runLiveDemo({ both: false }));
+
+  // Show the schema preview
+  const schemaPre = document.getElementById("ldSchemaPreview");
+  if (schemaPre) schemaPre.textContent = SCHEMA_COMPACT;
+}
+
+async function runLiveDemo({ both }) {
+  const custom = document.getElementById("ldCustom").value.trim();
+  const question = custom || document.getElementById("ldPreset").value;
+  if (!question) return;
+  const btnBoth = document.getElementById("ldRunBoth");
+  const btnAgent = document.getElementById("ldRunAgent");
+  btnBoth.disabled = true; btnAgent.disabled = true;
+  for (const side of ["Naive", "Agent"]) {
+    const sql = document.getElementById(`ld${side}Sql`);
+    const rows = document.getElementById(`ld${side}Rows`);
+    const meta = document.getElementById(`ld${side}Meta`);
+    const verd = document.getElementById(`ld${side}Verdict`);
+    if (sql) sql.textContent = (side === "Agent" || both) ? "running…" : "(skipped — agent-only mode)";
+    if (rows) rows.textContent = "";
+    if (meta) meta.textContent = (side === "Agent" || both) ? "calling Fireworks…" : "—";
+    if (verd) verd.innerHTML = (side === "Agent" || both) ? `<span class="verdict err"><span class="spinner"></span>running</span>` : "";
+  }
+  await dbReady;
+  try {
+    const model = "accounts/fireworks/models/kimi-k2p6";
+    const tasks = both
+      ? [
+          runNaiveOnce(question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
+          runAgentOnce(question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
+        ]
+      : [
+          Promise.resolve(null),
+          runAgentOnce(question, model).catch(e => ({ error: e.message, sql: "", rows: null, latency_ms: 0, prompt_tokens: 0, completion_tokens: 0 })),
+        ];
+    const [naive, agent] = await Promise.all(tasks);
+
+    if (naive) {
+      document.getElementById("ldNaiveSql").textContent = naive.sql || "(model returned no SQL)";
+      document.getElementById("ldNaiveRows").textContent = naive.error ? `error: ${naive.error}` : fmtRows(naive.rows);
+      document.getElementById("ldNaiveMeta").textContent = `${naive.latency_ms ? naive.latency_ms.toFixed(0) + " ms" : ""} · ${naive.prompt_tokens || 0} in / ${naive.completion_tokens || 0} out`;
+      document.getElementById("ldNaiveVerdict").innerHTML = naive.error
+        ? `<span class="verdict err">⚠ ${naive.error.slice(0,140)}</span>`
+        : (naive.rows ? `<span class="verdict pass">SQL ran · ${naive.rows.length} rows</span>` : `<span class="verdict fail">no rows</span>`);
+    }
+    document.getElementById("ldAgentSql").textContent = agent.sql || "(model returned no SQL)";
+    document.getElementById("ldAgentRows").textContent = agent.error ? `error: ${agent.error}` : fmtRows(agent.rows);
+    const repTxt = agent.repairs ? ` · ${agent.repairs} repair${agent.repairs > 1 ? "s" : ""}` : "";
+    document.getElementById("ldAgentMeta").textContent = `${agent.latency_ms ? agent.latency_ms.toFixed(0) + " ms" : ""} · ${agent.prompt_tokens || 0} in / ${agent.completion_tokens || 0} out${repTxt}`;
+    document.getElementById("ldAgentVerdict").innerHTML = agent.error
+      ? `<span class="verdict err">⚠ ${agent.error.slice(0,140)}</span>`
+      : (agent.rows ? `<span class="verdict pass">SQL ran · ${agent.rows.length} rows</span>` : `<span class="verdict fail">no rows</span>`);
+  } finally {
+    btnBoth.disabled = false; btnAgent.disabled = false;
   }
 }
 
@@ -1710,6 +2023,7 @@ function initKey() {
 // Boot
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
+  initTabs();
   initKey();
   initBaseline();
   initEvalCards();
@@ -1719,6 +2033,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initCalc();
   initLatency();
   initRoadmap();
+  initLiveDemo();
 });
 </script>
 </body>

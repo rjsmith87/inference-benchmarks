@@ -1,57 +1,77 @@
-# Fireworks Text-to-SQL — Submission
+# Inference Benchmarking Suite
 
-An interactive CLI that converts natural-language questions into executable
-SQLite queries against the Chinook music-store database, using open-source
-models hosted on Fireworks.
+A reproducible benchmarking harness for serverless LLM inference platforms,
+demonstrated on a text-to-SQL workload over the Chinook music-store database.
+16 models are exercised across **Fireworks** (6) and **Baseten** (10) — same
+gold set, same agent prompt, same sampling — to measure accuracy, TTFT, total
+latency, tokens, and cost-per-query head-to-head. Originally a Fireworks
+text-to-SQL take-home for GitLab; reframed as a cross-platform inference
+benchmark.
 
-**Live dashboard:** https://rjsmith87.github.io/fireworks-takehome/dashboard.html
+**Live dashboard:** https://rjsmith87.github.io/inference-benchmarks/dashboard.html
 
 ## One-click setup
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/rjsmith87/fireworks-takehome?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/rjsmith87/inference-benchmarks?quickstart=1)
 
 Click the badge to launch a pre-configured Codespace — `setup.sh` runs
 automatically, the venv is built, Chinook.db is downloaded, and the
-dashboard port (8000) is forwarded to your browser. Just paste your
-Fireworks key into `.env` (or set it as a [Codespaces user secret](https://github.com/settings/codespaces))
-and you're running.
+dashboard port (8000) is forwarded to your browser. Paste a **Baseten**
+key (`BASETEN_API_KEY`) and/or **Fireworks** key (`FIREWORKS_API_KEY`)
+into `.env` — or set them as [Codespaces user secrets](https://github.com/settings/codespaces)
+— and you're running.
 
 ## Quick start (local)
 
 ```bash
 ./setup.sh                            # uv venv, deps, downloads Chinook.db
 source .venv/bin/activate
-echo 'FIREWORKS_API_KEY=fw_...' > .env
+echo 'BASETEN_API_KEY=...'     >> .env
+echo 'FIREWORKS_API_KEY=fw_...' >> .env   # optional — only needed for the Fireworks sweep / Live Demo Fireworks mode
 
-# Interactive CLI
+# Interactive CLI (default: Kimi K2.6 on Fireworks; pass --model to switch)
 python -m src.cli
 
-# Run the 10 dev questions and write the required answer file
+# === Original Fireworks evaluation (10 dev questions, agent with repair) ===
 python -m src.evals accounts/fireworks/models/kimi-k2p6 \
     --out-answers data/dev_answers.json
 
-# Run the 15-question synthetic pattern-coverage set
+# 15-question synthetic pattern-coverage set
 python -m src.evals accounts/fireworks/models/kimi-k2p6 \
     --questions data/synthetic_questions.json
 
-# Replay the customer's naive prompt as a baseline (writes data/baseline_results.json)
+# Customer baseline replay — "Convert this question to SQL: {q}", no schema, no repair
 python -m src.evals accounts/fireworks/models/kimi-k2p6 --baseline
+
+# === Cross-platform sweeps powering the dashboard ===
+# Baseten — 10 models × 25 questions, streaming + TTFT capture
+PYTHONPATH=. python scripts/baseten_sweep.py --out data/baseten_sweep.json
+
+# Baseten — concurrency benchmark (top 3 models, c=1/5/10)
+PYTHONPATH=. python scripts/baseten_perf.py --out data/baseten_perf.json
+
+# Fireworks — original 6-model sweep
+PYTHONPATH=. python scripts/model_sweep.py --out data/model_sweep.json
+
+# Fireworks — latency + cost at the projected customer volume
+python -m src.perf accounts/fireworks/models/kimi-k2p6 --out perf_kimi.json
 
 # (Re)build the synthetic set from gold SQL run live against Chinook
 PYTHONPATH=. python scripts/build_synthetic.py
 
-# Latency + cost benchmarking against the customer's volume profile
-python -m src.perf accounts/fireworks/models/kimi-k2p6 --out perf_kimi.json
-
-# Single-page interactive dashboard (problem, results, live demo against
-# Fireworks + sql.js executing queries in your browser)
+# Single-page interactive dashboard (all the above data + live demo against
+# Baseten by default, Fireworks toggle, sql.js executes queries in your browser)
 python3 -m http.server 8000          # then open http://localhost:8000/dashboard.html
 ```
 
 ### Environment
 
-- `FIREWORKS_API_KEY` (required) — picked up from `.env` via `python-dotenv`
-  or from the process environment.
+- `BASETEN_API_KEY` — required for the Baseten sweep, concurrency benchmark,
+  and the dashboard's Live Demo (default platform). Get one at
+  [app.baseten.co](https://app.baseten.co/settings/api-keys).
+- `FIREWORKS_API_KEY` — required only for the Fireworks-side scripts
+  (`src/cli`, `src/evals`, `src/perf`, `scripts/model_sweep.py`) and the
+  Live Demo when toggled to Fireworks. Original take-home flow.
 - `FIREWORKS_MODEL` (optional) — overrides the default model for the CLI.
 - `CHINOOK_DB` (optional) — overrides the database path (default
   `data/Chinook.db`).
@@ -61,7 +81,7 @@ Python 3.11+. The provided `setup.sh` uses `uv`; if `uv` is unavailable,
 
 ## Interactive Dashboard
 
-Live: https://rjsmith87.github.io/fireworks-takehome/dashboard.html
+Live: https://rjsmith87.github.io/inference-benchmarks/dashboard.html
 
 Or run locally:
 
@@ -70,28 +90,37 @@ python3 -m http.server 8000
 # Open http://localhost:8000/dashboard.html
 ```
 
-The dashboard requires a Fireworks API key for live features (enter it
-in the Live Demo tab). All static content (Quality, Latency, Cost,
-How It Works, Production Roadmap) works without a key.
+The dashboard's **Live Demo** tab defaults to Baseten and accepts a Baseten
+API key; toggle to Fireworks for the original setup. All static content
+(Model Sweep, Platform Comparison, Cost Explorer, Inference Insights,
+Quality, Latency, How It Works, POC Roadmap) works without any key.
 
 ## What's where
 
 ```
 src/
-  agent.py        # SqlAgent — schema-in-prompt, JSON output, execute-and-repair
+  agent.py        # SqlAgent — schema-in-prompt, JSON output, execute-and-repair, base_url-aware
   cli.py          # interactive REPL with follow-up support
   evals.py        # tolerant eval framework + dev_answers.json writer
-  perf.py         # latency + cost benchmarking with token-usage capture
+  perf.py         # Fireworks latency + cost benchmarking (sequential)
   utils.py        # provided DB helpers (unmodified)
 scripts/
-  build_synthetic.py   # generates data/synthetic_questions.json from gold SQL
+  build_synthetic.py     # generates data/synthetic_questions.json from gold SQL
+  model_sweep.py         # Fireworks 6-model sweep (10 dev Qs, original)
+  baseten_sweep.py       # Baseten 10-model sweep (25 Qs, streaming + TTFT)
+  baseten_perf.py        # Baseten concurrency benchmark (c=1/5/10, top 3 models)
+  baseten_smoke.py       # one-shot Baseten endpoint smoke test
 data/
   Chinook.db
   dev_questions_with_answers.json   # provided gold set (10 questions)
-  dev_answers.json                  # this submission's outputs
+  dev_answers.json                  # text-to-SQL run outputs
   synthetic_questions.json          # 15 hand-written pattern-coverage questions
-dashboard.html                      # single-page submission summary + live demo
-perf_kimi.json                      # latest perf snapshot
+  model_sweep.json                  # Fireworks sweep results
+  baseten_sweep.json                # Baseten sweep results (10 models × 25 Qs, with TTFT)
+  baseten_perf.json                 # Baseten concurrency benchmark (c=1/5/10)
+  baseten_models_meta.json          # Baseten /v1/models metadata (quantization, context)
+dashboard.html                      # single-page benchmark dashboard + live demo
+perf_kimi.json                      # original Fireworks perf snapshot
 ```
 
 ## Architecture
@@ -294,7 +323,7 @@ verbose schema baseline ($0.001197 → $0.000942).
 
 ### Dashboard
 
-`dashboard.html` is a single-file interactive submission summary. It
+`dashboard.html` is a single-file interactive benchmark dashboard. It
 loads sql.js + Chinook.db in the browser and lets the reviewer:
 
 - Re-run any of the 25 questions live against Fireworks (their own key)
@@ -308,8 +337,10 @@ loads sql.js + Chinook.db in the browser and lets the reviewer:
 - Click any architecture node or design decision card for the
   considered-alternatives + tradeoff.
 
-The API key is held in a password input and used only for direct
-requests to api.fireworks.ai. Never persisted.
+The API key is held in a password input and used only for direct requests
+to the active provider's endpoint (`inference.baseten.co` by default,
+`api.fireworks.ai` when the Live Demo provider toggle is set to Fireworks).
+Never persisted.
 
 ## Known limitations
 
@@ -383,6 +414,7 @@ requests to api.fireworks.ai. Never persisted.
 
 ---
 
-This submission was developed with AI coding assistance (Claude). The
-agent code, eval framework, perf instrumentation, and CLI were all written
-collaboratively, then verified end-to-end against the dev set.
+Developed with AI coding assistance (Claude). The agent code, eval
+framework, perf instrumentation, CLI, cross-platform sweep, and
+concurrency benchmark were all written collaboratively, then verified
+end-to-end against the gold set.

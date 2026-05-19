@@ -1113,6 +1113,31 @@
     background: linear-gradient(90deg, var(--teal) 0%, var(--orange) 100%);
     border-radius: 4px;
   }
+
+  /* ============== Provider toggle (Live Demo key bar) ============== */
+  .provider-toggle {
+    display: inline-flex; gap: 2px;
+    background: var(--surface-elev); border-radius: 8px;
+    padding: 3px; margin-right: 4px;
+  }
+  .provider-toggle .provider-opt {
+    appearance: none; border: none; cursor: pointer;
+    padding: 6px 12px; border-radius: 6px;
+    background: transparent; color: var(--text-dim);
+    font: 600 12.5px 'Inter', sans-serif; letter-spacing: -0.005em;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 120ms ease, color 120ms ease;
+  }
+  .provider-toggle .provider-opt:hover { color: var(--text); }
+  .provider-toggle .provider-opt.active {
+    background: var(--surface); color: var(--text);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .provider-toggle .provider-opt .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .provider-toggle .provider-opt .dot.bt { background: var(--teal); }
+  .provider-toggle .provider-opt .dot.fw { background: var(--purple); }
 </style>
 </head>
 <body>
@@ -2088,19 +2113,27 @@ wrote data/dev_answers.json</pre>
     <div class="panel-eyebrow">Live Demo</div>
     <h2 class="panel-title">sql.js + Chinook.db running in your browser.</h2>
     <p class="panel-lede">
-      The Chinook database is loaded into a WebAssembly SQLite instance in
-      your browser; your Fireworks API key (paste it in the bar below) is
-      used directly from this page to call
-      <code class="mono">api.fireworks.ai</code>. Type any natural-language
-      question about the music store and watch the customer baseline and our
-      agent prompt run side-by-side. Designed for ~1,000 users at ~30 queries/day
-      (30k daily queries — projected first cohort).
+      The Chinook database runs in a WebAssembly SQLite instance in your
+      browser; the API key you paste below is used directly from this page
+      to call the selected inference provider. <strong>Defaults to
+      Baseten</strong> (10-model catalog, including the winners from the
+      Model Sweep tab); toggle to Fireworks for the original take-home
+      flow. Type any natural-language question and watch a baseline prompt
+      and the agent prompt run side-by-side.
     </p>
 
     <div class="key-bar" id="keyBar" style="position: static; top: auto; margin: 0 0 16px;">
-      <label for="apiKey">Fireworks API key</label>
-      <input id="apiKey" type="password" placeholder="fw_..." autocomplete="off" spellcheck="false" />
-      <span class="key-status" id="keyStatus">Never stored. Sent only to api.fireworks.ai.</span>
+      <div class="provider-toggle" role="tablist" aria-label="Inference provider">
+        <button type="button" class="provider-opt active" data-provider="baseten" role="tab" aria-selected="true">
+          <span class="dot bt"></span>Baseten
+        </button>
+        <button type="button" class="provider-opt" data-provider="fireworks" role="tab" aria-selected="false">
+          <span class="dot fw"></span>Fireworks
+        </button>
+      </div>
+      <label for="apiKey" id="apiKeyLabel">Baseten API key</label>
+      <input id="apiKey" type="password" placeholder="your Baseten API key" autocomplete="off" spellcheck="false" />
+      <span class="key-status" id="keyStatus">Never stored. Sent only to inference.baseten.co.</span>
     </div>
 
     <div class="db-status-line" id="dbStatus">
@@ -2139,7 +2172,7 @@ wrote data/dev_answers.json</pre>
 
       <div class="demo-run-row">
         <button class="btn run-btn-big" id="ldRunBoth">Run both ▸</button>
-        <span class="muted">Live calls hit api.fireworks.ai. Each side uses your selected model + prompt strategy.</span>
+        <span class="muted" id="ldRunHint">Live calls hit inference.baseten.co. Each side uses your selected model + prompt strategy.</span>
       </div>
 
       <div class="live-demo-layout">
@@ -2158,7 +2191,7 @@ wrote data/dev_answers.json</pre>
           <div class="activity-log-card">
             <h4>Activity log <span class="activity-count" id="ldActivityCount">0 calls</span></h4>
             <div class="activity-log" id="ldActivityLog">
-              <div class="activity-empty">No calls yet. Click <strong>Run both ▸</strong> above to see Fireworks calls stream in.</div>
+              <div class="activity-empty">No calls yet. Click <strong>Run both ▸</strong> above to see live API calls stream in.</div>
             </div>
           </div>
         </aside>
@@ -2195,6 +2228,61 @@ wrote data/dev_answers.json</pre>
  * ============================================================ */
 
 const FIREWORKS_URL = "https://api.fireworks.ai/inference/v1/chat/completions";
+const BASETEN_URL   = "https://inference.baseten.co/v1/chat/completions";
+
+// Provider definitions — drives Live Demo's key bar label/placeholder/auth,
+// fetch URL, and the contents of the model dropdowns. Adding a third
+// platform is a one-entry change here plus repopulating the dropdowns.
+//
+// Fireworks `models` is declared as a function so it can resolve to
+// MODEL_OPTIONS, which is defined further down — avoids a hoisting issue.
+const PROVIDERS = {
+  baseten: {
+    label: "Baseten",
+    url: BASETEN_URL,
+    authPrefix: "Api-Key",  // Bearer also works; using Api-Key per project convention
+    keyLabel: "Baseten API key",
+    keyPlaceholder: "your Baseten API key",
+    keyStatus: "Never stored. Sent only to inference.baseten.co.",
+    keyValidPrefix: null,  // Baseten keys don't have a single fixed prefix
+    runHint: "Live calls hit inference.baseten.co. Each side uses your selected model + prompt strategy.",
+    activityHint: "Live API calls",
+    models: [
+      { id: "moonshotai/Kimi-K2.6",        label: "Kimi K2.6 — default · 88% sweep · scales cleanly under load" },
+      { id: "openai/gpt-oss-120b",         label: "gpt-oss-120b — 96% sweep · cheapest · rate-limits at c≥5" },
+      { id: "deepseek-ai/DeepSeek-V3.1",   label: "DeepSeek V3.1 — 92% sweep" },
+      { id: "moonshotai/Kimi-K2.5",        label: "Kimi K2.5 — 92% sweep" },
+      { id: "deepseek-ai/DeepSeek-V4-Pro", label: "DeepSeek V4 Pro — 84% sweep · expensive" },
+      { id: "zai-org/GLM-5.1",             label: "GLM 5.1 — 80% sweep · free (beta)" },
+      { id: "zai-org/GLM-4.7",             label: "GLM 4.7 — 64% sweep" },
+      { id: "nvidia/Nemotron-120B-A12B",   label: "Nemotron 120B — 44% sweep" },
+      { id: "MiniMaxAI/MiniMax-M2.5",      label: "MiniMax M2.5 — errored in sweep (reasoning runaway)" },
+      { id: "zai-org/GLM-5",               label: "GLM 5 — errored in sweep (503)" },
+    ],
+    defaultModel: "moonshotai/Kimi-K2.6",
+  },
+  fireworks: {
+    label: "Fireworks",
+    url: FIREWORKS_URL,
+    authPrefix: "Bearer",
+    keyLabel: "Fireworks API key",
+    keyPlaceholder: "fw_...",
+    keyStatus: "Never stored. Sent only to api.fireworks.ai.",
+    keyValidPrefix: "fw_",
+    runHint: "Live calls hit api.fireworks.ai. Each side uses your selected model + prompt strategy.",
+    activityHint: "Fireworks calls",
+    // MODEL_OPTIONS is declared further down; resolved at lookup time.
+    models: () => (typeof MODEL_OPTIONS !== "undefined" ? MODEL_OPTIONS : []),
+    defaultModel: "accounts/fireworks/models/kimi-k2p6",
+  },
+};
+
+const LIVE_STATE = { provider: "baseten" };
+function activeProvider() { return PROVIDERS[LIVE_STATE.provider]; }
+function activeModels() {
+  const m = activeProvider().models;
+  return typeof m === "function" ? m() : m;
+}
 
 const SCHEMA_COMPACT = `Album(AlbumId:integer[pk], Title:nvarchar, ArtistId:integer[fk→Artist.ArtistId])
 Artist(ArtistId:integer[pk], Name:nvarchar)
@@ -2417,7 +2505,7 @@ function trimSchemaForQuestion(question) {
 }
 
 // ============================================================
-// Fireworks API
+// Inference API (provider-aware)
 // ============================================================
 function getApiKey() { return document.getElementById("apiKey").value.trim(); }
 // Default model is only used by callers that don't pass an explicit override
@@ -2425,29 +2513,37 @@ function getApiKey() { return document.getElementById("apiKey").value.trim(); }
 // explicit Model A / Model B selections.
 function getModel() {
   const el = document.getElementById("modelSelect");
-  return (el && el.value) || "accounts/fireworks/models/kimi-k2p6";
+  return (el && el.value) || activeProvider().defaultModel;
 }
 
 // Hard per-fetch ceiling so a slow model can't hang the UI forever.
-const FIREWORKS_TIMEOUT_MS = 15000;
+const API_TIMEOUT_MS = 15000;
 
-async function fireworksCall(messages, { model = null, jsonMode = true, maxTokens = 1024 } = {}) {
+// Generic provider-aware call. Picks URL + auth header from the PROVIDERS
+// map keyed by `provider` (default: whatever the Live Demo toggle is set to).
+// Returns the same shape the old fireworksCall returned, so all downstream
+// callers (runAgentOnce, runNaiveOnce) need no changes.
+async function apiCall(messages, { provider = null, model = null, jsonMode = true, maxTokens = 1024 } = {}) {
+  const p = PROVIDERS[provider || LIVE_STATE.provider];
   const key = getApiKey();
-  if (!key) throw new Error("Paste a Fireworks API key in the Live Demo tab to run live queries.");
+  if (!key) throw new Error(`Paste a ${p.label} API key in the Live Demo tab to run live queries.`);
   const m = model || getModel();
   const body = { model: m, messages, temperature: 0, max_tokens: maxTokens };
   if (jsonMode) body.response_format = { type: "json_object" };
   if (m.includes("qwen3")) body.reasoning_effort = "none";
 
   const controller = new AbortController();
-  const timeoutHandle = setTimeout(() => controller.abort(), FIREWORKS_TIMEOUT_MS);
+  const timeoutHandle = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   const t0 = performance.now();
   let resp, fetchErr;
   try {
-    resp = await fetch(FIREWORKS_URL, {
+    resp = await fetch(p.url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `${p.authPrefix} ${key}`,
+      },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -2458,39 +2554,41 @@ async function fireworksCall(messages, { model = null, jsonMode = true, maxToken
   }
   const dt = performance.now() - t0;
 
+  const logBase = {
+    model: m, promptType: jsonMode ? "agent" : "baseline",
+    latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
+  };
+
   if (fetchErr) {
     if (fetchErr.name === "AbortError") {
-      logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
-                    latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
-                    status: "timeout" });
+      logActivity({ ...logBase, status: "timeout" });
       throw new Error("Timed out after 15s — this model may be slow or rate-limited. Try again or pick a different model.");
     }
-    logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
-                  latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
-                  status: "error", error: fetchErr.message });
+    logActivity({ ...logBase, status: "error", error: fetchErr.message });
     throw fetchErr;
   }
   if (!resp.ok) {
     const t = await resp.text();
     const isRateLimit = resp.status === 429;
-    logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
-                  latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
-                  status: isRateLimit ? "rate-limit" : "error",
-                  error: `${resp.status}` });
-    throw new Error(`Fireworks ${resp.status}: ${t.slice(0, 200)}`);
+    logActivity({ ...logBase, status: isRateLimit ? "rate-limit" : "error", error: `${resp.status}` });
+    throw new Error(`${p.label} ${resp.status}: ${t.slice(0, 200)}`);
   }
   const data = await resp.json();
   const pt = data.usage?.prompt_tokens || 0;
   const ct = data.usage?.completion_tokens || 0;
-  logActivity({ model: m, promptType: jsonMode ? "agent" : "baseline",
-                latency_ms: dt, prompt_tokens: pt, completion_tokens: ct,
-                status: "success" });
+  logActivity({ ...logBase, prompt_tokens: pt, completion_tokens: ct, status: "success" });
   return {
     content: data.choices?.[0]?.message?.content || "",
     latency_ms: dt,
     prompt_tokens: pt,
     completion_tokens: ct,
   };
+}
+
+// Backwards-compat alias — preserves the Latency tab's explicit Fireworks
+// usage without forcing callers to pass {provider:"fireworks"} on every call.
+async function fireworksCall(messages, opts = {}) {
+  return apiCall(messages, { ...opts, provider: "fireworks" });
 }
 
 function extractSqlNaive(text) {
@@ -2500,7 +2598,7 @@ function extractSqlNaive(text) {
   return text.replace(/^\s*(SQL|Query|Answer)\s*:\s*/i, "").replace(/;\s*$/, "").trim();
 }
 
-async function runAgentOnce(question, modelOverride = null) {
+async function runAgentOnce(question, modelOverride = null, providerOverride = null) {
   const schema = trimSchemaForQuestion(question);
   const sys = AGENT_SYSTEM_PROMPT.replace("{schema}", schema);
   const messages = [
@@ -2513,7 +2611,7 @@ async function runAgentOnce(question, modelOverride = null) {
 
   for (let i = 0; i <= 2; i++) {
     attempts++;
-    const r = await fireworksCall(messages, { model: modelOverride });
+    const r = await apiCall(messages, { model: modelOverride, provider: providerOverride });
     totalPT += r.prompt_tokens; totalCT += r.completion_tokens; totalLat += r.latency_ms;
     let parsed = {};
     try { parsed = JSON.parse(r.content); }
@@ -2543,9 +2641,9 @@ async function runAgentOnce(question, modelOverride = null) {
   return { sql: lastSql, rows: null, error: lastErr, attempts, repairs, rationale: lastRationale, prompt_tokens: totalPT, completion_tokens: totalCT, latency_ms: totalLat };
 }
 
-async function runNaiveOnce(question, modelOverride = null) {
+async function runNaiveOnce(question, modelOverride = null, providerOverride = null) {
   const messages = [{ role: "user", content: NAIVE_PROMPT_TEMPLATE.replace("{question}", question) }];
-  const r = await fireworksCall(messages, { model: modelOverride, jsonMode: false });
+  const r = await apiCall(messages, { model: modelOverride, provider: providerOverride, jsonMode: false });
   const sql = extractSqlNaive(r.content);
   let rows = null, error = null;
   if (sql) {
@@ -3175,7 +3273,9 @@ async function runLatencyTest() {
   try {
     for (let i = 1; i <= 3; i++) {
       status.innerHTML = `<span class="spinner"></span> firing call ${i}/3 on ${modelDisplay}…`;
-      const r = await runAgentOnce("How many distinct countries do we have customers in?", modelId);
+      // Latency tab is Fireworks-only — its dropdown is populated from MODEL_OPTIONS
+      // and the benchmark data on this tab is Fireworks-specific.
+      const r = await runAgentOnce("How many distinct countries do we have customers in?", modelId, "fireworks");
       samples.push(r.latency_ms);
       // Record in the global history so the stats row + ticker update.
       recordRun({
@@ -3291,18 +3391,27 @@ function costPerQuery(modelId, pt, ct) {
   return (pt * p.input + ct * p.output) / 1_000_000;
 }
 
-function initLiveDemo() {
-  // Populate model dropdowns
+// Populate Live Demo model dropdowns from the active provider. Called once
+// on init, and again on every provider toggle so the dropdowns track the
+// selected platform.
+function populateLiveDemoModels() {
+  const p = activeProvider();
+  const models = activeModels();
   for (const sel of [document.getElementById("ldModelA"), document.getElementById("ldModelB")]) {
     if (!sel) continue;
-    for (const m of MODEL_OPTIONS) {
+    sel.innerHTML = "";
+    for (const m of models) {
       const o = document.createElement("option");
       o.value = m.id; o.textContent = m.label;
       sel.appendChild(o);
     }
+    sel.value = p.defaultModel;
   }
-  document.getElementById("ldModelA").value = "accounts/fireworks/models/kimi-k2p6";
-  document.getElementById("ldModelB").value = "accounts/fireworks/models/kimi-k2p6";
+}
+
+function initLiveDemo() {
+  // Model dropdowns — provider-driven contents
+  populateLiveDemoModels();
 
   // Populate question dropdown — all 25 gold questions
   const qSel = document.getElementById("ldQuestionPicker");
@@ -3670,22 +3779,83 @@ async function runUnifiedDemo() {
 }
 
 // ============================================================
-// API key UX
+// API key UX + provider toggle
 // ============================================================
+
+// Update all visible chrome that depends on the active provider — key bar
+// label/placeholder/status, run hint, model dropdowns. Called on provider
+// toggle and once on init.
+function refreshProviderUI() {
+  const p = activeProvider();
+  const labelEl = document.getElementById("apiKeyLabel");
+  const inputEl = document.getElementById("apiKey");
+  const statusEl = document.getElementById("keyStatus");
+  const runHintEl = document.getElementById("ldRunHint");
+  if (labelEl)  labelEl.textContent = p.keyLabel;
+  if (inputEl)  inputEl.placeholder = p.keyPlaceholder;
+  if (runHintEl) runHintEl.textContent = p.runHint;
+  // Re-run the input validator with the new provider's rules so the status
+  // text reflects whatever key is currently pasted.
+  if (statusEl && inputEl) validateKeyStatus(inputEl, statusEl);
+
+  // Toggle pill highlight
+  document.querySelectorAll(".provider-toggle .provider-opt").forEach(btn => {
+    const active = btn.getAttribute("data-provider") === LIVE_STATE.provider;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-selected", active ? "true" : "false");
+  });
+
+  populateLiveDemoModels();
+}
+
+function validateKeyStatus(input, status) {
+  const p = activeProvider();
+  const v = input.value.trim();
+  if (!v) {
+    status.textContent = p.keyStatus;
+    status.className = "key-status";
+    return;
+  }
+  if (p.keyValidPrefix) {
+    if (v.startsWith(p.keyValidPrefix) && v.length > 20) {
+      status.textContent = `Looks like a ${p.label} key.`;
+      status.className = "key-status ok";
+    } else {
+      status.textContent = `Doesn't look like a ${p.label} key (expected ${p.keyValidPrefix}…) — proceeding anyway.`;
+      status.className = "key-status warn";
+    }
+  } else {
+    // Provider has no fixed prefix (Baseten). Just confirm length plausibility.
+    if (v.length >= 12) {
+      status.textContent = `${p.label} key set. Sent only to ${new URL(p.url).host}.`;
+      status.className = "key-status ok";
+    } else {
+      status.textContent = `Key looks short — paste your full ${p.label} key.`;
+      status.className = "key-status warn";
+    }
+  }
+}
+
 function initKey() {
   const input = document.getElementById("apiKey");
   const status = document.getElementById("keyStatus");
-  input.addEventListener("input", () => {
-    const v = input.value.trim();
-    if (!v) { status.textContent = "Never stored. Sent only to api.fireworks.ai."; status.className = "key-status"; return; }
-    if (v.startsWith("fw_") && v.length > 20) {
-      status.textContent = "Looks like a Fireworks key.";
-      status.className = "key-status ok";
-    } else {
-      status.textContent = "Doesn't look like a Fireworks key (expected fw_…) — proceeding anyway.";
-      status.className = "key-status warn";
-    }
+  if (input && status) {
+    input.addEventListener("input", () => validateKeyStatus(input, status));
+  }
+  // Wire provider toggle
+  document.querySelectorAll(".provider-toggle .provider-opt").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const next = btn.getAttribute("data-provider");
+      if (!next || next === LIVE_STATE.provider) return;
+      LIVE_STATE.provider = next;
+      // Wipe the input — keys aren't portable across providers and re-using
+      // one against the wrong endpoint is the most confusing error mode.
+      if (input) input.value = "";
+      refreshProviderUI();
+    });
   });
+  // First paint
+  refreshProviderUI();
 }
 
 // ============================================================

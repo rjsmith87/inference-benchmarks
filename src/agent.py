@@ -244,6 +244,7 @@ class SqlAgent:
         extra_body: dict[str, Any] | None = None,
         trim_schema: bool = True,
         compact_schema: bool = True,
+        base_url: str | None = None,
     ):
         self.conn = conn
         self.model = model
@@ -252,12 +253,17 @@ class SqlAgent:
         self.compact_schema = compact_schema
         # Qwen3 emits a <think> block by default; reasoning_effort=none suppresses it.
         self.extra_body = extra_body or ({"reasoning_effort": "none"} if "qwen3" in model else {})
-        key = api_key or os.environ.get("FIREWORKS_API_KEY")
+        # base_url selects the inference platform. Default keeps backwards-compat
+        # with everything pinned to Fireworks; pass a Baseten URL to retarget.
+        self.base_url = base_url or FIREWORKS_BASE_URL
+        is_baseten = "baseten" in self.base_url
+        env_key = "BASETEN_API_KEY" if is_baseten else "FIREWORKS_API_KEY"
+        key = api_key or os.environ.get(env_key)
         if not key:
             raise RuntimeError(
-                "FIREWORKS_API_KEY is not set. Put it in .env or export it."
+                f"{env_key} is not set. Put it in .env or export it."
             )
-        self.client = OpenAI(base_url=FIREWORKS_BASE_URL, api_key=key)
+        self.client = OpenAI(base_url=self.base_url, api_key=key)
         # Compact schema cuts ~62% of schema chars (~390 vs ~1040 prompt tokens),
         # which matters for shared-tier prefill latency. The verbose CREATE
         # form stays available via compact_schema=False if a customer schema

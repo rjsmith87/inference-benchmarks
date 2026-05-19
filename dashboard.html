@@ -1072,6 +1072,47 @@
   }
   .insight-card .body { color: var(--text-dim); font-size: 14px; line-height: 1.55; }
   .insight-card .body strong { color: var(--text); }
+
+  /* ============== Latency-under-load · model panels ============== */
+  .perf-block { margin-top: 18px; }
+  .perf-block:first-child { margin-top: 0; }
+  .perf-block .perf-head {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 10px;
+  }
+  .perf-block .perf-head h4 {
+    margin: 0; font-size: 16px; font-weight: 700;
+  }
+  .perf-block .perf-head .perf-deg {
+    color: var(--text-dim); font-size: 13px;
+  }
+  .perf-block .perf-head .perf-deg .num {
+    font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .perf-block .perf-head .perf-deg.bad .num    { color: var(--red); }
+  .perf-block .perf-head .perf-deg.ok .num     { color: var(--green); }
+  .perf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .perf-table th, .perf-table td {
+    padding: 9px 12px; border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums; text-align: right;
+  }
+  .perf-table th {
+    background: var(--surface-2); color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; font-weight: 600;
+  }
+  .perf-table th:first-child, .perf-table td:first-child { text-align: left; }
+  .perf-table td.metric-c { color: var(--text-dim); font-weight: 600; }
+  .perf-bar {
+    position: relative; display: inline-block;
+    width: 80px; height: 8px;
+    background: var(--surface-elev); border-radius: 4px;
+    vertical-align: middle; margin-left: 8px;
+  }
+  .perf-bar .fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--teal) 0%, var(--orange) 100%);
+    border-radius: 4px;
+  }
 </style>
 </head>
 <body>
@@ -1090,7 +1131,7 @@
       </div>
       <div class="brand-spacer"></div>
       <div class="brand-meta">
-        <a href="https://github.com/rjsmith87/fireworks-takehome" target="_blank" rel="noopener">github.com/rjsmith87/fireworks-takehome</a>
+        <a href="https://github.com/rjsmith87/inference-benchmarks" target="_blank" rel="noopener">github.com/rjsmith87/inference-benchmarks</a>
       </div>
     </div>
 
@@ -1154,7 +1195,7 @@
     </div>
 
     <p class="run-locally-note">
-      <span class="mono">$ python -m src.cli</span> &middot; run locally — see <a href="https://github.com/rjsmith87/fireworks-takehome#quick-start" target="_blank" rel="noopener">README</a> for setup.
+      <span class="mono">$ python -m src.cli</span> &middot; run locally — see <a href="https://github.com/rjsmith87/inference-benchmarks#quick-start" target="_blank" rel="noopener">README</a> for setup.
     </p>
   </div>
 </section>
@@ -1256,11 +1297,235 @@
     <div class="panel-eyebrow">Inference Insights</div>
     <h2 class="panel-title">What the matrix actually tells us.</h2>
     <p class="panel-lede">
-      Seven questions an inference-infrastructure engineer would ask of this
-      data, answered with numbers from the sweep — not vibes.
+      Seven quick questions an inference-infrastructure engineer would ask of
+      the matrix data, answered with numbers from the sweep — not vibes.
+      Then four deeper sections on fine-tuning economics, serverless-vs-dedicated
+      tradeoffs, quantization, and how the platform actually behaves under
+      concurrent load.
     </p>
 
     <div id="insightCards" class="grid grid-2" style="margin-top: 16px;"></div>
+
+    <!-- ============ Long-form: fine-tuning decision framework ============ -->
+    <div class="sub-section">
+      <h2 class="sub-title" style="margin-top: 28px;">Fine-tune a cheap model, or pay for a better one?</h2>
+      <p style="color: var(--text-dim); max-width: 820px;">
+        The first instinct on inference cost is "fine-tune the cheapest open-source
+        model to match the expensive one." Sometimes that's right. Often it's not.
+        Here's the framework, grounded in this sweep's numbers.
+      </p>
+
+      <div class="card sub-section" style="margin-top: 14px;">
+        <h3>Step 1 · Read the matrix before reaching for SFT</h3>
+        <p>
+          In this sweep, <strong>gpt-oss-120b</strong> hits <strong>96% accuracy at
+          $0.000187/query</strong>. The cheapest candidate you'd consider fine-tuning
+          (Nemotron-120B-A12B at $0.000121/q) sits at <strong>44% accuracy</strong>
+          out of the box — a 52-point gap. To close that gap with SFT against a
+          25-question workload, you'd need labeled training data (call it 500–2000
+          examples for a "first SFT pass that won't ruin the model"), plus 2–3
+          rounds of iteration, plus an eval harness. Realistic minimum:
+          <strong>40–80 engineer-hours + a few hundred dollars of compute</strong>.
+        </p>
+        <p>
+          Cost-per-query difference between the two: $0.000066. At GitLab's
+          projected 30k q/day, that's <strong>$1.98 saved per day</strong> —
+          about $59/month. Engineer time to fine-tune amortizes at
+          <strong>~5–8 years</strong>. Don't fine-tune.
+        </p>
+      </div>
+
+      <div class="card sub-section" style="margin-top: 14px;">
+        <h3>Step 2 · The cases where fine-tuning <em>does</em> win</h3>
+        <ul style="color: var(--text-dim);">
+          <li><strong>Output format lock-in.</strong> The model needs to emit a
+              specific JSON shape, dialect, or convention that prompting can't
+              reliably enforce. SFT pins it permanently. (Text-to-SQL: the gold
+              SQL style is one example — but our sweep shows several models already
+              hit ≥90% with prompting alone, so it's not the binding constraint here.)</li>
+          <li><strong>Domain vocabulary the base model never saw.</strong> Internal
+              schema names, jargon, codebase-specific identifiers. Prompts can teach
+              this in-context but eat tokens; SFT bakes it in.</li>
+          <li><strong>RFT (Reinforcement Fine-Tuning) when correctness is verifiable.</strong>
+              SQL <em>is</em> verifiable — the executor either returns the right rows
+              or it doesn't. This is the Fireworks/OpenAI RFT sweet spot: no human
+              labels, gradient comes from the executor's pass/fail signal. The s_014
+              "top-per-group" miss in our Quality tab is precisely this kind of
+              pattern-learning target — but only after Step 1 fails to close it.</li>
+          <li><strong>Real cost gaps (10×+), at real volume.</strong> If a small
+              model at $0.00001/q could match a $0.001/q model after SFT, and you're
+              doing 10M queries/day, then fine-tuning pays back in days.</li>
+        </ul>
+      </div>
+
+      <div class="card sub-section" style="margin-top: 14px;">
+        <h3>Step 3 · Decision rule</h3>
+        <p>
+          <strong>Pick the better model</strong> when (a) the accuracy gap is &gt;5 points
+          and (b) the cost gap is &lt;3× and (c) you can ship today. Fine-tuning is a
+          months-long commitment with maintenance overhead (re-tune on base-model
+          updates, drift monitoring, eval-set rot). <strong>Fine-tune</strong> when the
+          cost gap is &gt;10× <em>and</em> you can articulate a verifiable signal
+          (executor feedback, click-through, rubric) to drive RFT.
+        </p>
+        <p>
+          In this benchmark, the answer is "pick gpt-oss-120b." If a future month
+          DeepSeek-V5 ships at $0.005/q with 98% accuracy and gpt-oss stays at 96%
+          and $0.0002, the framework flips — but only because the cheap model is
+          <em>already</em> within 2 points of the expensive one.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============ Long-form: serverless vs dedicated tradeoffs ============ -->
+    <div class="sub-section">
+      <h2 class="sub-title" style="margin-top: 28px;">Serverless Model API vs dedicated deployment</h2>
+      <p style="color: var(--text-dim); max-width: 820px;">
+        Every model in this matrix is <strong>serverless</strong> — shared
+        multi-tenant inference, per-token billing, no GPU allocation on your
+        side. Baseten (and Fireworks) also sell dedicated deployments billed
+        per GPU-minute. The choice is workload-shape-dependent, not
+        platform-dependent.
+      </p>
+
+      <div class="grid grid-2" style="margin-top: 14px;">
+        <div class="card">
+          <span class="pill purple">Serverless wins</span>
+          <h3 style="margin-top: 10px;">When the workload is bursty, mixed, or you're still picking a model</h3>
+          <ul style="color: var(--text-dim);">
+            <li><strong>Variable traffic.</strong> 30k queries one day, 3k the next. Dedicated capacity sits idle and you pay anyway.</li>
+            <li><strong>Model exploration.</strong> Swapping between 10 models for benchmarking is one config change on serverless. On dedicated, it's 10 deployments.</li>
+            <li><strong>Cost discipline at low/medium volume.</strong> At the GitLab POC's 30k q/day on gpt-oss-120b, serverless = <strong>~$168/month</strong>. A dedicated H100 = $1,440–2,160/month. Serverless wins by 8–13×.</li>
+            <li><strong>No infra ops.</strong> No GPU autoscaling, no health checks, no replica fleet sizing.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="pill" style="background: var(--teal-soft); color: var(--teal-2);">Dedicated wins</span>
+          <h3 style="margin-top: 10px;">When you need predictable tails or you can saturate a GPU</h3>
+          <ul style="color: var(--text-dim);">
+            <li><strong>Tight P99 SLO.</strong> Serverless tail latency is governed by other tenants' bursts. Dedicated isolates you — no noisy neighbors.</li>
+            <li><strong>Sustained high throughput.</strong> If a single GPU is &gt;50% utilized 24/7, dedicated $/token beats serverless. Rough breakeven: ~1.5–3M tokens/hour per H100.</li>
+            <li><strong>Custom weights.</strong> Fine-tuned, LoRA-adapted, or proprietary model — serverless catalogs only carry vendor-curated weights.</li>
+            <li><strong>Data residency / compliance.</strong> Region-pin, BYOC, single-tenant guarantees — these are dedicated-tier features.</li>
+            <li><strong>Predictable cost.</strong> Per-GPU-minute is a flat line; per-token is a stochastic function of traffic.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card sub-section" style="margin-top: 14px;">
+        <h3>What this matrix can and can't tell you</h3>
+        <p>
+          The single-call sweep on the <a href="#modelsweep">Model Sweep</a> tab
+          shows median behavior. The <strong>Latency under load</strong> section
+          below probes the next layer — does the platform actually parallelize,
+          or does the apparent low latency at concurrency=1 collapse at
+          concurrency=10? That's the question dedicated vs serverless turns on,
+          and it's why we ran the concurrency benchmark.
+        </p>
+        <p>
+          <strong>Phase 3 deferred:</strong> the original brief included
+          deploying a smaller model via Truss as a dedicated deployment to
+          measure the crossover empirically. Deferred to stay within the
+          serverless-only budget — but the breakeven math above frames where
+          you'd start looking.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============ Long-form: quantization explainer ============ -->
+    <div class="sub-section">
+      <h2 class="sub-title" style="margin-top: 28px;">Quantization · FP16 → FP8 → FP4 · what you're actually buying</h2>
+      <p style="color: var(--text-dim); max-width: 820px;">
+        Every Baseten Model API LLM ships <em>quantized</em>. That's not a
+        cost-cutting hack — it's why these models are fast enough to be
+        priced per-token at all. Here's what the numbers mean and how they
+        map onto the latencies we measured.
+      </p>
+
+      <div class="grid grid-2" style="margin-top: 14px;">
+        <div class="card">
+          <h3>FP16 / BF16 (the reference)</h3>
+          <p>
+            2 bytes per weight. A 120B-parameter model needs ~240 GB of
+            GPU memory just to hold the weights — that's 3× H100 (80GB each)
+            minimum. Highest fidelity to the model's training distribution.
+            Rarely served at scale on cost-sensitive inference platforms
+            because the GPU economics don't work outside research.
+          </p>
+        </div>
+        <div class="card">
+          <h3>FP8</h3>
+          <p>
+            1 byte per weight, ~½ the memory of FP16. A 120B model fits in
+            ~120 GB → still 2× H100 minimum, but TFLOPS roughly double on
+            Hopper-class GPUs. Typical quality regression vs FP16 is
+            <strong>0–1.5%</strong> on most benchmarks. Baseten serves
+            DeepSeek-V3.1 and MiniMax-M2.5 at FP8.
+          </p>
+        </div>
+        <div class="card">
+          <h3>FP4 (the workhorse here)</h3>
+          <p>
+            ½ byte per weight, ~¼ the memory of FP16. A 120B model fits in
+            ~60 GB → comfortably on a single H100 or H200. Throughput on
+            Blackwell-class hardware roughly 2× FP8 again. Quality regression
+            typically <strong>1–5%</strong>, very model-dependent.
+            <strong>8 of 10 Baseten models in this matrix are FP4.</strong>
+          </p>
+        </div>
+        <div class="card">
+          <h3>What this buys the platform — and you</h3>
+          <p>
+            <strong>For the platform:</strong> more concurrent users per GPU,
+            cheaper per-token economics, the ability to price gpt-oss-120b at
+            $0.10/M input tokens at all.
+          </p>
+          <p>
+            <strong>For you:</strong> fast prefill (the schema-stuffed system
+            prompt ingests faster), high per-GPU throughput (which is what makes
+            the concurrency curves below shaped like they are), and the
+            assumption that the model's accuracy ranking <em>on your workload</em>
+            still holds after the quantization. Verify the last assumption with
+            an eval — which is what this whole dashboard is.
+          </p>
+        </div>
+      </div>
+
+      <div class="card sub-section" style="margin-top: 14px;">
+        <h3>What our matrix tells us about FP4-vs-FP8 in practice</h3>
+        <p>
+          The top performer (<strong>gpt-oss-120b · FP4 · 96% acc · 228ms TTFT</strong>)
+          beats the second (<strong>DeepSeek-V3.1 · FP8 · 92% acc · 343ms TTFT</strong>)
+          on both axes despite running at the more aggressive quantization. That's
+          the right answer for the wrong-feeling reason: FP4 doesn't kneecap
+          well-trained models, and the model-architecture / training-data delta
+          dominates the quantization-precision delta on this workload. The
+          implication for model selection is: <strong>don't filter by quantization
+          tier</strong>. Filter by accuracy and TTFT on your own workload; the
+          quantization is upstream of both.
+        </p>
+        <p style="color: var(--text-dim); font-size: 13px;">
+          Quantization data sourced from Baseten's <code class="mono">/v1/models</code>
+          endpoint at sweep time (<code class="mono">data/baseten_models_meta.json</code>).
+        </p>
+      </div>
+    </div>
+
+    <!-- ============ Latency under load (from data/baseten_perf.json) ============ -->
+    <div class="sub-section">
+      <h2 class="sub-title" style="margin-top: 28px;">Latency under load · concurrency 1 / 5 / 10</h2>
+      <p style="color: var(--text-dim); max-width: 820px;">
+        Single-call latency hides queue depth. We fired the full 25-question
+        gold set at the top three Baseten models (gpt-oss-120b, DeepSeek-V3.1,
+        Kimi-K2.6) at concurrency 1, 5, and 10 — same agent, full repair loop,
+        ThreadPoolExecutor. How does P50 / P90 / P99 move?
+      </p>
+      <div class="card sub-section" id="perfLoadCard" style="margin-top: 14px;">
+        <div id="perfLoadContent" class="muted" style="padding: 20px; text-align: center;">
+          Loading latency-under-load data…
+        </div>
+      </div>
+    </div>
 
     <div class="card sub-section">
       <h3 id="insightsMethodHeading">Method notes</h3>
@@ -1306,7 +1571,7 @@
 
     <div class="sub-section">
       <h2 class="sub-title">Evaluation log · actual terminal output</h2>
-      <p style="color: var(--text-dim);">A real <code class="mono">python -m src.evals accounts/fireworks/models/kimi-k2p6 --out-answers data/dev_answers.json</code> run from this submission. No editing.</p>
+      <p style="color: var(--text-dim);">A real <code class="mono">python -m src.evals accounts/fireworks/models/kimi-k2p6 --out-answers data/dev_answers.json</code> run from this repo. No editing.</p>
       <pre class="rows" style="max-height: 360px; line-height: 1.45;">$ python -m src.evals accounts/fireworks/models/kimi-k2p6 --out-answers data/dev_answers.json
 
 === accounts/fireworks/models/kimi-k2p6 ===
@@ -1656,8 +1921,7 @@ wrote data/dev_answers.json</pre>
         <code class="mono">data/single_q_test.json</code>) and (2) a 10-question
         dev-set sweep, single-shot, no repair (see
         <code class="mono">data/model_sweep.json</code>). The Verdict column
-        carries the current notes — every line below is from a run made for
-        this submission.
+        carries the current notes — every line below is from a real run.
       </p>
       <p style="color: var(--text-dim); margin-top: 8px;">
         <strong>Smoke-test summary:</strong> all 7 models eventually returned
@@ -1911,13 +2175,13 @@ wrote data/dev_answers.json</pre>
 
 <footer>
   <div class="container">
-    GitLab × Fireworks Field POC · submission for Raul Jimenez ·
-    <a href="https://github.com/rjsmith87/fireworks-takehome" target="_blank" rel="noopener">github.com/rjsmith87/fireworks-takehome</a>
+    Inference Benchmarking Suite ·
+    <a href="https://github.com/rjsmith87/inference-benchmarks" target="_blank" rel="noopener">github.com/rjsmith87/inference-benchmarks</a>
     <div style="margin-top: 8px;">
       Reproduce any number on this page: <code class="mono">python -m src.cli</code> · <code class="mono">python -m src.evals</code> · <code class="mono">python -m src.perf --out perf_compact_N.json</code> · <code class="mono">python3 -m http.server 8000</code>.
     </div>
     <div style="margin-top: 8px;">
-      Built with Claude (Anthropic). Claude Code wrote the implementation; architecture decisions, model selection, evaluation methodology, and customer communication driven by the submitter.
+      Built with Claude (Anthropic). Claude Code wrote the implementation; architecture decisions, model selection, evaluation methodology, and analysis driven by the author.
     </div>
   </div>
 </footer>
@@ -2440,10 +2704,10 @@ const ARCH_NODES = [
     chosen: "Render schema as one-line-per-table compact form (Album(col:type[pk,fk→...])); trim by question keywords + FK closure when ≥2 tables match.",
     considered: "Tool-calling round trip; embedding-based retrieval; full CREATE TABLE blocks (~1042 prompt tokens).",
     why: "Compact form drops mean prompt tokens 935→665 (29%) with no accuracy regression on the dev set. Trim fires on 9/25 questions, mean 67% reduction on those. For a 1,000-table customer DB we'd swap the trim heuristic for embedding retrieval." },
-  { step: "03", name: "Fireworks API", title: "OpenAI-compatible call · any Fireworks model",
-    chosen: "OpenAI-compatible chat completions with JSON mode, temperature 0, max_tokens 1024. 4-step exponential backoff on 429. Works with any model in the Fireworks catalog — model is a constructor argument, one-line swap.",
+  { step: "03", name: "Inference API", title: "OpenAI-compatible call · Fireworks or Baseten",
+    chosen: "OpenAI-compatible chat completions with JSON mode, temperature 0, max_tokens 1024. 4-step exponential backoff on 429. SqlAgent takes base_url + api_key so the same agent code runs against Fireworks or Baseten — model and platform are constructor arguments, one-line swap.",
     considered: "Tool-calling, streaming, higher temperature with self-consistency, proprietary API formats.",
-    why: "JSON mode guarantees parseable output. Temp 0 maximizes reproducibility. OpenAI compatibility means zero vendor lock-in — same code works against any OpenAI-compatible endpoint." },
+    why: "JSON mode guarantees parseable output. Temp 0 maximizes reproducibility. OpenAI compatibility means zero vendor lock-in — same code works against any OpenAI-compatible endpoint, which is what made the cross-platform sweep possible." },
   { step: "04", name: "JSON parse", title: "Structured output extraction",
     chosen: "JSON object with {sql, rationale}, parsed with native JSON.parse.",
     considered: "Free-text extraction with regex; XML tags; tool-call schema.",
@@ -3991,6 +4255,118 @@ function initCostMatrix() {
 }
 
 // ============================================================
+// LATENCY UNDER LOAD · concurrency benchmark (data/baseten_perf.json)
+// ============================================================
+async function loadPerfData() {
+  try {
+    const r = await fetch("data/baseten_perf.json");
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) {
+    console.warn("baseten_perf.json:", e);
+    return null;
+  }
+}
+
+function renderPerfLoad(data) {
+  const root = document.getElementById("perfLoadContent");
+  if (!root) return;
+  if (!data || !data.runs || !data.runs.length) {
+    root.innerHTML = `<p class="muted" style="padding: 20px; text-align: center;">
+      Concurrency benchmark not yet available.
+      Run <code class="mono">PYTHONPATH=. python scripts/baseten_perf.py</code> to populate.
+    </p>`;
+    return;
+  }
+  // Group runs by model
+  const byModel = {};
+  for (const r of data.runs) {
+    if (!byModel[r.model]) byModel[r.model] = [];
+    byModel[r.model].push(r);
+  }
+  // For each model, sort runs by concurrency ascending
+  for (const m in byModel) byModel[m].sort((a, b) => a.concurrency - b.concurrency);
+
+  // Global max p99 for bar scaling within each block (per-model bar normalization)
+  const renderBlock = (model, runs) => {
+    const label = _shortModel(model);
+    const maxP99 = Math.max(...runs.map(r => r.p99_ms));
+    const baseline = runs.find(r => r.concurrency === Math.min(...runs.map(r => r.concurrency)));
+    const top = runs.find(r => r.concurrency === Math.max(...runs.map(r => r.concurrency)));
+    let degHtml = "";
+    if (baseline && top && baseline !== top) {
+      const ratio = top.p50_ms / baseline.p50_ms;
+      const cls = ratio < 1.25 ? "ok" : (ratio < 2 ? "" : "bad");
+      degHtml = `<span class="perf-deg ${cls}">p50 c=${baseline.concurrency}→c=${top.concurrency} · <span class="num">${ratio.toFixed(2)}×</span></span>`;
+    }
+    const rows = runs.map(r => {
+      const fillPct = (r.p50_ms / maxP99) * 100;
+      return `<tr>
+        <td class="metric-c">c=${r.concurrency}</td>
+        <td>${r.completed}/${r.n}${r.errors ? ` <span style="color: var(--red);">(${r.errors} err)</span>` : ""}</td>
+        <td>${_fmtPct(r.accuracy)}</td>
+        <td>${r.wallclock_s.toFixed(1)}s</td>
+        <td>${r.throughput_qps.toFixed(2)}</td>
+        <td>${Math.round(r.p50_ms).toLocaleString()}ms<span class="perf-bar"><span class="fill" style="width:${fillPct.toFixed(1)}%;"></span></span></td>
+        <td>${Math.round(r.p90_ms).toLocaleString()}ms</td>
+        <td>${Math.round(r.p99_ms).toLocaleString()}ms</td>
+      </tr>`;
+    }).join("");
+    return `<div class="perf-block">
+      <div class="perf-head">
+        <h4>${label}</h4>
+        ${degHtml}
+      </div>
+      <table class="perf-table">
+        <thead>
+          <tr>
+            <th>Concurrency</th>
+            <th>Completed</th>
+            <th>Accuracy</th>
+            <th>Wallclock</th>
+            <th>Throughput (qps)</th>
+            <th>P50 latency</th>
+            <th>P90</th>
+            <th>P99</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  };
+
+  const blocks = Object.keys(byModel).map(m => renderBlock(m, byModel[m])).join("");
+  // Auto-generated headline insight
+  const allModels = Object.entries(byModel);
+  let insight = "";
+  if (allModels.length) {
+    const ratios = allModels.map(([m, runs]) => {
+      const c1 = runs.find(r => r.concurrency === 1);
+      const cMax = runs[runs.length - 1];
+      if (!c1 || !cMax || c1 === cMax) return null;
+      return { label: _shortModel(m), ratio: cMax.p50_ms / c1.p50_ms, c: cMax.concurrency };
+    }).filter(Boolean);
+    if (ratios.length) {
+      const best = ratios.slice().sort((a, b) => a.ratio - b.ratio)[0];
+      const worst = ratios.slice().sort((a, b) => b.ratio - a.ratio)[0];
+      insight = `<p style="color: var(--text-dim); margin: 0 0 14px;">
+        <strong>${best.label}</strong> degrades least under load: P50 changes
+        <strong>${best.ratio.toFixed(2)}×</strong> from c=1 to c=${best.c}.
+        <strong>${worst.label}</strong> degrades most: <strong>${worst.ratio.toFixed(2)}×</strong>.
+        Ratios near 1.0 mean the platform is genuinely parallelizing your traffic;
+        ratios &gt;2× mean you're queueing behind shared capacity.
+      </p>`;
+    }
+  }
+  root.innerHTML = insight + blocks;
+}
+
+async function initPerfLoad() {
+  const data = await loadPerfData();
+  renderPerfLoad(data);
+}
+
+// ============================================================
 // Hero stats — recompute from sweep data once loaded
 // ============================================================
 function updateHeroFromSweep() {
@@ -4039,6 +4415,9 @@ document.addEventListener("DOMContentLoaded", () => {
     initCostMatrix();
     updateHeroFromSweep();
   });
+  // Concurrency benchmark is on its own fetch — it's optional data and may
+  // not exist if the benchmark hasn't been run yet.
+  initPerfLoad();
   renderActivityLog();      // initial empty state on the right column
   calcBuildVsBuy();         // populate the Cost-tab Build vs Buy table
 });

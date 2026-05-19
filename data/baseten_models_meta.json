@@ -1,0 +1,52 @@
+{
+  "openai/gpt-oss-120b": {
+    "quantization": "fp4",
+    "context_length": 128072,
+    "name": "OpenAI GPT 120B"
+  },
+  "deepseek-ai/DeepSeek-V3.1": {
+    "quantization": "fp8",
+    "context_length": 163840,
+    "name": "DeepSeek V3.1"
+  },
+  "zai-org/GLM-4.7": {
+    "quantization": "fp4",
+    "context_length": 200000,
+    "name": "GLM 4.7"
+  },
+  "moonshotai/Kimi-K2.5": {
+    "quantization": "fp4",
+    "context_length": 262000,
+    "name": "Kimi K2.5"
+  },
+  "MiniMaxAI/MiniMax-M2.5": {
+    "quantization": "fp8",
+    "context_length": 204000,
+    "name": "Minimax M2.5"
+  },
+  "zai-org/GLM-5": {
+    "quantization": "fp4",
+    "context_length": 202800,
+    "name": "GLM 5"
+  },
+  "nvidia/Nemotron-120B-A12B": {
+    "quantization": "fp4",
+    "context_length": 202800,
+    "name": "Nemotron Super"
+  },
+  "zai-org/GLM-5.1": {
+    "quantization": "fp4",
+    "context_length": 202800,
+    "name": "GLM 5.1"
+  },
+  "moonshotai/Kimi-K2.6": {
+    "quantization": "fp4",
+    "context_length": 262000,
+    "name": "Kimi K2.6"
+  },
+  "deepseek-ai/DeepSeek-V4-Pro": {
+    "quantization": "fp4",
+    "context_length": 131000,
+    "name": "Deepseek V4 Pro"
+  }
+}

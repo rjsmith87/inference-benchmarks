@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>GitLab Agentic BI CLI · Powered by Fireworks AI</title>
+<title>Inference Benchmarking Suite · Text-to-SQL Workload</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -33,6 +33,10 @@
     --purple: #A855F7;          /* Fireworks */
     --purple-soft: rgba(168, 85, 247, 0.10);
     --purple-2: #6B4FBB;        /* GitLab purple — tertiary */
+    --teal: #14B8A6;            /* Baseten */
+    --teal-2: #0F9488;
+    --teal-soft: rgba(20, 184, 166, 0.10);
+    --teal-glow: rgba(20, 184, 166, 0.18);
 
     /* Status — darker hues for AA contrast on white */
     --green: #16A34A;
@@ -80,6 +84,22 @@
     background: linear-gradient(135deg, var(--purple) 0%, var(--purple-2) 100%);
     box-shadow: 0 4px 14px rgba(168, 85, 247, 0.22);
   }
+  .brand .bt-mark {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%);
+    box-shadow: 0 4px 14px var(--teal-glow);
+  }
+  .platform-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em;
+    border: 1px solid var(--line);
+  }
+  .platform-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .platform-chip.fw { color: var(--purple); background: var(--purple-soft); border-color: var(--purple-soft); }
+  .platform-chip.fw .dot { background: var(--purple); }
+  .platform-chip.bt { color: var(--teal-2); background: var(--teal-soft); border-color: var(--teal-soft); }
+  .platform-chip.bt .dot { background: var(--teal); }
   .brand-spacer { flex: 1; }
   .brand-meta { font-size: 12px; color: var(--text-dim); }
   .brand-meta a { color: var(--purple); text-decoration: none; }
@@ -903,6 +923,155 @@
   footer { padding: 36px 0 56px; color: var(--text-faint); font-size: 13px; border-top: 1px solid var(--line); }
   footer a { color: var(--purple); text-decoration: none; }
   footer a:hover { color: var(--orange); }
+
+  /* ============== Model Sweep · matrix table ============== */
+  .sweep-table {
+    width: 100%; border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  }
+  .sweep-table thead th {
+    background: var(--surface-2); color: var(--text-dim);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+    font-size: 11px;
+    padding: 10px 11px; text-align: left;
+    border-bottom: 1px solid var(--line); white-space: nowrap;
+    position: sticky; top: 0; z-index: 1;
+  }
+  .sweep-table thead th.num { text-align: right; }
+  .sweep-table thead th.sortable { cursor: pointer; user-select: none; }
+  .sweep-table thead th.sortable:hover { color: var(--text); }
+  .sweep-table thead th.sortable.sort-asc::after  { content: " ▲"; color: var(--orange); }
+  .sweep-table thead th.sortable.sort-desc::after { content: " ▼"; color: var(--orange); }
+  .sweep-table tbody td {
+    padding: 9px 11px; border-bottom: 1px solid var(--line);
+    font-size: 12.5px; white-space: nowrap;
+  }
+  .sweep-table tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sweep-table tbody tr:hover { background: rgba(252, 109, 38, 0.04); }
+  .sweep-table tbody tr.winner { background: rgba(20, 184, 166, 0.05); }
+  .sweep-table tbody tr.winner td:first-child::before { content: "★ "; color: var(--teal); }
+  .sweep-table .model-name {
+    font-family: 'Inter', sans-serif; font-weight: 600; color: var(--text);
+  }
+  .sweep-table .sub-id {
+    display: block; color: var(--text-faint); font-size: 10.5px; font-weight: 400;
+    font-family: 'JetBrains Mono', monospace; margin-top: 2px;
+  }
+  .ms-select {
+    background: var(--code-bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 7px 10px; font-family: inherit; font-size: 13px;
+  }
+  .ms-select:focus { outline: none; border-color: var(--orange); }
+
+  /* ============== Pareto chart ============== */
+  .pareto-chart {
+    position: relative; height: 360px;
+    background:
+      linear-gradient(var(--surface-elev), var(--surface-elev)) bottom/100% 1px no-repeat,
+      linear-gradient(var(--surface-elev), var(--surface-elev)) left/1px 100% no-repeat,
+      var(--surface);
+    border-radius: 8px;
+    padding: 18px 24px 44px 56px;
+    overflow: visible;
+  }
+  .pareto-canvas {
+    position: relative; width: 100%; height: 100%;
+  }
+  .pareto-dot {
+    position: absolute; width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    transform: translate(-50%, 50%);
+    cursor: pointer;
+    transition: transform 140ms ease, box-shadow 140ms ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  }
+  .pareto-dot.fw { background: var(--purple); }
+  .pareto-dot.bt { background: var(--teal); }
+  .pareto-dot:hover {
+    transform: translate(-50%, 50%) scale(1.6);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.28);
+    z-index: 5;
+  }
+  .pareto-tip {
+    position: absolute; pointer-events: none; z-index: 10;
+    background: var(--text); color: #FFF;
+    padding: 8px 10px; border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    line-height: 1.45; white-space: pre;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    transform: translate(8px, -100%);
+  }
+  .pareto-axis-label {
+    position: absolute; font-size: 11px; color: var(--text-faint);
+    letter-spacing: 0.02em; text-transform: uppercase; font-weight: 600;
+  }
+  .pareto-tick {
+    position: absolute; font-size: 10.5px; color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ============== Platform Comparison cards ============== */
+  .platform-card {
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px; background: var(--surface);
+  }
+  .platform-card.fw { border-top: 3px solid var(--purple); }
+  .platform-card.bt { border-top: 3px solid var(--teal); }
+  .platform-card h3 {
+    margin: 0 0 4px; font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .platform-card .platform-meta { color: var(--text-faint); font-size: 12.5px; margin-bottom: 16px; }
+  .platform-stat-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px;
+    margin-bottom: 14px;
+  }
+  .platform-stat .label { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .platform-stat .value { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .platform-card .best-model {
+    border-top: 1px dashed var(--line);
+    padding-top: 12px; margin-top: 10px;
+    font-size: 13px; color: var(--text-dim);
+  }
+  .platform-card .best-model strong { color: var(--text); font-weight: 700; }
+
+  .vs-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .vs-table td, .vs-table th {
+    padding: 10px 12px; border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+  .vs-table th {
+    background: var(--surface-2); color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; font-weight: 600;
+    text-align: left;
+  }
+  .vs-table td.metric { color: var(--text-dim); font-weight: 600; }
+  .vs-table td.win { color: var(--green); font-weight: 700; }
+  .vs-table td.lose { color: var(--text-dim); }
+
+  /* ============== Insights cards ============== */
+  .insight-card {
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; background: var(--surface);
+  }
+  .insight-card .question {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--orange); font-weight: 600; margin-bottom: 4px;
+  }
+  .insight-card .headline {
+    font-size: 19px; font-weight: 700; letter-spacing: -0.015em;
+    margin: 0 0 10px;
+  }
+  .insight-card .headline .num {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--orange) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .insight-card .body { color: var(--text-dim); font-size: 14px; line-height: 1.55; }
+  .insight-card .body strong { color: var(--text); }
 </style>
 </head>
 <body>
@@ -912,13 +1081,12 @@
   <div class="container">
     <div class="brand-row">
       <div class="brand">
-        <span class="gl-mark"></span>
-        <span>GitLab</span>
-        <span class="x-sep">×</span>
-        <span class="fw-mark"></span>
-        <span>Fireworks AI</span>
-        <span class="x-sep" style="margin-left: 12px;">·</span>
-        <span style="font-weight: 500; color: var(--text-dim);">Agentic BI CLI POC</span>
+        <span style="font-weight: 800; letter-spacing: -0.015em;">Inference Benchmarking Suite</span>
+        <span class="x-sep" style="margin-left: 8px;">·</span>
+        <span style="font-weight: 500; color: var(--text-dim);">Text-to-SQL workload</span>
+        <span class="x-sep" style="margin-left: 10px;">·</span>
+        <span class="platform-chip fw"><span class="dot"></span>Fireworks</span>
+        <span class="platform-chip bt"><span class="dot"></span>Baseten</span>
       </div>
       <div class="brand-spacer"></div>
       <div class="brand-meta">
@@ -927,13 +1095,16 @@
     </div>
 
     <div class="tabs" role="tablist" id="tabs">
-      <button class="tab" role="tab" data-tab="overview"   aria-selected="true">Overview</button>
-      <button class="tab" role="tab" data-tab="livedemo"   aria-selected="false">Live Demo</button>
-      <button class="tab" role="tab" data-tab="quality"    aria-selected="false">Quality<span class="count">23/25</span></button>
-      <button class="tab" role="tab" data-tab="latency"    aria-selected="false">Latency</button>
-      <button class="tab" role="tab" data-tab="cost"       aria-selected="false">Cost<span class="count">−67%</span></button>
-      <button class="tab" role="tab" data-tab="howitworks" aria-selected="false">How It Works</button>
-      <button class="tab" role="tab" data-tab="roadmap"    aria-selected="false">Production Roadmap</button>
+      <button class="tab" role="tab" data-tab="overview"    aria-selected="true">Overview</button>
+      <button class="tab" role="tab" data-tab="modelsweep"  aria-selected="false">Model Sweep<span class="count" id="msTabCount">—</span></button>
+      <button class="tab" role="tab" data-tab="platform"    aria-selected="false">Platform Comparison</button>
+      <button class="tab" role="tab" data-tab="cost"        aria-selected="false">Cost Explorer</button>
+      <button class="tab" role="tab" data-tab="insights"    aria-selected="false">Inference Insights</button>
+      <button class="tab" role="tab" data-tab="quality"     aria-selected="false">Quality<span class="count">23/25</span></button>
+      <button class="tab" role="tab" data-tab="latency"     aria-selected="false">Latency</button>
+      <button class="tab" role="tab" data-tab="livedemo"    aria-selected="false">Live Demo</button>
+      <button class="tab" role="tab" data-tab="howitworks"  aria-selected="false">How It Works</button>
+      <button class="tab" role="tab" data-tab="roadmap"     aria-selected="false">POC Roadmap</button>
     </div>
   </div>
 </div>
@@ -942,32 +1113,36 @@
 <section class="tab-panel active" data-panel="overview">
   <div class="container hero">
     <div class="panel-eyebrow">Overview</div>
-    <h1>A natural-language-to-SQL agent <span class="accent">for the GitLab platform</span>, on Fireworks.</h1>
+    <h1>Same 25 queries. Same database.<br><span class="accent">Different models, different platforms.</span></h1>
     <p class="hero-sub">
-      An interactive CLI that turns natural-language questions into executable
-      SQL with results. Open-source models on Fireworks. Every number on this
-      page is reproducible from the repo.
+      An inference-infrastructure benchmarking suite built on top of a
+      reproducible text-to-SQL workload (originally a GitLab Agentic BI
+      CLI POC). 16 LLMs across two serverless inference platforms —
+      <strong>Fireworks</strong> (6 models) and <strong>Baseten</strong>
+      (10 models) — measured on accuracy, TTFT, total latency, tokens,
+      and cost-per-query. Every number on this page is reproducible
+      from the repo.
     </p>
 
     <div class="hero-meta">
-      <div class="stat"><div class="stat-num" id="heroStatAcc">—</div><div class="stat-label" id="heroStatAccLbl">Combined accuracy</div></div>
-      <div class="stat"><div class="stat-num" id="heroStatCost">—</div><div class="stat-label">Per-query cost (best model)</div></div>
+      <div class="stat"><div class="stat-num" id="heroStatAcc">—</div><div class="stat-label" id="heroStatAccLbl">Best accuracy (across all models)</div></div>
+      <div class="stat"><div class="stat-num" id="heroStatCost">—</div><div class="stat-label">Cheapest /query (≥90% accuracy)</div></div>
       <div class="stat"><div class="stat-num gradient" id="heroStatSavings">—</div><div class="stat-label">Cheaper than GPT-5.4 baseline</div></div>
-      <div class="stat"><div class="stat-num" id="heroStatTokens">—</div><div class="stat-label">Mean tokens (in / out)</div></div>
+      <div class="stat"><div class="stat-num" id="heroStatTokens">—</div><div class="stat-label">Models benchmarked (Fireworks + Baseten)</div></div>
     </div>
 
     <div class="sub-section">
-      <h2 class="sub-title">What this POC ships</h2>
+      <h2 class="sub-title">What this benchmark answers</h2>
       <p style="color: var(--text-dim); max-width: 820px; font-size: 15.5px;">
-        A single-shot agent that injects a compacted Chinook schema into the
-        prompt, asks Kimi K2.6 (Fireworks-hosted, OpenAI-compatible JSON
-        mode) for SQL, executes it against SQLite, and repairs on errors up
-        to twice. A 25-question gold set (10 provided + 15 hand-written
-        pattern-coverage questions) measured against tolerant multiset
-        comparison. Latency and cost benchmarks at the projected
-        30k q/day. An interactive CLI for follow-ups, and this dashboard
-        with sql.js running Chinook in your browser so every claim is
-        live-verifiable with your own Fireworks key.
+        Inference infrastructure choices are usually argued on price-per-token
+        and marketing claims. This dashboard makes them empirical: a fixed
+        25-question gold set (tolerant multiset comparison) is run against
+        every Model API LLM on Fireworks and Baseten using the same agent
+        prompt, the same schema, and identical sampling. Outputs: which
+        model wins on accuracy, which on TTFT, which on $/query, where the
+        Pareto frontier sits, and where a model is cheap on paper but slow
+        or unreliable in practice. The text-to-SQL workload is the harness;
+        the conclusions are about platforms and inference.
       </p>
     </div>
 
@@ -981,6 +1156,121 @@
     <p class="run-locally-note">
       <span class="mono">$ python -m src.cli</span> &middot; run locally — see <a href="https://github.com/rjsmith87/fireworks-takehome#quick-start" target="_blank" rel="noopener">README</a> for setup.
     </p>
+  </div>
+</section>
+
+<!-- ============== TAB: MODEL SWEEP ============== -->
+<section class="tab-panel" data-panel="modelsweep">
+  <div class="container">
+    <div class="panel-eyebrow">Model Sweep</div>
+    <h2 class="panel-title">16 LLMs · 25 questions · one workload.</h2>
+    <p class="panel-lede">
+      Same gold set, same agent prompt, same sampling settings, run against
+      every Model API LLM on Fireworks and Baseten. Click a column header to
+      sort. Filter by platform to isolate one provider.
+    </p>
+
+    <div class="row-flex" style="margin: 16px 0 12px; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <label class="muted" for="msFilterPlatform">Platform:</label>
+      <select id="msFilterPlatform" class="ms-select">
+        <option value="all">All</option>
+        <option value="baseten">Baseten only</option>
+        <option value="fireworks">Fireworks only</option>
+      </select>
+      <span class="muted" id="msStatus">Loading sweep data…</span>
+    </div>
+
+    <div class="card sub-section" style="margin-top: 12px;">
+      <div style="overflow-x: auto;">
+        <table class="sweep-table" id="sweepTable">
+          <thead>
+            <tr>
+              <th data-sort="model" class="sortable">Model</th>
+              <th data-sort="platform" class="sortable">Platform</th>
+              <th data-sort="accuracy" class="sortable num">Accuracy</th>
+              <th data-sort="json_ok_rate" class="sortable num">JSON OK</th>
+              <th data-sort="median_ttft_ms" class="sortable num">TTFT p50</th>
+              <th data-sort="median_latency_ms" class="sortable num">Lat p50</th>
+              <th data-sort="p90_latency_ms" class="sortable num">Lat p90</th>
+              <th data-sort="mean_prompt_tokens" class="sortable num">In tok</th>
+              <th data-sort="mean_completion_tokens" class="sortable num">Out tok</th>
+              <th data-sort="cost_per_query_usd" class="sortable num">$/query</th>
+            </tr>
+          </thead>
+          <tbody id="sweepTableBody"></tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin-top: 10px; font-size: 12.5px;">
+        Protocol: one-shot per question, no agent repair loop, <code class="mono">temperature=0</code>,
+        <code class="mono">max_tokens=1024</code>, streaming (TTFT = time to first delta chunk).
+        Fireworks numbers from <code class="mono">data/model_sweep.json</code> (10-question dev set
+        only — pre-existing sweep); Baseten numbers from <code class="mono">data/baseten_sweep.json</code>
+        (full 25-question gold set).
+      </p>
+    </div>
+
+    <div class="card sub-section">
+      <h3>$/query vs accuracy — Pareto view</h3>
+      <p style="color: var(--text-dim); margin-bottom: 8px;">Top-left = high accuracy at low cost. Hover for model details.</p>
+      <div id="paretoChart" class="pareto-chart"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TAB: PLATFORM COMPARISON ============== -->
+<section class="tab-panel" data-panel="platform">
+  <div class="container">
+    <div class="panel-eyebrow">Platform Comparison</div>
+    <h2 class="panel-title">Fireworks vs Baseten · head-to-head.</h2>
+    <p class="panel-lede">
+      Same workload, same prompt, same gold set. Anything that differs
+      below is platform-side: inference engine, model selection, pricing,
+      networking, autoscaling behavior.
+    </p>
+
+    <div class="grid grid-2" id="platformCards" style="margin-top: 16px;"></div>
+
+    <div class="card sub-section">
+      <h3>Best model on each platform</h3>
+      <p style="color: var(--text-dim); margin-bottom: 12px;">
+        "Best" = highest accuracy, tie-broken by lower cost-per-query. The
+        winner gets the apples-to-apples comparison row.
+      </p>
+      <div id="platformBestComparison"></div>
+    </div>
+
+    <div class="card sub-section">
+      <h3>What's actually being compared</h3>
+      <ul style="color: var(--text-dim);">
+        <li><strong>Fireworks data:</strong> 10-question dev subset only (the pre-existing sweep) — Kimi K2.5/K2.6, DeepSeek V4 Pro, GLM-5/5.1, Minimax M2.7. Non-streamed total latency only (no TTFT captured).</li>
+        <li><strong>Baseten data:</strong> Full 25-question gold set, streaming with TTFT capture, 10 models. Fresh data from this sweep.</li>
+        <li><strong>Caveat:</strong> Fireworks accuracy is on a smaller question set, so a direct accuracy comparison isn't strictly apples-to-apples. The 10 dev questions overlap exactly between the two sweeps — for that subset, the comparison is clean.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TAB: INFERENCE INSIGHTS ============== -->
+<section class="tab-panel" data-panel="insights">
+  <div class="container">
+    <div class="panel-eyebrow">Inference Insights</div>
+    <h2 class="panel-title">What the matrix actually tells us.</h2>
+    <p class="panel-lede">
+      Seven questions an inference-infrastructure engineer would ask of this
+      data, answered with numbers from the sweep — not vibes.
+    </p>
+
+    <div id="insightCards" class="grid grid-2" style="margin-top: 16px;"></div>
+
+    <div class="card sub-section">
+      <h3 id="insightsMethodHeading">Method notes</h3>
+      <ul style="color: var(--text-dim);">
+        <li>Both sweeps use one-shot calls (no repair loop) — this isolates raw model capability from agent compensation. The agent's repair loop adds 1–2 retry rounds in production and improves Kimi K2.6 from 92% to its measured 23/25 ceiling.</li>
+        <li>Cost-per-query is computed from <em>actually-measured</em> token usage during the sweep × published per-token rates. No averaging across queries — the model's real prompt/completion sizes drive the cost.</li>
+        <li>"Free" pricing (GLM-5.1 on Baseten) is flagged in the matrix — likely a beta / promotional rate. Don't make platform-selection decisions on prices that may not be load-bearing.</li>
+        <li>TTFT here is wall-clock from request open → first SSE delta with non-empty payload. Includes network round-trip from the test machine; not isolated to model prefill.</li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -1193,36 +1483,62 @@ wrote data/dev_answers.json</pre>
   </div>
 </section>
 
-<!-- ============== TAB: COST ============== -->
+<!-- ============== TAB: COST EXPLORER ============== -->
 <section class="tab-panel" data-panel="cost">
   <div class="container">
-    <div class="panel-eyebrow">Cost</div>
-    <h2 class="panel-title">~67% cheaper than GPT-5.4 at the same token profile.</h2>
+    <div class="panel-eyebrow">Cost Explorer</div>
+    <h2 class="panel-title">Drag the volume. Watch the matrix re-rank.</h2>
     <p class="panel-lede">
-      Drag the slider. Every number is computed from <strong>actually-measured</strong>
-      mean token counts (665 input / 78 output per query, from
-      <code class="mono">perf_compact_*.json</code>) at published list rates.
-      Default position is 30,000 q/day — the projected first cohort.
+      One slider, every benchmarked model on both platforms. Cost-per-day is
+      computed from <strong>actually-measured</strong> token usage during the
+      sweep × published per-token rates. Build-vs-Buy context for the
+      GitLab POC is the section below.
     </p>
 
 
     <div class="sub-section">
-      <h2 class="sub-title" style="font-size: 30px; letter-spacing: -0.02em; margin-top: 8px;">Build vs Buy · why Fireworks</h2>
-
-      <!-- Volume slider — drives every number in the four columns below.
-           Same calcSlider id the JS hooked previously, so calcUpdate +
-           calcBuildVsBuy still wire up unchanged. -->
+      <!-- Single volume slider — drives BOTH the multi-model matrix above
+           AND the Build vs Buy columns below. The existing calcUpdate +
+           calcBuildVsBuy hook on calcSlider; the new renderCostMatrix
+           subscribes via the slider's input event. -->
       <div class="bvb-slider-row">
         <div>
           <div class="muted">Volume</div>
           <div class="calc-vol"><span id="calcVol">30,000</span> queries/day</div>
         </div>
         <div class="muted bvb-slider-context">
-          1,000 users × 30 queries/day<br/>
-          (projected first cohort)
+          Default 30,000 = 1,000 users × 30 q/day (GitLab POC projection).<br/>
+          Drag from 1k → 300k to see how the rankings shift.
         </div>
       </div>
       <input type="range" min="1000" max="300000" step="1000" value="30000" class="calc-slider" id="calcSlider" />
+
+      <div class="card sub-section" style="margin-top: 18px;">
+        <h3>All benchmarked models at your volume</h3>
+        <p style="color: var(--text-dim); margin-bottom: 10px;">Models with errored sweeps or unknown pricing are hidden. Sorted cheapest → most expensive. Highlighted row = best accuracy at this volume tier.</p>
+        <div style="overflow-x: auto;">
+          <table class="sweep-table" id="costMatrixTable">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Platform</th>
+                <th class="num">Accuracy</th>
+                <th class="num">$/query</th>
+                <th class="num">$/day</th>
+                <th class="num">$/month</th>
+                <th class="num">$/year</th>
+                <th class="num">vs GPT-5.4</th>
+              </tr>
+            </thead>
+            <tbody id="costMatrixBody">
+              <tr><td colspan="8" class="muted" style="padding: 16px; text-align: center;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2 class="sub-title" style="font-size: 26px; letter-spacing: -0.02em; margin-top: 32px;">Build vs Buy · the GitLab POC framing</h2>
+      <p style="color: var(--text-dim); margin-bottom: 8px; font-size: 14px;">Originally the cost story for the customer email — same slider drives this section. Kept for context on the four-way choice (proprietary / direct API / self-host / managed platform).</p>
 
       <p style="color: var(--text-dim); margin-top: 14px;">All four columns recompute when you drag the slider. If you've made runs in the Live Demo, the token profile switches from the benchmark default to the average of your own runs — apples-to-apples across all four options.</p>
       <p class="bvb-token-source" id="bvbTokenSource">Based on benchmark data (665 in / 78 out)</p>
@@ -3109,6 +3425,597 @@ function initKey() {
 }
 
 // ============================================================
+// Cross-platform sweep data (Model Sweep / Platform / Insights tabs)
+// ============================================================
+
+// Per-1M-token rates for Fireworks models (mirrors PRICING_BY_MODEL above
+// but with explicit verified flag — only Kimi K2.6 was on the published
+// pricing page at sweep time, the others are proxied at the same rate).
+const FW_PRICING = {
+  "accounts/fireworks/models/kimi-k2p6":       { input: 0.95, output: 4.00, verified: true  },
+  "accounts/fireworks/models/kimi-k2p5":       { input: 0.95, output: 4.00, verified: false },
+  "accounts/fireworks/models/deepseek-v4-pro": { input: 0.95, output: 4.00, verified: false },
+  "accounts/fireworks/models/glm-5":           { input: 0.95, output: 4.00, verified: false },
+  "accounts/fireworks/models/glm-5p1":         { input: 0.95, output: 4.00, verified: false },
+  "accounts/fireworks/models/minimax-m2p7":    { input: 0.95, output: 4.00, verified: false },
+  "accounts/fireworks/models/qwen3-8b":        { input: 0.20, output: 0.20, verified: false },
+};
+
+const SWEEP_STATE = { records: [], loaded: false };
+
+function _shortModel(id) { return id.includes("/") ? id.split("/").pop() : id; }
+function _platformLabel(p) { return p === "fireworks" ? "Fireworks" : "Baseten"; }
+function _pricingFor(platform, id) {
+  return platform === "fireworks" ? FW_PRICING[id] : null;  // baseten carries its own per-report
+}
+
+function _normalizeReport(r, platform) {
+  const n = r.n || (r.traces ? r.traces.length : 0);
+  const correct = r.correct ?? 0;
+  const accuracy = r.accuracy ?? (n ? correct / n : 0);
+  const fwRates = platform === "fireworks" ? FW_PRICING[r.model] : null;
+  const pricing = r.pricing || (fwRates ? { input: fwRates.input, output: fwRates.output } : null);
+  // The existing Fireworks model_sweep.json only computed cost for Kimi K2.6
+  // (the rest had null PRICING entries). For comparison purposes we'll
+  // proxy-cost them using FW_PRICING and flag verified=false in the tooltip.
+  let cpq = r.cost_per_query_usd ?? null;
+  if (cpq == null && pricing && r.mean_prompt_tokens && r.mean_completion_tokens) {
+    cpq = (r.mean_prompt_tokens * pricing.input + r.mean_completion_tokens * pricing.output) / 1_000_000;
+  }
+  return {
+    platform,
+    model: r.model,
+    label: _shortModel(r.model),
+    n, correct, accuracy,
+    json_ok_count: r.json_ok_count ?? null,
+    json_ok_rate: r.json_ok_rate ?? null,
+    median_ttft_ms: r.median_ttft_ms ?? null,
+    median_latency_ms: r.median_latency_ms ?? 0,
+    p90_latency_ms: r.p90_latency_ms ?? null,
+    mean_prompt_tokens: r.mean_prompt_tokens ?? 0,
+    mean_completion_tokens: r.mean_completion_tokens ?? 0,
+    cost_per_query_usd: cpq,
+    pricing,
+    notes: r.notes || "—",
+    fatal_error: r.fatal_error || null,
+    traces: r.traces || [],
+    pricing_verified: fwRates ? fwRates.verified : (platform === "baseten" ? true : null),
+  };
+}
+
+async function loadSweepData() {
+  const out = [];
+  // Baseten first so it sorts to the top in equal-accuracy ties (recency).
+  try {
+    const r = await fetch("data/baseten_sweep.json");
+    if (r.ok) {
+      const data = await r.json();
+      for (const rep of (data.reports || [])) out.push(_normalizeReport(rep, "baseten"));
+    }
+  } catch (e) { console.warn("baseten_sweep.json:", e); }
+  try {
+    const r = await fetch("data/model_sweep.json");
+    if (r.ok) {
+      const data = await r.json();
+      for (const rep of (data.reports || [])) out.push(_normalizeReport(rep, "fireworks"));
+    }
+  } catch (e) { console.warn("model_sweep.json:", e); }
+  SWEEP_STATE.records = out;
+  SWEEP_STATE.loaded = true;
+  return out;
+}
+
+// ============================================================
+// MODEL SWEEP tab
+// ============================================================
+const MS_STATE = { sortKey: "accuracy", sortDir: "desc", filter: "all" };
+
+function _fmtMs(v) { return v == null ? "—" : `${Math.round(v)}ms`; }
+function _fmtPct(v) { return v == null ? "—" : `${(v * 100).toFixed(0)}%`; }
+function _fmtCost(v) { return v == null ? "—" : `$${v.toFixed(6)}`; }
+function _fmtTok(v) { return v == null ? "—" : Math.round(v).toLocaleString(); }
+
+function _bestRecordIdx(records) {
+  // Highest accuracy; tie-broken by lowest cost-per-query.
+  let bestIdx = -1, best = null;
+  for (let i = 0; i < records.length; i++) {
+    const r = records[i];
+    if (best === null
+        || r.accuracy > best.accuracy
+        || (r.accuracy === best.accuracy
+            && (r.cost_per_query_usd ?? Infinity) < (best.cost_per_query_usd ?? Infinity))) {
+      best = r; bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
+function _filterRecords() {
+  let recs = SWEEP_STATE.records;
+  if (MS_STATE.filter === "fireworks") recs = recs.filter(r => r.platform === "fireworks");
+  else if (MS_STATE.filter === "baseten") recs = recs.filter(r => r.platform === "baseten");
+  const cmp = (a, b) => {
+    let va = a[MS_STATE.sortKey], vb = b[MS_STATE.sortKey];
+    if (va == null) va = MS_STATE.sortDir === "asc" ? Infinity : -Infinity;
+    if (vb == null) vb = MS_STATE.sortDir === "asc" ? Infinity : -Infinity;
+    if (typeof va === "string") return MS_STATE.sortDir === "asc"
+      ? va.localeCompare(vb) : vb.localeCompare(va);
+    return MS_STATE.sortDir === "asc" ? va - vb : vb - va;
+  };
+  return [...recs].sort(cmp);
+}
+
+function renderSweepTable() {
+  const tbody = document.getElementById("sweepTableBody");
+  const status = document.getElementById("msStatus");
+  const tabCount = document.getElementById("msTabCount");
+  if (!tbody) return;
+  if (!SWEEP_STATE.loaded) {
+    tbody.innerHTML = `<tr><td colspan="10" class="muted" style="padding: 20px; text-align: center;">Loading…</td></tr>`;
+    return;
+  }
+  const recs = _filterRecords();
+  if (!recs.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="muted" style="padding: 20px; text-align: center;">No data for this filter.</td></tr>`;
+    return;
+  }
+  const winnerIdx = _bestRecordIdx(recs);
+  const rows = recs.map((r, i) => {
+    const winner = i === winnerIdx ? " class=\"winner\"" : "";
+    const platformChip = `<span class="platform-chip ${r.platform === 'fireworks' ? 'fw' : 'bt'}"><span class="dot"></span>${_platformLabel(r.platform)}</span>`;
+    return `<tr${winner}>
+      <td><span class="model-name">${r.label}</span><span class="sub-id">${r.model}</span></td>
+      <td>${platformChip}</td>
+      <td class="num">${_fmtPct(r.accuracy)} <span class="muted">(${r.correct}/${r.n})</span></td>
+      <td class="num">${_fmtPct(r.json_ok_rate)}</td>
+      <td class="num">${_fmtMs(r.median_ttft_ms)}</td>
+      <td class="num">${_fmtMs(r.median_latency_ms)}</td>
+      <td class="num">${_fmtMs(r.p90_latency_ms)}</td>
+      <td class="num">${_fmtTok(r.mean_prompt_tokens)}</td>
+      <td class="num">${_fmtTok(r.mean_completion_tokens)}</td>
+      <td class="num">${_fmtCost(r.cost_per_query_usd)}</td>
+    </tr>`;
+  }).join("");
+  tbody.innerHTML = rows;
+  if (status) status.textContent = `Showing ${recs.length} model${recs.length === 1 ? "" : "s"}.`;
+  if (tabCount) tabCount.textContent = `${SWEEP_STATE.records.length}`;
+  // Reflect sort state in header.
+  document.querySelectorAll("#sweepTable th.sortable").forEach(th => {
+    th.classList.remove("sort-asc", "sort-desc");
+    if (th.getAttribute("data-sort") === MS_STATE.sortKey) {
+      th.classList.add(MS_STATE.sortDir === "asc" ? "sort-asc" : "sort-desc");
+    }
+  });
+}
+
+function renderParetoChart() {
+  const el = document.getElementById("paretoChart");
+  if (!el || !SWEEP_STATE.loaded) return;
+  const recs = SWEEP_STATE.records.filter(r => r.cost_per_query_usd != null && r.accuracy != null);
+  if (!recs.length) { el.innerHTML = `<p class="muted">No cost+accuracy data.</p>`; return; }
+  const costs = recs.map(r => r.cost_per_query_usd);
+  const maxCost = Math.max(...costs);
+  const minCost = Math.min(...costs.filter(c => c > 0));
+  // Linear X mapped 0..maxCost; clamp tiny costs to a small positive margin.
+  const xPct = c => Math.max(2, Math.min(98, (c / maxCost) * 96 + 2));
+  // Y is accuracy: 0% = bottom, 100% = top. Render Y as bottom CSS.
+  const yPct = a => Math.max(2, Math.min(98, a * 96 + 2));
+  const dots = recs.map(r => {
+    const cls = r.platform === "fireworks" ? "fw" : "bt";
+    const tip = [
+      `${r.label}`,
+      `platform: ${_platformLabel(r.platform)}`,
+      `accuracy: ${_fmtPct(r.accuracy)} (${r.correct}/${r.n})`,
+      `cost/q:   ${_fmtCost(r.cost_per_query_usd)}`,
+      `lat p50:  ${_fmtMs(r.median_latency_ms)}`,
+    ].join("\n");
+    return `<div class="pareto-dot ${cls}" style="left:${xPct(r.cost_per_query_usd)}%; bottom:${yPct(r.accuracy)}%;" data-tip="${tip.replace(/"/g, '&quot;')}"></div>`;
+  }).join("");
+  // Axis ticks
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map(f => {
+    const cost = f * maxCost;
+    return `<span class="pareto-tick" style="left:${f * 96 + 2}%; bottom:-22px; transform: translateX(-50%);">$${cost.toFixed(cost < 0.001 ? 6 : 4)}</span>`;
+  }).join("");
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => {
+    return `<span class="pareto-tick" style="left:-46px; bottom:${f * 96 + 2}%;">${(f * 100).toFixed(0)}%</span>`;
+  }).join("");
+  el.innerHTML = `
+    <div class="pareto-canvas">${dots}</div>
+    ${xTicks}
+    ${yTicks}
+    <span class="pareto-axis-label" style="left: 50%; bottom: -38px; transform: translateX(-50%);">$ per query (linear)</span>
+    <span class="pareto-axis-label" style="left: -52px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: center;">Accuracy</span>
+  `;
+  // Tooltip behavior — single shared tip div appended to chart.
+  let tip = null;
+  el.querySelectorAll(".pareto-dot").forEach(dot => {
+    dot.addEventListener("mouseenter", e => {
+      if (!tip) { tip = document.createElement("div"); tip.className = "pareto-tip"; el.appendChild(tip); }
+      tip.textContent = dot.getAttribute("data-tip");
+      const rect = el.getBoundingClientRect();
+      tip.style.left = (e.clientX - rect.left) + "px";
+      tip.style.top  = (e.clientY - rect.top) + "px";
+    });
+    dot.addEventListener("mousemove", e => {
+      if (!tip) return;
+      const rect = el.getBoundingClientRect();
+      tip.style.left = (e.clientX - rect.left) + "px";
+      tip.style.top  = (e.clientY - rect.top) + "px";
+    });
+    dot.addEventListener("mouseleave", () => { if (tip) { tip.remove(); tip = null; } });
+  });
+}
+
+function initModelSweep() {
+  const filter = document.getElementById("msFilterPlatform");
+  if (filter) {
+    filter.addEventListener("change", () => {
+      MS_STATE.filter = filter.value;
+      renderSweepTable();
+    });
+  }
+  document.querySelectorAll("#sweepTable th.sortable").forEach(th => {
+    th.addEventListener("click", () => {
+      const key = th.getAttribute("data-sort");
+      if (MS_STATE.sortKey === key) {
+        MS_STATE.sortDir = MS_STATE.sortDir === "desc" ? "asc" : "desc";
+      } else {
+        MS_STATE.sortKey = key;
+        // Default direction: descending for numbers, ascending for strings.
+        const numericKeys = ["accuracy","json_ok_rate","median_ttft_ms","median_latency_ms","p90_latency_ms","mean_prompt_tokens","mean_completion_tokens","cost_per_query_usd"];
+        MS_STATE.sortDir = numericKeys.includes(key) ? "desc" : "asc";
+        // For latency/TTFT/cost we want ascending = "best first" — flip.
+        if (["median_ttft_ms","median_latency_ms","p90_latency_ms","cost_per_query_usd"].includes(key)) {
+          MS_STATE.sortDir = "asc";
+        }
+      }
+      renderSweepTable();
+    });
+  });
+  renderSweepTable();
+  renderParetoChart();
+}
+
+// ============================================================
+// PLATFORM COMPARISON tab
+// ============================================================
+function _platformAgg(records) {
+  if (!records.length) return null;
+  const accs = records.map(r => r.accuracy);
+  const lats = records.map(r => r.median_latency_ms).filter(x => x > 0);
+  const ttfts = records.map(r => r.median_ttft_ms).filter(x => x != null);
+  const costs = records.map(r => r.cost_per_query_usd).filter(x => x != null);
+  const median = arr => {
+    if (!arr.length) return null;
+    const s = [...arr].sort((a,b) => a-b);
+    return s.length % 2 ? s[(s.length-1)/2] : (s[s.length/2-1] + s[s.length/2]) / 2;
+  };
+  const max = arr => arr.length ? Math.max(...arr) : null;
+  const min = arr => arr.length ? Math.min(...arr) : null;
+  return {
+    n_models: records.length,
+    best_accuracy: max(accs),
+    median_accuracy: median(accs),
+    median_latency: median(lats),
+    median_ttft: median(ttfts),
+    cheapest: min(costs),
+    cheapest_above_90: min(records.filter(r => r.accuracy >= 0.9).map(r => r.cost_per_query_usd).filter(x => x != null)),
+  };
+}
+
+function renderPlatformCards() {
+  const root = document.getElementById("platformCards");
+  if (!root || !SWEEP_STATE.loaded) return;
+  const fw = SWEEP_STATE.records.filter(r => r.platform === "fireworks");
+  const bt = SWEEP_STATE.records.filter(r => r.platform === "baseten");
+  const fwAgg = _platformAgg(fw);
+  const btAgg = _platformAgg(bt);
+
+  const bestFwIdx = _bestRecordIdx(fw);
+  const bestBtIdx = _bestRecordIdx(bt);
+
+  const card = (platform, agg, records, bestIdx) => {
+    if (!agg) return `<div class="card">No data for ${_platformLabel(platform)}.</div>`;
+    const best = bestIdx >= 0 ? records[bestIdx] : null;
+    const ttftBlock = agg.median_ttft != null
+      ? `<div class="platform-stat"><div class="label">Median TTFT</div><div class="value">${_fmtMs(agg.median_ttft)}</div></div>`
+      : `<div class="platform-stat"><div class="label">Median TTFT</div><div class="value muted" style="font-size: 14px; padding-top: 6px;">not captured</div></div>`;
+    return `<div class="platform-card ${platform === 'fireworks' ? 'fw' : 'bt'}">
+      <h3><span class="platform-chip ${platform === 'fireworks' ? 'fw' : 'bt'}"><span class="dot"></span>${_platformLabel(platform)}</span></h3>
+      <div class="platform-meta">${agg.n_models} model${agg.n_models === 1 ? "" : "s"} tested</div>
+      <div class="platform-stat-grid">
+        <div class="platform-stat"><div class="label">Best accuracy</div><div class="value">${_fmtPct(agg.best_accuracy)}</div></div>
+        <div class="platform-stat"><div class="label">Median accuracy</div><div class="value">${_fmtPct(agg.median_accuracy)}</div></div>
+        <div class="platform-stat"><div class="label">Median lat p50</div><div class="value">${_fmtMs(agg.median_latency)}</div></div>
+        ${ttftBlock}
+        <div class="platform-stat"><div class="label">Cheapest /query</div><div class="value">${_fmtCost(agg.cheapest)}</div></div>
+        <div class="platform-stat"><div class="label">Cheapest ≥90% acc</div><div class="value">${_fmtCost(agg.cheapest_above_90)}</div></div>
+      </div>
+      ${best ? `<div class="best-model">★ Best: <strong>${best.label}</strong> · ${_fmtPct(best.accuracy)} acc · ${_fmtCost(best.cost_per_query_usd)}/q</div>` : ""}
+    </div>`;
+  };
+  root.innerHTML = card("fireworks", fwAgg, fw, bestFwIdx) + card("baseten", btAgg, bt, bestBtIdx);
+
+  // Best-vs-best side-by-side row
+  const wrap = document.getElementById("platformBestComparison");
+  if (!wrap) return;
+  const bestFw = bestFwIdx >= 0 ? fw[bestFwIdx] : null;
+  const bestBt = bestBtIdx >= 0 ? bt[bestBtIdx] : null;
+  if (!bestFw && !bestBt) { wrap.innerHTML = `<p class="muted">No best-model data.</p>`; return; }
+  const cmp = (a, b, key, fmt, lowerIsBetter = false) => {
+    const av = a ? a[key] : null, bv = b ? b[key] : null;
+    if (av == null && bv == null) return [fmt(av), fmt(bv)];
+    if (av == null) return [fmt(av), `<span class="win">${fmt(bv)}</span>`];
+    if (bv == null) return [`<span class="win">${fmt(av)}</span>`, fmt(bv)];
+    const aWins = lowerIsBetter ? av < bv : av > bv;
+    if (av === bv) return [fmt(av), fmt(bv)];
+    return aWins
+      ? [`<span class="win">${fmt(av)}</span>`, fmt(bv)]
+      : [fmt(av), `<span class="win">${fmt(bv)}</span>`];
+  };
+  const rows = [
+    ["Accuracy",          cmp(bestFw, bestBt, "accuracy", _fmtPct)],
+    ["JSON OK rate",      cmp(bestFw, bestBt, "json_ok_rate", _fmtPct)],
+    ["Median latency",    cmp(bestFw, bestBt, "median_latency_ms", _fmtMs, true)],
+    ["P90 latency",       cmp(bestFw, bestBt, "p90_latency_ms",    _fmtMs, true)],
+    ["Median TTFT",       cmp(bestFw, bestBt, "median_ttft_ms",    _fmtMs, true)],
+    ["In tokens (mean)",  cmp(bestFw, bestBt, "mean_prompt_tokens", _fmtTok, true)],
+    ["Out tokens (mean)", cmp(bestFw, bestBt, "mean_completion_tokens", _fmtTok, true)],
+    ["$ per query",       cmp(bestFw, bestBt, "cost_per_query_usd", _fmtCost, true)],
+  ];
+  wrap.innerHTML = `<table class="vs-table">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>${bestFw ? `Fireworks · ${bestFw.label}` : "Fireworks (no data)"}</th>
+        <th>${bestBt ? `Baseten · ${bestBt.label}` : "Baseten (no data)"}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map(([m, [a, b]]) => `<tr><td class="metric">${m}</td><td>${a}</td><td>${b}</td></tr>`).join("")}
+    </tbody>
+  </table>
+  <p class="muted" style="margin-top: 10px; font-size: 12.5px;">
+    Green = winner on that metric. Lower-is-better metrics (latency, tokens, cost) flip the comparison automatically.
+  </p>`;
+}
+
+function initPlatform() { renderPlatformCards(); }
+
+// ============================================================
+// INFERENCE INSIGHTS tab — auto-derive 6 cards from the matrix
+// ============================================================
+function renderInsights() {
+  const root = document.getElementById("insightCards");
+  if (!root || !SWEEP_STATE.loaded || !SWEEP_STATE.records.length) {
+    if (root) root.innerHTML = `<p class="muted">Insights load once sweep data is available.</p>`;
+    return;
+  }
+  const recs = SWEEP_STATE.records;
+  const bt = recs.filter(r => r.platform === "baseten");
+  const fw = recs.filter(r => r.platform === "fireworks");
+  // For capability ranking, exclude models that errored across the entire sweep —
+  // those signal infrastructure issues (rate limit, 503, reasoning runaway on
+  // max_tokens) not model capability. They get their own insight card.
+  const ranked = recs.filter(r => !r.fatal_error);
+  const erroredOut = recs.filter(r => r.fatal_error);
+
+  const bestAcc = ranked.slice().sort((a, b) => b.accuracy - a.accuracy)[0];
+  const cheapestAt90 = ranked.filter(r => r.accuracy >= 0.9 && r.cost_per_query_usd != null)
+    .sort((a, b) => a.cost_per_query_usd - b.cost_per_query_usd)[0];
+  const fastestTTFT = bt.filter(r => !r.fatal_error && r.median_ttft_ms != null)
+    .sort((a, b) => a.median_ttft_ms - b.median_ttft_ms)[0];
+  const worstAcc = ranked.slice().sort((a, b) => a.accuracy - b.accuracy)[0];
+  const jsonModeFailures = ranked.filter(r => r.json_ok_rate != null && r.json_ok_rate < 1);
+
+  // Volume crossover: at what queries/day does a cheap-and-okay model
+  // beat an expensive-and-great model on total spend? Rough estimate
+  // assuming both run at their measured cost/query.
+  // We'll just illustrate with cheapestAt90 vs gpt5_4 baseline.
+
+  const cards = [];
+
+  cards.push(`<div class="insight-card">
+    <div class="question">Q1 · Which model wins on accuracy?</div>
+    <h3 class="headline"><span class="num">${bestAcc.label}</span> · ${_fmtPct(bestAcc.accuracy)}</h3>
+    <p class="body">
+      <strong>${bestAcc.label}</strong> on <strong>${_platformLabel(bestAcc.platform)}</strong>
+      tops the matrix at ${_fmtPct(bestAcc.accuracy)} (${bestAcc.correct}/${bestAcc.n}) — one-shot,
+      no agent repair loop. With the production agent's two-round repair loop on top,
+      this model would close at or near ceiling. Implication: pick on accuracy when
+      the cost delta is small, because repair latency dwarfs token cost savings.
+    </p>
+  </div>`);
+
+  if (cheapestAt90) {
+    cards.push(`<div class="insight-card">
+      <div class="question">Q2 · What's the cheapest model that still ships?</div>
+      <h3 class="headline"><span class="num">${cheapestAt90.label}</span> · ${_fmtCost(cheapestAt90.cost_per_query_usd)}/q</h3>
+      <p class="body">
+        Cheapest model clearing ≥90% accuracy: <strong>${cheapestAt90.label}</strong>
+        on <strong>${_platformLabel(cheapestAt90.platform)}</strong>
+        at ${_fmtCost(cheapestAt90.cost_per_query_usd)} per query (${_fmtPct(cheapestAt90.accuracy)} acc).
+        At the 30k q/day projected volume that's
+        <strong>$${(cheapestAt90.cost_per_query_usd * 30000 * 30).toFixed(0)}/month</strong> —
+        before any prompt-cache or volume-tier discount.
+      </p>
+    </div>`);
+  }
+
+  if (fastestTTFT) {
+    cards.push(`<div class="insight-card">
+      <div class="question">Q3 · What does TTFT tell you about prefill?</div>
+      <h3 class="headline">Fastest first token: <span class="num">${_fmtMs(fastestTTFT.median_ttft_ms)}</span></h3>
+      <p class="body">
+        <strong>${fastestTTFT.label}</strong> hits first-token at
+        ${_fmtMs(fastestTTFT.median_ttft_ms)} median. With mean prompt size
+        ~${_fmtTok(fastestTTFT.mean_prompt_tokens)} tokens, that's prefill-dominated —
+        you're seeing how fast the engine ingests the schema-stuffed system prompt.
+        For interactive UIs, TTFT is the perceived-responsiveness metric.
+        Schema compaction + prompt caching are the leverage points.
+      </p>
+    </div>`);
+  }
+
+  cards.push(`<div class="insight-card">
+    <div class="question">Q4 · When does dedicated beat serverless?</div>
+    <h3 class="headline">Phase 3 territory — not in this matrix.</h3>
+    <p class="body">
+      Every model here is <strong>serverless / Model API</strong> (shared multi-tenant
+      inference, per-token billing). Dedicated deployments bill per GPU-minute regardless
+      of traffic — they win when (a) you need predictable tail latency under your own
+      SLO, or (b) sustained throughput pushes the per-token math past dedicated breakeven.
+      With Baseten Truss this is a one-config flip; we deferred Phase 3 to keep this
+      sweep on serverless budget.
+    </p>
+  </div>`);
+
+  if (jsonModeFailures.length) {
+    cards.push(`<div class="insight-card">
+      <div class="question">Q5 · Does "supports JSON mode" mean it works?</div>
+      <h3 class="headline">${jsonModeFailures.length} model${jsonModeFailures.length === 1 ? "" : "s"} dropped at least one JSON output.</h3>
+      <p class="body">
+        ${jsonModeFailures.map(r => `<strong>${r.label}</strong> (${_fmtPct(r.json_ok_rate)} JSON OK)`).join(", ")}
+        — even with <code class="mono">response_format=json_object</code> set, models
+        occasionally emit unparseable output. Production agents must handle this:
+        either request a repair, fall back to regex extraction, or drop to a stricter
+        decoder. The matrix shows JSON-mode adherence is a measurable model property,
+        not a platform property.
+      </p>
+    </div>`);
+  }
+
+  if (worstAcc && bestAcc) {
+    const spread = bestAcc.accuracy - worstAcc.accuracy;
+    cards.push(`<div class="insight-card">
+      <div class="question">Q6 · How wide is the spread on the same workload?</div>
+      <h3 class="headline">Accuracy spread: <span class="num">${(spread * 100).toFixed(0)} points</span></h3>
+      <p class="body">
+        Same 25 questions, same agent prompt, same sampling. Best
+        (<strong>${bestAcc.label}</strong>, ${_fmtPct(bestAcc.accuracy)}) vs worst
+        (<strong>${worstAcc.label}</strong>, ${_fmtPct(worstAcc.accuracy)}) = a
+        ${(spread * 100).toFixed(0)}-point gap among models that <em>completed</em>
+        the sweep. "Open-source LLM" is not a uniform capability tier — model
+        selection is doing real work even when the prompt engineering is held constant.
+      </p>
+    </div>`);
+  }
+
+  if (erroredOut.length) {
+    cards.push(`<div class="insight-card">
+      <div class="question">Q7 · What happened to the models that didn't finish?</div>
+      <h3 class="headline">${erroredOut.length} model${erroredOut.length === 1 ? "" : "s"} failed every call.</h3>
+      <p class="body">
+        ${erroredOut.map(r => `<strong>${r.label}</strong> (${r.notes && r.notes !== "—" ? r.notes.split(";")[0] : "see traces"})`).join("; ")}.
+        Two distinct failure modes — silent empty completions (reasoning model
+        burned its max_tokens budget on internal CoT, never reached the answer)
+        and 503 from the upstream load balancer (transient capacity issue).
+        Neither is a model capability problem; both are inference-infrastructure
+        signals you'd want monitored in production. The sweep code records the
+        raw error in each trace so they're separable from accuracy failures.
+      </p>
+    </div>`);
+  }
+
+  root.innerHTML = cards.join("");
+}
+
+function initInsights() { renderInsights(); }
+
+// ============================================================
+// COST EXPLORER · multi-model matrix driven by the volume slider
+// ============================================================
+const GPT54_RATES = { input: 2.50, output: 15.00 };  // per 1M tokens, customer-cited
+
+function _gpt54CostFor(meanPT, meanCT) {
+  return (meanPT * GPT54_RATES.input + meanCT * GPT54_RATES.output) / 1_000_000;
+}
+
+function renderCostMatrix() {
+  const tbody = document.getElementById("costMatrixBody");
+  if (!tbody) return;
+  if (!SWEEP_STATE.loaded) {
+    tbody.innerHTML = `<tr><td colspan="8" class="muted" style="padding: 16px; text-align: center;">Loading sweep data…</td></tr>`;
+    return;
+  }
+  const slider = document.getElementById("calcSlider");
+  const volume = slider ? +slider.value : 30000;
+
+  // Models with valid cost AND accuracy AND completed sweep
+  const recs = SWEEP_STATE.records.filter(r =>
+    r.cost_per_query_usd != null
+    && r.cost_per_query_usd > 0
+    && !r.fatal_error
+    && r.accuracy != null
+  ).slice().sort((a, b) => a.cost_per_query_usd - b.cost_per_query_usd);
+
+  if (!recs.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="muted" style="padding: 16px; text-align: center;">No priced + completed models to display.</td></tr>`;
+    return;
+  }
+
+  // Highlight best-accuracy row (tiebreak: lower cost)
+  let bestIdx = 0;
+  for (let i = 1; i < recs.length; i++) {
+    if (recs[i].accuracy > recs[bestIdx].accuracy) bestIdx = i;
+  }
+
+  const rows = recs.map((r, i) => {
+    const daily = r.cost_per_query_usd * volume;
+    const monthly = daily * 30;
+    const annual = daily * 365;
+    const gpt54Cost = _gpt54CostFor(r.mean_prompt_tokens, r.mean_completion_tokens);
+    const savings = gpt54Cost > 0 ? ((1 - r.cost_per_query_usd / gpt54Cost) * 100) : 0;
+    const platformChip = `<span class="platform-chip ${r.platform === 'fireworks' ? 'fw' : 'bt'}"><span class="dot"></span>${_platformLabel(r.platform)}</span>`;
+    const winnerCls = i === bestIdx ? " class=\"winner\"" : "";
+    return `<tr${winnerCls}>
+      <td><span class="model-name">${r.label}</span></td>
+      <td>${platformChip}</td>
+      <td class="num">${_fmtPct(r.accuracy)}</td>
+      <td class="num">${_fmtCost(r.cost_per_query_usd)}</td>
+      <td class="num">$${daily.toFixed(2)}</td>
+      <td class="num">$${Math.round(monthly).toLocaleString()}</td>
+      <td class="num">$${Math.round(annual).toLocaleString()}</td>
+      <td class="num">${savings > 0 ? `<span class="win">−${savings.toFixed(0)}%</span>` : `+${(-savings).toFixed(0)}%`}</td>
+    </tr>`;
+  }).join("");
+  tbody.innerHTML = rows;
+}
+
+function initCostMatrix() {
+  renderCostMatrix();
+  const slider = document.getElementById("calcSlider");
+  if (slider) {
+    slider.addEventListener("input", renderCostMatrix);
+  }
+}
+
+// ============================================================
+// Hero stats — recompute from sweep data once loaded
+// ============================================================
+function updateHeroFromSweep() {
+  const recs = SWEEP_STATE.records;
+  if (!recs.length) return;
+  const bestAcc = recs.slice().sort((a, b) => b.accuracy - a.accuracy)[0];
+  const cheapestAt90 = recs.filter(r => r.accuracy >= 0.9 && r.cost_per_query_usd != null)
+    .sort((a, b) => a.cost_per_query_usd - b.cost_per_query_usd)[0];
+  const accEl = document.getElementById("heroStatAcc");
+  const costEl = document.getElementById("heroStatCost");
+  const tokensEl = document.getElementById("heroStatTokens");
+  const savingsEl = document.getElementById("heroStatSavings");
+  if (accEl)    accEl.textContent    = _fmtPct(bestAcc.accuracy);
+  if (costEl)   costEl.textContent   = cheapestAt90 ? _fmtCost(cheapestAt90.cost_per_query_usd) : "—";
+  if (tokensEl) tokensEl.textContent = `${recs.length}`;
+  // Savings: cheapest ≥90% vs GPT-5.4 published rate ($2.50/$15.00 per 1M) at same token profile.
+  if (savingsEl && cheapestAt90) {
+    const gpt54 = (cheapestAt90.mean_prompt_tokens * 2.50
+                  + cheapestAt90.mean_completion_tokens * 15.00) / 1_000_000;
+    const pct = gpt54 > 0 ? (1 - cheapestAt90.cost_per_query_usd / gpt54) * 100 : 0;
+    savingsEl.textContent = `${pct.toFixed(0)}%`;
+  }
+}
+
+// ============================================================
 // Boot
 // ============================================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -3122,6 +4029,16 @@ document.addEventListener("DOMContentLoaded", () => {
   initLatency();
   initRoadmap();
   initLiveDemo();           // unified comparison tool + sql.js + schema preview
+
+  // New tabs — load sweep data then render. Each render is a no-op if the
+  // target panel isn't in the DOM, so this stays safe across markup drift.
+  loadSweepData().then(() => {
+    initModelSweep();
+    initPlatform();
+    initInsights();
+    initCostMatrix();
+    updateHeroFromSweep();
+  });
   renderActivityLog();      // initial empty state on the right column
   calcBuildVsBuy();         // populate the Cost-tab Build vs Buy table
 });

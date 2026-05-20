@@ -3954,7 +3954,9 @@ function _platformAgg(records) {
   const accs = records.map(r => r.accuracy);
   const lats = records.map(r => r.median_latency_ms).filter(x => x > 0);
   const ttfts = records.map(r => r.median_ttft_ms).filter(x => x != null);
-  const costs = records.map(r => r.cost_per_query_usd).filter(x => x != null);
+  // Exclude zero/null costs — a $0 entry is promo/beta pricing (e.g. GLM-5.1),
+  // not a real "cheapest", and would otherwise render as $0.000000.
+  const costs = records.map(r => r.cost_per_query_usd).filter(x => x != null && x > 0);
   const median = arr => {
     if (!arr.length) return null;
     const s = [...arr].sort((a,b) => a-b);
@@ -3969,7 +3971,7 @@ function _platformAgg(records) {
     median_latency: median(lats),
     median_ttft: median(ttfts),
     cheapest: min(costs),
-    cheapest_above_90: min(records.filter(r => r.accuracy >= 0.9).map(r => r.cost_per_query_usd).filter(x => x != null)),
+    cheapest_above_90: min(records.filter(r => r.accuracy >= 0.9).map(r => r.cost_per_query_usd).filter(x => x != null && x > 0)),
   };
 }
 

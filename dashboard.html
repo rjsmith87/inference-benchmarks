@@ -1169,7 +1169,6 @@
       <button class="tab" role="tab" data-tab="quality"     aria-selected="false">Quality<span class="count">23/25</span></button>
       <button class="tab" role="tab" data-tab="latency"     aria-selected="false">Latency</button>
       <button class="tab" role="tab" data-tab="livedemo"    aria-selected="false">Live Demo</button>
-      <button class="tab" role="tab" data-tab="howitworks"  aria-selected="false">How It Works</button>
       <button class="tab" role="tab" data-tab="roadmap"     aria-selected="false">POC Roadmap</button>
     </div>
   </div>
@@ -1214,7 +1213,7 @@
 
     <div class="sub-section">
       <h2 class="sub-title">Architecture · seven steps</h2>
-      <p style="color: var(--text-dim); margin-bottom: 12px;">Click any node — full design trade-offs are in the <strong>How It Works</strong> tab.</p>
+      <p style="color: var(--text-dim); margin-bottom: 12px;">Click any node to see what we chose, the alternatives considered, and the trade-off we accepted.</p>
       <div class="arch" id="archFlow"></div>
       <div class="arch-detail" id="archDetail">Click a node above ▴</div>
     </div>
@@ -1911,141 +1910,6 @@ wrote data/dev_answers.json</pre>
   </div>
 </section>
 
-<!-- ============== TAB: HOW IT WORKS ============== -->
-<section class="tab-panel" data-panel="howitworks">
-  <div class="container">
-    <div class="panel-eyebrow">How It Works</div>
-    <h2 class="panel-title">A single-shot agent with execute-and-repair.</h2>
-    <p class="panel-lede">
-      Intentionally simple. Schema auto-discovered from <code class="mono">sqlite_master</code>,
-      compacted to one line per table, trimmed by question keywords + FK
-      closure when ≥2 tables match, sent to Fireworks in JSON mode, executed
-      against SQLite, and repaired on errors up to twice. Each architecture
-      node below expands to show what we chose, what we considered, and the
-      trade-off we accepted.
-    </p>
-
-    <div class="sub-section">
-      <h2 class="sub-title">Architecture · seven steps</h2>
-      <div class="arch" id="archFlow2"></div>
-      <div class="arch-detail" id="archDetail2">Click a node above ▴</div>
-    </div>
-
-    <div class="sub-section">
-      <h2 class="sub-title">Design decisions</h2>
-      <div class="grid grid-3" id="decisionGrid"></div>
-    </div>
-
-    <div class="sub-section">
-      <h2 class="sub-title">Model comparison · the full decision matrix</h2>
-      <p style="color: var(--text-dim); max-width: 880px;">
-        Every chat-capable model on this Fireworks key, against two tests:
-        (1) a one-question smoke test
-        (<code class="mono">"How many albums are in the database?"</code>,
-        gold = 347, 15s timeout — see
-        <code class="mono">data/single_q_test.json</code>) and (2) a 10-question
-        dev-set sweep, single-shot, no repair (see
-        <code class="mono">data/model_sweep.json</code>). The Verdict column
-        carries the current notes — every line below is from a real run.
-      </p>
-      <p style="color: var(--text-dim); margin-top: 8px;">
-        <strong>Smoke-test summary:</strong> all 7 models eventually returned
-        the correct answer (347) with JSON mode honored. Three (Kimi K2.5,
-        GLM-5.1, Qwen3-8B) hit a 429 on first attempt and only succeeded after
-        a per-minute rate-limit window reset. Minimax M2.7 took 17.8s — over
-        our 15s timeout — and is labeled "(slow ~18s)" in the dropdown.
-      </p>
-      <table class="data">
-        <thead>
-          <tr><th>Model</th><th>Smoke (1 Q · gold 347)</th><th>Dev sweep (10 Q)</th><th>JSON Reliable?</th><th>Per-query cost</th><th>Verdict</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Kimi K2.6</strong> <span class="pill">primary</span></td>
-            <td class="good">✓ 1,449 ms · JSON ✓ · 347 ✓</td>
-            <td class="num good"><strong>10/10</strong> w/ repair · 6/10 first-shot</td>
-            <td class="good">Yes — 7/10 first-shot, 100% with repair</td>
-            <td class="num">$0.000942 (verified)</td>
-            <td>Ships in this POC. Repair loop closes the first-shot gap.</td>
-          </tr>
-          <tr>
-            <td>Kimi K2.5</td>
-            <td class="warn">✓ 1,249 ms · JSON ✓ · 347 ✓ <em>(429 on 1st try, retry succeeded)</em></td>
-            <td class="num good">7/10 first-shot</td>
-            <td class="good">Yes — 7/10</td>
-            <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Higher first-shot accuracy than K2.6 but ~5× slower on the longer sweep. Drop-in alternative if K2.6 cost rises.</td>
-          </tr>
-          <tr>
-            <td>DeepSeek V4 Pro</td>
-            <td class="good">✓ 1,479 ms · JSON ✓ · 347 ✓</td>
-            <td class="num warn">4/10 (1 call returned empty content)</td>
-            <td class="warn">Partial — 6/10 on the longer sweep</td>
-            <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Reasoning-class output (~282 mean completion tokens vs Kimi's ~48); not cost-competitive at this token profile.</td>
-          </tr>
-          <tr>
-            <td>GLM-5</td>
-            <td class="good">✓ 2,449 ms · JSON ✓ · 347 ✓</td>
-            <td class="num bad">3/10 (7/10 calls hit 429s in the sweep)</td>
-            <td class="bad">Poor on sweep — 3/10 honored</td>
-            <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Smoke test passes cleanly; sweep was rate-limited. JSON-mode reliability under load is the open question.</td>
-          </tr>
-          <tr>
-            <td>GLM-5.1</td>
-            <td class="warn">✓ 2,803 ms · JSON ✓ · 347 ✓ <em>(429 on 1st try, retry succeeded)</em></td>
-            <td class="num bad">2/10 (7/10 calls hit 429s)</td>
-            <td class="bad">Poor on sweep — 3/10 honored</td>
-            <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Smoke test passes; one sweep call returned SQL the SQLite engine rejected. No improvement over GLM-5 in our sample.</td>
-          </tr>
-          <tr>
-            <td>Minimax M2.7 <span class="pill" style="background: rgba(251,191,36,0.14); color: var(--yellow);">slow</span></td>
-            <td class="warn">✓ 17,798 ms · JSON ✓ · 347 ✓ <em>(over 15s timeout)</em></td>
-            <td class="num bad">3/10 (7/10 calls hit 429s)</td>
-            <td class="bad">Poor on sweep — 3/10 honored</td>
-            <td class="num">Pricing not published on Fireworks site for this version</td>
-            <td>Functionally correct but slow enough that it busts the latency budget on its own. Labeled "(slow ~18s)" in the dropdown so the reviewer knows what to expect.</td>
-          </tr>
-          <tr>
-            <td>Qwen3-8B <span class="pill purple">experimental</span></td>
-            <td class="warn">✓ 1,239 ms · JSON ✓ · 347 ✓ <em>(429 on 1st + 2nd attempts; succeeded after 90s back-off)</em></td>
-            <td class="num warn">5/10 (earlier session)</td>
-            <td class="warn">Partial — observed in earlier runs</td>
-            <td class="num">~$0.000200 estimated · verify before publishing</td>
-            <td>Reachable but not listed in <code class="mono">/v1/models</code>. Persistent rate-limiting on this key. Plausible cheap-first router candidate once we have stable QPS allowance.</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="muted" style="margin-top: 12px; font-size: 12.5px;">
-        <strong>Also probed but unavailable on this account:</strong>
-        Qwen2.5-Coder-32B, Llama 4 (Maverick / Scout), Mistral Large / Small,
-        Qwen3-235B, Gemma 2, Yi, DBRX, Command-R+.
-        All returned <code class="mono">404 NOT_FOUND</code> from
-        <code class="mono">/v1/chat/completions</code>.
-      </p>
-      <p class="muted" style="margin-top: 14px;">
-        <strong>Methodology.</strong> The smoke test is one prompt
-        (<code class="mono">"How many albums are in the database?"</code>),
-        JSON-mode-required, 15s per-call timeout, with retries after a
-        rate-limit window reset for any model that 429'd. The 10-question
-        dev sweep is single-shot, JSON-mode-required, no repair loop, no
-        rate-limit retry — that's by design so cross-model differences are
-        visible rather than masked. The full agent ships with 4-step
-        exponential backoff on 429 and a 2-turn repair loop, which is why
-        Kimi K2.6 hits 10/10 in <code class="mono">python -m src.evals</code>
-        end-to-end (vs 6/10 first-shot).
-        <strong>Caveat.</strong> Shared-serverless rate limits hit several
-        models hard during the longer sweep — small denominators on GLM and
-        Minimax mean accuracy there is undersampled, not necessarily low. A
-        Fireworks engineer with priority access could re-sweep cleanly in
-        a couple of minutes.
-      </p>
-    </div>
-  </div>
-</section>
-
 <!-- ============== TAB: ROADMAP ============== -->
 <section class="tab-panel" data-panel="roadmap">
   <div class="container">
@@ -2557,6 +2421,7 @@ async function apiCall(messages, { provider = null, model = null, jsonMode = tru
   const logBase = {
     model: m, promptType: jsonMode ? "agent" : "baseline",
     latency_ms: dt, prompt_tokens: 0, completion_tokens: 0,
+    host: new URL(p.url).host,
   };
 
   if (fetchErr) {
@@ -2734,7 +2599,7 @@ function initTabs() {
   tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
   // Initial: read hash if valid
   const initial = location.hash.replace(/^#/, "");
-  const valid = ["overview","livedemo","quality","latency","cost","howitworks","roadmap"];
+  const valid = ["overview","livedemo","quality","latency","cost","roadmap"];
   activate(valid.includes(initial) ? initial : "overview", { skipHash: !valid.includes(initial), skipScroll: true });
 
   window.addEventListener("hashchange", () => {
@@ -2791,7 +2656,7 @@ function runEvalCard(el, q) {
 }
 
 // ============================================================
-// Architecture diagram (rendered into both Overview and How It Works)
+// Architecture diagram (rendered into the Overview tab)
 // ============================================================
 const ARCH_NODES = [
   { step: "01", name: "Question", title: "Natural-language input",
@@ -2930,49 +2795,6 @@ function showArchInto(i, flowId, detailId) {
 
 function initArch() {
   renderArchInto("archFlow", "archDetail");
-  renderArchInto("archFlow2", "archDetail2");
-}
-
-// ============================================================
-// Design decisions (How It Works)
-// ============================================================
-const DECISIONS = [
-  { chosen: "Compact schema", title: "Schema rendering",
-    considered: ["Full CREATE TABLE blocks (~1042 tokens)", "JSON-Schema document", "Embedding retrieval (top-k tables)"],
-    why: "One-line-per-table form ('Album(AlbumId:integer[pk], Title:nvarchar, ArtistId:integer[fk→Artist.ArtistId])') keeps every signal the model needs at 62% the chars of CREATE TABLE. Mean prompt tokens 935→665 with no regression on the dev set. Likely to hit Fireworks's prefix cache cleanly because tables order alphabetically." },
-  { chosen: "Schema-in-prompt", title: "In-prompt vs RAG retrieval",
-    considered: ["Embedding retrieval (top-k tables)", "Vector DB with table summaries", "Tool-calling with introspection"],
-    why: "Chinook is 11 tables / ~390 compact-tokens. RAG would add a round trip and a moving part for negligible benefit. Trim heuristic + FK closure cuts prompt-token cost a further 24% across the eval. For a 1,000-table customer DB we'd swap to retrieval." },
-  { chosen: "JSON mode", title: "Structured vs free-text output",
-    considered: ["Free-text + regex parsing", "XML tag wrappers", "Tool-call schema"],
-    why: "Native parsing, model respects it, gives us a rationale field for human review. The customer baseline shows what free-text gets you — fenced/unfenced/with-prose answers the executor can't run (2/10 vs our 10/10)." },
-  { chosen: "Execute-and-repair", title: "Repair loop vs single-shot",
-    considered: ["Single-shot (fail fast)", "AST-level auto-fix", "LLM judge with N samples"],
-    why: "Repair on the SQLite error message is the cheapest robustness win. Most agent runs need 0 repairs; when they do trigger, they fix on the first retry. Cap at 2 prevents runaway cost." },
-  { chosen: "Kimi K2.6", title: "Model selection",
-    considered: ["Qwen2.5-Coder-32B (customer ask)", "Qwen3-8B (cheaper)", "DeepSeek-V3 / V3.1"],
-    why: "Customer asked for Qwen2.5-Coder-32B but it wasn't reachable from the supplied key. Kimi K2.6 went 10/10 on the dev set in a short bake-off. Qwen3-8B was 5/10 — fast and cheap but not solo-quality. Path forward: router with Qwen3-8B fast first attempt, Kimi escalation." },
-  { chosen: "6-turn history cap", title: "Conversation memory",
-    considered: ["Unlimited history", "Only last turn", "Token-budget-based truncation"],
-    why: "Three prior question/answer pairs is enough for typical follow-up patterns ('now show me the tracks on the first one') without inflating prompt cost. Older context drifts the model toward stale assumptions." },
-];
-
-function initDecisions() {
-  const grid = document.getElementById("decisionGrid");
-  if (!grid) return;
-  for (const d of DECISIONS) {
-    const el = document.createElement("div");
-    el.className = "card decision-card hover";
-    el.innerHTML = `
-      <span class="chosen">Chosen · ${d.chosen}</span>
-      <h4>${d.title}</h4>
-      <span class="label">Considered</span>
-      <ul>${d.considered.map(c => `<li>${c}</li>`).join("")}</ul>
-      <span class="label">Why · tradeoff</span>
-      <p>${d.why}</p>
-    `;
-    grid.appendChild(el);
-  }
 }
 
 // ============================================================
@@ -3094,6 +2916,7 @@ function logActivity(entry) {
     timestamp: Date.now(),
     model: entry.model || "?",
     endpoint: "/v1/chat/completions",
+    host: entry.host || (typeof activeProvider === "function" ? new URL(activeProvider().url).host : "api.fireworks.ai"),
     promptType: entry.promptType || "agent",
     prompt_tokens: entry.prompt_tokens || 0,
     completion_tokens: entry.completion_tokens || 0,
@@ -3118,7 +2941,7 @@ function renderActivityLog() {
   if (!container) return;
   if (counter) counter.textContent = `${window.activityLog.length} call${window.activityLog.length === 1 ? "" : "s"}`;
   if (window.activityLog.length === 0) {
-    container.innerHTML = `<div class="activity-empty">No calls yet. Click <strong>Run both ▸</strong> above to see Fireworks calls stream in.</div>`;
+    container.innerHTML = `<div class="activity-empty">No calls yet. Click <strong>Run both ▸</strong> above to see live API calls stream in.</div>`;
     return;
   }
   container.innerHTML = window.activityLog.map(e => {
@@ -3139,7 +2962,7 @@ function renderActivityLog() {
         <div class="body">
           <span class="model">${escapeHtml ? escapeHtml(shortModel) : shortModel}</span>
           &middot; <span class="prompt">${e.promptType}</span>
-          <div class="endpoint">POST api.fireworks.ai${e.endpoint}</div>
+          <div class="endpoint">POST ${e.host}${e.endpoint}</div>
         </div>
         <div class="stat ${statusClass}">${statusGlyph}<br>${Math.round(e.latency_ms).toLocaleString()}ms<br>${tokensTxt}</div>
       </div>
@@ -3505,7 +3328,7 @@ function setPanelRunning(panelId, modelId, promptType, question) {
     <div class="panel-meta">Prompt:   <strong>${promptDesc}</strong></div>
     <div class="panel-meta">Question: ${escapeHtml(question)}</div>
     <div class="panel-sep">${PANEL_SEP}</div>
-    <div class="panel-running"><span class="spinner"></span> calling api.fireworks.ai… <span class="panel-elapsed">(0s)</span></div>
+    <div class="panel-running"><span class="spinner"></span> calling ${new URL(activeProvider().url).host}… <span class="panel-elapsed">(0s)</span></div>
   `;
   startPanelTimer(panelId);
 }
@@ -4570,7 +4393,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initHeroStats();
   initEvalCards();          // 25 question cards in Quality tab (click → navigate to Live Demo)
   initArch();
-  initDecisions();
   initCalc();
   initLatency();
   initRoadmap();

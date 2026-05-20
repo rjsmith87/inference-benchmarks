@@ -1037,6 +1037,16 @@
   }
   .platform-card .best-model strong { color: var(--text); font-weight: 700; }
 
+  /* Data-vintage badge — fresh sweep vs historical sweep */
+  .data-tag {
+    display: inline-flex; align-items: center;
+    padding: 2px 9px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .data-tag.fresh { background: rgba(20, 184, 166, 0.14); color: var(--teal-2); }
+  .data-tag.historical { background: rgba(180, 83, 9, 0.13); color: var(--yellow); }
+
   .vs-table {
     width: 100%; border-collapse: collapse; font-size: 13px;
   }
@@ -1288,9 +1298,12 @@
     <div class="panel-eyebrow">Platform Comparison</div>
     <h2 class="panel-title">Fireworks vs Baseten · head-to-head.</h2>
     <p class="panel-lede">
-      Same workload, same prompt, same gold set. Anything that differs
-      below is platform-side: inference engine, model selection, pricing,
-      networking, autoscaling behavior.
+      Same workload, same agent, same scoring across both platforms.
+      <strong>Baseten numbers are fresh</strong> from the 25-question
+      streaming sweep; <strong>Fireworks numbers are historical</strong>
+      — a pre-existing 10-question sweep, not re-run for this round.
+      Read cross-platform deltas as directional, not a strict
+      controlled A/B.
     </p>
 
     <div class="grid grid-2" id="platformCards" style="margin-top: 16px;"></div>
@@ -1307,9 +1320,9 @@
     <div class="card sub-section">
       <h3>What's actually being compared</h3>
       <ul style="color: var(--text-dim);">
-        <li><strong>Fireworks data:</strong> 10-question dev subset only (the pre-existing sweep) — Kimi K2.5/K2.6, DeepSeek V4 Pro, GLM-5/5.1, Minimax M2.7. Non-streamed total latency only (no TTFT captured).</li>
-        <li><strong>Baseten data:</strong> Full 25-question gold set, streaming with TTFT capture, 10 models. Fresh data from this sweep.</li>
-        <li><strong>Caveat:</strong> Fireworks accuracy is on a smaller question set, so a direct accuracy comparison isn't strictly apples-to-apples. The 10 dev questions overlap exactly between the two sweeps — for that subset, the comparison is clean.</li>
+        <li><strong>Fireworks data — <span class="data-tag historical">historical</span></strong> 10-question dev subset, from <code class="mono">data/model_sweep.json</code> — Kimi K2.5/K2.6, DeepSeek V4 Pro, GLM-5/5.1, Minimax M2.7. Non-streamed total latency only (no TTFT captured). Not re-run for this comparison.</li>
+        <li><strong>Baseten data — <span class="data-tag fresh">fresh</span></strong> Full 25-question gold set, streaming with TTFT capture, 10 models, from <code class="mono">data/baseten_sweep.json</code>.</li>
+        <li><strong>Caveat:</strong> The two sweeps differ in vintage, question count, and harness (streaming vs non-streaming), so this is not a strict apples-to-apples A/B. The 10 dev questions overlap exactly between both sweeps — for that subset the accuracy comparison is clean; TTFT is Baseten-only.</li>
       </ul>
     </div>
   </div>
@@ -3974,12 +3987,19 @@ function renderPlatformCards() {
   const card = (platform, agg, records, bestIdx) => {
     if (!agg) return `<div class="card">No data for ${_platformLabel(platform)}.</div>`;
     const best = bestIdx >= 0 ? records[bestIdx] : null;
+    const isFw = platform === "fireworks";
+    const tag = isFw
+      ? `<span class="data-tag historical" title="Pre-existing sweep — not re-run for this comparison">historical</span>`
+      : `<span class="data-tag fresh" title="Re-run for this comparison">fresh</span>`;
+    const meta = isFw
+      ? `${agg.n_models} model${agg.n_models === 1 ? "" : "s"} · historical sweep · 10-question dev set · no TTFT`
+      : `${agg.n_models} model${agg.n_models === 1 ? "" : "s"} · fresh sweep · 25-question gold set · streaming + TTFT`;
     const ttftBlock = agg.median_ttft != null
       ? `<div class="platform-stat"><div class="label">Median TTFT</div><div class="value">${_fmtMs(agg.median_ttft)}</div></div>`
       : `<div class="platform-stat"><div class="label">Median TTFT</div><div class="value muted" style="font-size: 14px; padding-top: 6px;">not captured</div></div>`;
-    return `<div class="platform-card ${platform === 'fireworks' ? 'fw' : 'bt'}">
-      <h3><span class="platform-chip ${platform === 'fireworks' ? 'fw' : 'bt'}"><span class="dot"></span>${_platformLabel(platform)}</span></h3>
-      <div class="platform-meta">${agg.n_models} model${agg.n_models === 1 ? "" : "s"} tested</div>
+    return `<div class="platform-card ${isFw ? 'fw' : 'bt'}">
+      <h3><span class="platform-chip ${isFw ? 'fw' : 'bt'}"><span class="dot"></span>${_platformLabel(platform)}</span>${tag}</h3>
+      <div class="platform-meta">${meta}</div>
       <div class="platform-stat-grid">
         <div class="platform-stat"><div class="label">Best accuracy</div><div class="value">${_fmtPct(agg.best_accuracy)}</div></div>
         <div class="platform-stat"><div class="label">Median accuracy</div><div class="value">${_fmtPct(agg.median_accuracy)}</div></div>
@@ -4024,8 +4044,8 @@ function renderPlatformCards() {
     <thead>
       <tr>
         <th>Metric</th>
-        <th>${bestFw ? `Fireworks · ${bestFw.label}` : "Fireworks (no data)"}</th>
-        <th>${bestBt ? `Baseten · ${bestBt.label}` : "Baseten (no data)"}</th>
+        <th>${bestFw ? `Fireworks · ${bestFw.label} <span class="data-tag historical">historical</span>` : "Fireworks (no data)"}</th>
+        <th>${bestBt ? `Baseten · ${bestBt.label} <span class="data-tag fresh">fresh</span>` : "Baseten (no data)"}</th>
       </tr>
     </thead>
     <tbody>

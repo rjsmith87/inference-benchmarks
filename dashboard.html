@@ -1166,7 +1166,7 @@
       <button class="tab" role="tab" data-tab="platform"    aria-selected="false">Platform Comparison</button>
       <button class="tab" role="tab" data-tab="cost"        aria-selected="false">Cost Explorer</button>
       <button class="tab" role="tab" data-tab="insights"    aria-selected="false">Inference Insights</button>
-      <button class="tab" role="tab" data-tab="quality"     aria-selected="false">Quality<span class="count">23/25</span></button>
+      <button class="tab" role="tab" data-tab="quality"     aria-selected="false">Quality<span class="count" id="qualityTabCount">—</span></button>
       <button class="tab" role="tab" data-tab="latency"     aria-selected="false">Latency</button>
       <button class="tab" role="tab" data-tab="livedemo"    aria-selected="false">Live Demo</button>
       <button class="tab" role="tab" data-tab="roadmap"     aria-selected="false">POC Roadmap</button>
@@ -1182,9 +1182,11 @@
     <p class="hero-sub">
       An inference-infrastructure benchmarking suite built on top of a
       reproducible text-to-SQL workload (originally a GitLab Agentic BI
-      CLI POC). 15 LLMs across two serverless inference platforms —
-      <strong>Fireworks</strong> (5 models) and <strong>Baseten</strong>
-      (10 models) — measured on accuracy, TTFT, total latency, tokens,
+      CLI POC). <span id="heroLlmCount">15</span> LLMs across two serverless
+      inference platforms — <strong>Fireworks</strong>
+      (<span id="heroFwCount">5</span> models) and <strong>Baseten</strong>
+      (<span id="heroBtCount">10</span> models) — measured on accuracy, TTFT,
+      total latency, tokens,
       and cost-per-query. Every number on this page is reproducible
       from the repo.
     </p>
@@ -1228,7 +1230,7 @@
 <section class="tab-panel" data-panel="modelsweep">
   <div class="container">
     <div class="panel-eyebrow">Model Sweep</div>
-    <h2 class="panel-title">15 LLMs · 25 questions · one workload.</h2>
+    <h2 class="panel-title"><span id="msLlmCount">15</span> LLMs · 25 questions · one workload.</h2>
     <p class="panel-lede">
       Same gold set, same agent prompt, same sampling settings, run against
       every Model API LLM on Fireworks and Baseten. Click a column header to
@@ -1569,20 +1571,20 @@
 <section class="tab-panel" data-panel="quality">
   <div class="container">
     <div class="panel-eyebrow">Quality</div>
-    <h2 class="panel-title">2/10 → 23/25, on the same model.</h2>
+    <h2 class="panel-title">2/10 → <span id="qualityTitleScore">—</span>, on the same model.</h2>
     <p class="panel-lede">
       The customer's current prototype prompt
       (<code class="mono">Convert this question to SQL: {question}</code> — no
       schema, no JSON mode, no execute-and-repair) on the same Kimi K2.6
       endpoint scored <strong>2/10</strong> on the dev set. The agent on the
-      same model scored <strong>10/10 dev + 13/15 synthetic = 23/25 (92%)</strong>.
+      same model scored <strong id="qualityLedeScore">—</strong>.
       The lift comes from prompt engineering, not a model swap.
     </p>
 
     <div class="score-board">
-      <div class="score-tile"><div class="num">10/10</div><div class="lbl">Dev set</div><div class="sub">100% with the agent · 2/10 with the customer baseline</div></div>
-      <div class="score-tile purple"><div class="num">13/15</div><div class="lbl">Synthetic set</div><div class="sub">s_013 (date arithmetic) flaky · s_014 (top-per-group) miss</div></div>
-      <div class="score-tile gradient"><div class="num">23/25</div><div class="lbl">Combined</div><div class="sub">92% across both sets</div></div>
+      <div class="score-tile"><div class="num" id="qDevNum">—</div><div class="lbl">Dev set</div><div class="sub" id="qDevSub">—</div></div>
+      <div class="score-tile purple"><div class="num" id="qSynNum">—</div><div class="lbl">Synthetic set</div><div class="sub" id="qSynSub">—</div></div>
+      <div class="score-tile gradient"><div class="num" id="qCombNum">—</div><div class="lbl">Combined</div><div class="sub" id="qCombSub">—</div></div>
       <div class="score-tile"><div class="num"><span id="liveTouched">0</span>/25</div><div class="lbl">You re-ran live</div><div class="sub">Click any card below to verify yourself</div></div>
     </div>
 
@@ -1597,66 +1599,15 @@
 
     <div class="sub-section">
       <h2 class="sub-title">Evaluation log · actual terminal output</h2>
-      <p style="color: var(--text-dim);">A real <code class="mono">python -m src.evals accounts/fireworks/models/kimi-k2p6 --out-answers data/dev_answers.json</code> run from this repo. No editing.</p>
-      <pre class="rows" style="max-height: 360px; line-height: 1.45;">$ python -m src.evals accounts/fireworks/models/kimi-k2p6 --out-answers data/dev_answers.json
-
-=== accounts/fireworks/models/kimi-k2p6 ===
-qid     tier  ok  lat ms   rep  note
---------------------------------------------------------------------------------
-q_001   1     Y   1474     0
-q_002   1     Y   707      0
-q_003   1     Y   1304     0
-q_004   1     Y   930      0
-q_005   2     Y   1105     0
-q_006   2     Y   882      0
-q_007   2     Y   794      0
-q_008   2     Y   832      0
-q_009   3     Y   1916     0
-q_010   3     Y   1295     0
-
-accuracy: 100%  (10/10)
-median latency: 1018 ms
-  tier 1: 4/4
-  tier 2: 4/4
-  tier 3: 2/2
-
-wrote data/dev_answers.json</pre>
-      <p class="muted" style="margin-top: 10px;">Read column-by-column: <code class="mono">qid</code> · tier · pass/fail · single-call latency in ms · repair turns used · diagnostic note. <code class="mono">rep=0</code> across all rows means none of the queries needed the agent's repair loop on this run.</p>
+      <p style="color: var(--text-dim);">A real <code class="mono">python scripts/agent_eval.py</code> run from this repo — the full agent (compact schema, JSON mode, execute-and-repair) scored against the 25-question gold set, written to <code class="mono">data/agent_eval.json</code>. Rendered straight from that file.</p>
+      <pre class="rows" id="qualityEvalLog" style="max-height: 380px; line-height: 1.45;">loading…</pre>
+      <p class="muted" style="margin-top: 10px;">Read column-by-column: <code class="mono">qid</code> · set · tier · pass/fail · agent latency in ms · repair turns used · diagnostic note.</p>
     </div>
 
     <div class="sub-section">
-      <h2 class="sub-title">Honest failure analysis · why 23/25, not 25/25</h2>
-      <div class="grid grid-2">
-        <div class="card">
-          <span class="pill purple">Flaky · s_013</span>
-          <h3 style="margin-top: 10px;">Date arithmetic</h3>
-          <p>
-            "Total revenue in the last 6 months of available invoice data."
-            Kimi sometimes generates the gold pattern
-            (<code class="mono">date(MAX(InvoiceDate), '-6 months')</code>)
-            and sometimes anchors the window differently. Even at
-            <code class="mono">temperature=0</code> we see run-to-run
-            variance — re-run the card 3-4 times to see it pass and fail.
-            Counted as a failure to be conservative. Mitigation: a single
-            few-shot example pinning the
-            <code class="mono">date(MAX(...), '-N months')</code> pattern.
-          </p>
-        </div>
-        <div class="card">
-          <span class="pill" style="background: rgba(248, 113, 113, 0.14); color: var(--red);">Hard miss · s_014</span>
-          <h3 style="margin-top: 10px;">Top-per-group</h3>
-          <p>
-            "Top-spending customer for each support rep." The model treats
-            "for each support rep" as a column to add to the projection
-            rather than a partitioning constraint, generating
-            <code class="mono">GROUP BY rep, customer ORDER BY spending DESC</code>
-            and returning all 59 pairs instead of the 1 top per rep.
-            Needs <code class="mono">ROW_NUMBER() OVER (PARTITION BY rep …) WHERE rn = 1</code>.
-            One or two few-shot examples close it; an RFT loop with
-            executor feedback closes it permanently.
-          </p>
-        </div>
-      </div>
+      <h2 class="sub-title" id="qualityFailTitle">Honest failure analysis</h2>
+      <p style="color: var(--text-dim); margin-bottom: 4px;">Every question the agent missed in the run above — with the SQL it actually generated.</p>
+      <div id="qualityFailCards"></div>
     </div>
   </div>
 </section>
@@ -2196,68 +2147,40 @@ const PRICING = {
   kimi:  { input: 0.95, output: 4.00 },
   gpt54: { input: 2.50, output: 15.00 },
 };
-const MEAN_PROMPT_TOKENS = 665;
-const MEAN_COMPLETION_TOKENS = 78;
+// Benchmark token profile + Kimi per-query cost — the cost calculator's
+// default (no-live-runs) state. Seeded here, then overwritten from the
+// Fireworks Kimi K2.6 row of data/fireworks_sweep_v2.json once the sweep
+// loads (see updateHeroFromSweep).
+let MEAN_PROMPT_TOKENS = 665;
+let MEAN_COMPLETION_TOKENS = 78;
+let BENCH_KIMI_CPQ = 0.000942;
 
-// ---------------- Embedded gold answers ---------------- //
+// ---------------- Gold question sets — loaded from data/*.json ----------------
+// The 25-question gold set lives in data/dev_questions_with_answers.json (10)
+// and data/synthetic_questions.json (15) — the same files src/evals.py and the
+// sweeps consume. Loaded at boot so there is one source of truth, not a JS copy.
+let GOLD_DEV = [];
+let GOLD_SYN = [];
+let ALL_QUESTIONS = [];
 
-const GOLD_DEV = [
-  {id:"q_001", tier:1, question:"What are the top 5 best-selling genres by total sales?",
-   expected:[{Name:"Rock",TotalSales:826.65},{Name:"Latin",TotalSales:382.14},{Name:"Metal",TotalSales:261.36},{Name:"Alternative & Punk",TotalSales:241.56},{Name:"TV Shows",TotalSales:93.53}]},
-  {id:"q_002", tier:1, question:"List all albums by the artist 'AC/DC'.",
-   expected:[{Title:"For Those About To Rock We Salute You"},{Title:"Let There Be Rock"}]},
-  {id:"q_003", tier:1, question:"What are the names and email addresses of customers from Brazil?",
-   expected:[{FirstName:"Luís",LastName:"Gonçalves",Email:"luisg@embraer.com.br"},{FirstName:"Eduardo",LastName:"Martins",Email:"eduardo@woodstock.com.br"},{FirstName:"Alexandre",LastName:"Rocha",Email:"alero@uol.com.br"},{FirstName:"Roberto",LastName:"Almeida",Email:"roberto.almeida@riotur.gov.br"},{FirstName:"Fernanda",LastName:"Ramos",Email:"fernadaramos4@uol.com.br"}]},
-  {id:"q_004", tier:1, question:"What is the most popular media type based on number of tracks?",
-   expected:[{Name:"MPEG audio file",TrackCount:3034}]},
-  {id:"q_005", tier:2, question:"Which employee has the most customers assigned to them?",
-   expected:[{EmployeeName:"Jane Peacock",CustomerCount:21}]},
-  {id:"q_006", tier:2, question:"How many tracks are there in each playlist?",
-   expected:[{Name:"Music",TrackCount:3290},{Name:"Music",TrackCount:3290},{Name:"90’s Music",TrackCount:1477},{Name:"TV Shows",TrackCount:213},{Name:"TV Shows",TrackCount:213},{Name:"Classical",TrackCount:75},{Name:"Brazilian Music",TrackCount:39},{Name:"Heavy Metal Classic",TrackCount:26},{Name:"Classical 101 - Deep Cuts",TrackCount:25},{Name:"Classical 101 - Next Steps",TrackCount:25},{Name:"Classical 101 - The Basics",TrackCount:25},{Name:"Grunge",TrackCount:15},{Name:"Music Videos",TrackCount:1},{Name:"On-The-Go 1",TrackCount:1},{Name:"Movies",TrackCount:0},{Name:"Audiobooks",TrackCount:0},{Name:"Audiobooks",TrackCount:0},{Name:"Movies",TrackCount:0}]},
-  {id:"q_007", tier:2, question:"What is the total revenue generated in the year 2021?",
-   expected:[{TotalRevenue:449.46}]},
-  {id:"q_008", tier:2, question:"What is the average invoice total for each billing country, ordered from highest to lowest?",
-   expected:[{BillingCountry:"Chile",AverageInvoiceTotal:6.66},{BillingCountry:"Ireland",AverageInvoiceTotal:6.52},{BillingCountry:"Hungary",AverageInvoiceTotal:6.52},{BillingCountry:"Czech Republic",AverageInvoiceTotal:6.45},{BillingCountry:"Austria",AverageInvoiceTotal:6.09},{BillingCountry:"Finland",AverageInvoiceTotal:5.95},{BillingCountry:"Netherlands",AverageInvoiceTotal:5.80},{BillingCountry:"India",AverageInvoiceTotal:5.79},{BillingCountry:"USA",AverageInvoiceTotal:5.75},{BillingCountry:"Norway",AverageInvoiceTotal:5.66},{BillingCountry:"Germany",AverageInvoiceTotal:5.59},{BillingCountry:"France",AverageInvoiceTotal:5.57},{BillingCountry:"Sweden",AverageInvoiceTotal:5.52},{BillingCountry:"Portugal",AverageInvoiceTotal:5.52},{BillingCountry:"Brazil",AverageInvoiceTotal:5.43},{BillingCountry:"Canada",AverageInvoiceTotal:5.43},{BillingCountry:"United Kingdom",AverageInvoiceTotal:5.37},{BillingCountry:"Spain",AverageInvoiceTotal:5.37},{BillingCountry:"Poland",AverageInvoiceTotal:5.37},{BillingCountry:"Italy",AverageInvoiceTotal:5.37},{BillingCountry:"Denmark",AverageInvoiceTotal:5.37},{BillingCountry:"Belgium",AverageInvoiceTotal:5.37},{BillingCountry:"Australia",AverageInvoiceTotal:5.37},{BillingCountry:"Argentina",AverageInvoiceTotal:5.37}]},
-  {id:"q_009", tier:3, question:"For each customer, what is their total spending and how does it rank compared to other customers? Show the top 5 customers by spending.",
-   expected:[{CustomerName:"Helena Holý",TotalSpent:49.62,Rank:1},{CustomerName:"Richard Cunningham",TotalSpent:47.62,Rank:2},{CustomerName:"Luis Rojas",TotalSpent:46.62,Rank:3},{CustomerName:"Ladislav Kovács",TotalSpent:45.62,Rank:4},{CustomerName:"Hugh O'Reilly",TotalSpent:45.62,Rank:4}]},
-  {id:"q_010", tier:3, question:"Which artists have tracks in more than 3 different genres? List the artist name and the number of distinct genres.",
-   expected:[{ArtistName:"Iron Maiden",GenreCount:4}]},
-];
-
-const GOLD_SYN = [
-  {id:"s_001",tier:1,pattern:"subquery_where",question:"How many tracks are longer than the average track length (in milliseconds)?",
-   expected:[{LongerThanAvg:494}]},
-  {id:"s_002",tier:2,pattern:"case_select",question:"Bucket tracks by length: short (< 3 min), medium (3–5 min), long (> 5 min). How many tracks are in each bucket?",
-   expected:[{LengthBucket:"medium",TrackCount:1954},{LengthBucket:"long",TrackCount:1069},{LengthBucket:"short",TrackCount:480}]},
-  {id:"s_003",tier:1,pattern:"null_filter",question:"Which employees do not report to a manager? Show their full name and title.",
-   expected:[{EmployeeName:"Andrew Adams",Title:"General Manager"}]},
-  {id:"s_004",tier:2,pattern:"date_range",question:"How many invoices were issued in the first quarter of 2022 (January through March)?",
-   expected:[{Q1_2022_Invoices:21}]},
-  {id:"s_005",tier:2,pattern:"self_join",question:"List each employee with their manager's name. Include employees who have no manager (show the manager column as NULL).",
-   expected:[{Employee:"Andrew Adams",Manager:null},{Employee:"Nancy Edwards",Manager:"Andrew Adams"},{Employee:"Jane Peacock",Manager:"Nancy Edwards"},{Employee:"Margaret Park",Manager:"Nancy Edwards"},{Employee:"Steve Johnson",Manager:"Nancy Edwards"},{Employee:"Michael Mitchell",Manager:"Andrew Adams"},{Employee:"Robert King",Manager:"Michael Mitchell"},{Employee:"Laura Callahan",Manager:"Michael Mitchell"}]},
-  {id:"s_006",tier:1,pattern:"count_distinct",question:"How many distinct countries do we have customers in?",
-   expected:[{CountryCount:24}]},
-  {id:"s_007",tier:2,pattern:"union",question:"List every distinct country that appears either as a customer's country or as an invoice's billing country. Order alphabetically.",
-   expected:[{Country:"Argentina"},{Country:"Australia"},{Country:"Austria"},{Country:"Belgium"},{Country:"Brazil"},{Country:"Canada"},{Country:"Chile"},{Country:"Czech Republic"},{Country:"Denmark"},{Country:"Finland"},{Country:"France"},{Country:"Germany"},{Country:"Hungary"},{Country:"India"},{Country:"Ireland"},{Country:"Italy"},{Country:"Netherlands"},{Country:"Norway"},{Country:"Poland"},{Country:"Portugal"},{Country:"Spain"},{Country:"Sweden"},{Country:"USA"},{Country:"United Kingdom"}]},
-  {id:"s_008",tier:2,pattern:"nested_agg",question:"What is the average number of tracks per album, across all albums?",
-   expected:[{AvgTracksPerAlbum:10.095100864553315}]},
-  {id:"s_009",tier:2,pattern:"coalesce",question:"List all employees and the number of customers they support. Show 0 for employees who support no customers. Order by customer count descending, then by employee name.",
-   expected:[{EmployeeName:"Jane Peacock",CustomerCount:21},{EmployeeName:"Margaret Park",CustomerCount:20},{EmployeeName:"Steve Johnson",CustomerCount:18},{EmployeeName:"Andrew Adams",CustomerCount:0},{EmployeeName:"Laura Callahan",CustomerCount:0},{EmployeeName:"Michael Mitchell",CustomerCount:0},{EmployeeName:"Nancy Edwards",CustomerCount:0},{EmployeeName:"Robert King",CustomerCount:0}]},
-  {id:"s_010",tier:1,pattern:"like_wildcard",question:"How many tracks have the word 'love' (case-insensitive) anywhere in their name?",
-   expected:[{LoveTrackCount:114}]},
-  {id:"s_011",tier:3,pattern:"correlated_subquery",question:"What is the longest track in each genre? Show the genre name, the track name, and the length in milliseconds. Order by genre name.",
-   expected:[{Genre:"Alternative",TrackName:"Reach Down",Milliseconds:672773},{Genre:"Alternative & Punk",TrackName:"Homecoming / The Death Of St. Jimmy / East 12th St. / Nobody Likes You / Rock And Roll Girlfriend / We're Coming Home Again",Milliseconds:558602},{Genre:"Blues",TrackName:"Talkin' 'Bout Women Obviously",Milliseconds:589531},{Genre:"Bossa Nova",TrackName:"Samba Da Bênção",Milliseconds:409965},{Genre:"Classical",TrackName:"Adagio for Strings from the String Quartet, Op. 11",Milliseconds:596519},{Genre:"Comedy",TrackName:"The Job",Milliseconds:2541875},{Genre:"Drama",TrackName:"Through a Looking Glass",Milliseconds:5088838},{Genre:"Easy Listening",TrackName:"Mack The Knife",Milliseconds:292075},{Genre:"Electronica/Dance",TrackName:"Just Another Story",Milliseconds:529684},{Genre:"Heavy Metal",TrackName:"Dance Of Death",Milliseconds:516649},{Genre:"Hip Hop/Rap",TrackName:"Se Liga",Milliseconds:410409},{Genre:"Jazz",TrackName:"My Funny Valentine (Live)",Milliseconds:907520},{Genre:"Latin",TrackName:"Faroeste Caboclo",Milliseconds:543007},{Genre:"Metal",TrackName:"Rime of the Ancient Mariner",Milliseconds:816509},{Genre:"Opera",TrackName:"Die Zauberflöte, K.620: \"Der Hölle Rache Kocht in Meinem Herze\"",Milliseconds:174813},{Genre:"Pop",TrackName:"Amy Amy Amy (Outro)",Milliseconds:663426},{Genre:"R&B/Soul",TrackName:"Rehab (Hot Chip Remix)",Milliseconds:418293},{Genre:"Reggae",TrackName:"Equal Rights Downpresser Man",Milliseconds:366733},{Genre:"Rock",TrackName:"Dazed And Confused",Milliseconds:1612329},{Genre:"Rock And Roll",TrackName:"Slow Down",Milliseconds:163265},{Genre:"Sci Fi & Fantasy",TrackName:"Greetings from Earth, Pt. 1",Milliseconds:2960293},{Genre:"Science Fiction",TrackName:"Hero",Milliseconds:2713755},{Genre:"Soundtrack",TrackName:"Always Forever Now",Milliseconds:383764},{Genre:"TV Shows",TrackName:"Occupation / Precipice",Milliseconds:5286953},{Genre:"World",TrackName:"I Ka Barra (Your Work)",Milliseconds:300605}]},
-  {id:"s_012",tier:2,pattern:"case_groupby",question:"Bucket invoices by total: small (< $5), medium ($5–$10), large (> $10). Show the count of invoices in each bucket.",
-   expected:[{Bucket:"small",InvoiceCount:233},{Bucket:"medium",InvoiceCount:115},{Bucket:"large",InvoiceCount:64}]},
-  {id:"s_013",tier:3,pattern:"date_arithmetic",question:"What was the total revenue in the last 6 months of available invoice data?",
-   expected:[{Last6MoRevenue:238.72}], known_flaky: true},
-  {id:"s_014",tier:3,pattern:"top_per_group",question:"Who is the top-spending customer for each support rep? Show the rep's name, the customer's name, and the customer's total spending. Order by total spending descending.",
-   expected:[{EmployeeName:"Steve Johnson",CustomerName:"Helena Holý",TotalSpent:49.62},{EmployeeName:"Margaret Park",CustomerName:"Richard Cunningham",TotalSpent:47.62},{EmployeeName:"Jane Peacock",CustomerName:"Ladislav Kovács",TotalSpent:45.62}], known_failure: true},
-  {id:"s_015",tier:2,pattern:"like_with_having",question:"Which customers in cities starting with 'S' have more than 1 invoice? Show their name, city, and invoice count. Order by invoice count descending, then by customer name.",
-   expected:[{CustomerName:"Alexandre Rocha",City:"São Paulo",InvoiceCount:7},{CustomerName:"Eduardo Martins",City:"São Paulo",InvoiceCount:7},{CustomerName:"Joakim Johansson",City:"Stockholm",InvoiceCount:7},{CustomerName:"Julia Barnett",City:"Salt Lake City",InvoiceCount:7},{CustomerName:"Leonie Köhler",City:"Stuttgart",InvoiceCount:7},{CustomerName:"Luis Rojas",City:"Santiago",InvoiceCount:7},{CustomerName:"Luís Gonçalves",City:"São José dos Campos",InvoiceCount:7},{CustomerName:"Mark Taylor",City:"Sidney",InvoiceCount:7}]},
-];
-
-const ALL_QUESTIONS = [...GOLD_DEV, ...GOLD_SYN];
+async function loadGoldQuestions() {
+  const mapQ = q => ({
+    id: q.id, tier: q.tier, pattern: q.pattern,
+    question: q.question, expected: q.expected_result,
+  });
+  try {
+    const [devR, synR] = await Promise.all([
+      fetch("data/dev_questions_with_answers.json"),
+      fetch("data/synthetic_questions.json"),
+    ]);
+    if (devR.ok) GOLD_DEV = (await devR.json()).map(mapQ);
+    if (synR.ok) GOLD_SYN = (await synR.json()).map(mapQ);
+  } catch (e) {
+    console.warn("gold questions:", e);
+  }
+  ALL_QUESTIONS = [...GOLD_DEV, ...GOLD_SYN];
+  return ALL_QUESTIONS;
+}
 
 // ============================================================
 // In-browser SQLite (sql.js)
@@ -2559,30 +2482,6 @@ function bumpTouched() {
 }
 
 // ============================================================
-// Hero stats — derive every headline number from JS constants so a
-// sweep refresh ripples through the page automatically.
-// ============================================================
-const COMBINED_DEV_OK = 10;          // Kimi K2.6 + agent's repair loop, dev set
-const COMBINED_SYN_OK = 13;          // Synthetic set; s_013 flaky, s_014 hard miss
-const ACCURACY_TOTAL_Q = (typeof GOLD_DEV !== "undefined" ? GOLD_DEV.length : 10)
-                      + (typeof GOLD_SYN !== "undefined" ? GOLD_SYN.length : 15);
-
-function initHeroStats() {
-  const okTotal = COMBINED_DEV_OK + COMBINED_SYN_OK;
-  const acc = (okTotal / ACCURACY_TOTAL_Q) * 100;
-  const kimiCost = (MEAN_PROMPT_TOKENS * PRICING.kimi.input + MEAN_COMPLETION_TOKENS * PRICING.kimi.output) / 1_000_000;
-  const gptCost  = (MEAN_PROMPT_TOKENS * PRICING.gpt54.input + MEAN_COMPLETION_TOKENS * PRICING.gpt54.output) / 1_000_000;
-  const savings = (1 - kimiCost / gptCost) * 100;
-
-  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-  set("heroStatAcc",     `${okTotal}/${ACCURACY_TOTAL_Q}`);
-  set("heroStatAccLbl",  `Combined accuracy (${acc.toFixed(0)}%)`);
-  set("heroStatCost",    `$${kimiCost.toFixed(6)}`);
-  set("heroStatSavings", `~${savings.toFixed(0)}%`);
-  set("heroStatTokens",  `~${MEAN_PROMPT_TOKENS} / ${MEAN_COMPLETION_TOKENS}`);
-}
-
-// ============================================================
 // Tab controller
 // ============================================================
 function initTabs() {
@@ -2623,9 +2522,17 @@ function initEvalCards() {
 function makeCard(q) {
   const el = document.createElement("div");
   el.className = "qcard";
+  // Pass/fail comes from the committed agent eval (data/agent_eval.json).
   let hint = "";
-  if (q.known_failure) hint = `<div class="qhint fail-hint">known fail</div>`;
-  else if (q.known_flaky) hint = `<div class="qhint">flaky</div>`;
+  const ev = (AGENT_EVAL && AGENT_EVAL.results)
+    ? AGENT_EVAL.results.find(r => r.qid === q.id) : null;
+  if (ev && ev.correct) {
+    el.classList.add("pass");
+    hint = `<div class="qhint" style="background: rgba(74,222,128,0.16); color: var(--green);">agent ✓</div>`;
+  } else if (ev) {
+    el.classList.add("fail");
+    hint = `<div class="qhint fail-hint">agent ✗</div>`;
+  }
   el.innerHTML = `
     <div class="qid">${q.id} · tier ${q.tier}</div>
     <div class="qpattern">${q.pattern || (q.tier === 3 ? "advanced" : q.tier === 2 ? "intermediate" : "easy")}</div>
@@ -2658,6 +2565,114 @@ function runEvalCard(el, q) {
 }
 
 // ============================================================
+// Quality tab — sourced from data/agent_eval.json: the full agent
+// (compact schema, JSON mode, execute-and-repair) scored against the
+// 25-question gold set. Distinct from the one-shot model sweeps.
+// ============================================================
+let AGENT_EVAL = null;
+
+async function loadAgentEval() {
+  try {
+    const r = await fetch("data/agent_eval.json");
+    if (r.ok) AGENT_EVAL = await r.json();
+  } catch (e) { console.warn("agent_eval.json:", e); }
+  return AGENT_EVAL;
+}
+
+function renderQuality() {
+  const e = AGENT_EVAL;
+  if (!e || !e.combined) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  const dev = e.dev, syn = e.synth, comb = e.combined;
+  const pct = Math.round(comb.accuracy * 100);
+  const devPct = dev.total ? Math.round(dev.correct / dev.total * 100) : 0;
+
+  set("qualityTabCount",   `${comb.correct}/${comb.total}`);
+  set("qualityTitleScore", `${comb.correct}/${comb.total}`);
+  set("qualityLedeScore",
+      `${dev.correct}/${dev.total} dev + ${syn.correct}/${syn.total} synthetic `
+      + `= ${comb.correct}/${comb.total} (${pct}%)`);
+
+  set("qDevNum", `${dev.correct}/${dev.total}`);
+  set("qDevSub", `${devPct}% with the agent · 2/10 with the customer baseline`);
+  set("qSynNum", `${syn.correct}/${syn.total}`);
+  const synMiss = e.results.filter(r => r.set === "synth" && !r.correct).map(r => r.qid);
+  set("qSynSub", synMiss.length
+    ? `missed: ${synMiss.join(", ")}`
+    : "clean sweep across the synthetic set");
+  set("qCombNum", `${comb.correct}/${comb.total}`);
+  set("qCombSub", `${pct}% across both sets`);
+
+  renderQualityEvalLog(e);
+  renderQualityFailures(e);
+}
+
+function renderQualityEvalLog(e) {
+  const pre = document.getElementById("qualityEvalLog");
+  if (!pre) return;
+  const pad = (s, n) => String(s).padEnd(n);
+  const L = [];
+  L.push(`$ python scripts/agent_eval.py`);
+  L.push("");
+  L.push(`=== ${e.model} ===`);
+  L.push(e.harness);
+  L.push(pad("qid", 8) + pad("set", 7) + pad("tier", 6) + pad("ok", 4)
+       + pad("lat ms", 9) + pad("rep", 5) + "note");
+  L.push("-".repeat(78));
+  for (const r of e.results) {
+    const ok = r.correct ? "Y" : (r.error ? "E" : "N");
+    let note = "";
+    if (r.error) note = `ERROR: ${r.error}`.slice(0, 44);
+    else if (!r.correct) note = "result set did not match gold";
+    L.push(pad(r.qid, 8) + pad(r.set, 7) + pad(r.tier, 6) + pad(ok, 4)
+         + pad(Math.round(r.latency_ms), 9) + pad(r.repairs, 5) + note);
+  }
+  L.push("");
+  const pct = Math.round(e.combined.accuracy * 100);
+  L.push(`dev ${e.dev.correct}/${e.dev.total} · synth ${e.synth.correct}/${e.synth.total} `
+       + `· combined ${e.combined.correct}/${e.combined.total} (${pct}%)`);
+  L.push(`median latency: ${Math.round(e.median_latency_ms)} ms · `
+       + `repair turns used: ${e.total_repairs}`);
+  for (const t of Object.keys(e.by_tier).sort()) {
+    L.push(`  tier ${t}: ${e.by_tier[t].correct}/${e.by_tier[t].total}`);
+  }
+  L.push("");
+  L.push(`wrote data/agent_eval.json`);
+  pre.textContent = L.join("\n");
+}
+
+function renderQualityFailures(e) {
+  const title = document.getElementById("qualityFailTitle");
+  const grid = document.getElementById("qualityFailCards");
+  if (!grid) return;
+  const misses = e.results.filter(r => !r.correct);
+  if (title) {
+    title.textContent = misses.length
+      ? `Honest failure analysis · why ${e.combined.correct}/${e.combined.total}, `
+        + `not ${e.combined.total}/${e.combined.total}`
+      : `Honest failure analysis · clean ${e.combined.total}/${e.combined.total} sweep`;
+  }
+  if (!misses.length) {
+    grid.className = "";
+    grid.innerHTML = `<div class="card"><p style="color: var(--text-dim); margin: 0;">`
+      + `The agent passed every question in this run — no misses to analyze. `
+      + `Re-run <code class="mono">scripts/agent_eval.py</code> to reproduce.</p></div>`;
+    return;
+  }
+  grid.className = "grid grid-2";
+  grid.innerHTML = misses.map(r => `
+    <div class="card">
+      <span class="pill" style="background: rgba(248, 113, 113, 0.14); color: var(--red);">Miss · ${escapeHtml(r.qid)}</span>
+      <h3 style="margin-top: 10px;">${escapeHtml(r.pattern ? r.pattern.replace(/_/g, " ") : "tier " + r.tier)}</h3>
+      <p style="color: var(--text-dim);">${escapeHtml(r.question)}</p>
+      ${r.sql ? `<pre class="sql" style="margin-top: 10px;">${escapeHtml(r.sql)}</pre>` : ""}
+      <p class="muted" style="margin-top: 8px;">${r.error
+        ? "Errored: " + escapeHtml(r.error)
+        : "The agent produced runnable SQL, but the result set did not match the gold answer."}</p>
+    </div>`).join("");
+}
+
+// ============================================================
 // Architecture diagram (rendered into the Overview tab)
 // ============================================================
 const ARCH_NODES = [
@@ -2668,7 +2683,7 @@ const ARCH_NODES = [
   { step: "02", name: "Schema", title: "Schema injection · compact + trim",
     chosen: "Render schema as one-line-per-table compact form (Album(col:type[pk,fk→...])); trim by question keywords + FK closure when ≥2 tables match.",
     considered: "Tool-calling round trip; embedding-based retrieval; full CREATE TABLE blocks (~1042 prompt tokens).",
-    why: "Compact form drops mean prompt tokens 935→665 (29%) with no accuracy regression on the dev set. Trim fires on 9/25 questions, mean 67% reduction on those. For a 1,000-table customer DB we'd swap the trim heuristic for embedding retrieval." },
+    why: "Compact form cuts mean prompt tokens by roughly a third with no accuracy regression on the dev set. The keyword + FK-closure trim fires on a minority of questions, with a large reduction on those. For a 1,000-table customer DB we'd swap the trim heuristic for embedding retrieval." },
   { step: "03", name: "Inference API", title: "OpenAI-compatible call · Fireworks or Baseten",
     chosen: "OpenAI-compatible chat completions with JSON mode, temperature 0, max_tokens 1024. 4-step exponential backoff on 429. SqlAgent takes base_url + api_key so the same agent code runs against Fireworks or Baseten — model and platform are constructor arguments, one-line swap.",
     considered: "Tool-calling, streaming, higher temperature with self-consistency, proprietary API formats.",
@@ -2856,7 +2871,7 @@ function calcBuildVsBuy() {
   const DIRECT_MIDPOINT_DISCOUNT = 0.30;       // 30% cheaper than Fireworks per query
   const fwPerQ     = validRuns.length
     ? (pt * PRICING.kimi.input + ct * PRICING.kimi.output) / 1_000_000
-    : 0.000942;  // verified Kimi K2.6 benchmark
+    : BENCH_KIMI_CPQ;  // Kimi K2.6 cost/query — from the sweep JSON
 
   // Self-host throughput: ~50 q/min per H100 = 72,000 q/day per GPU
   const QPS_DAY = v;
@@ -3157,7 +3172,7 @@ function initLatency() {
 // ============================================================
 const ROADMAP = [
   { num: 0, title: "POC · Shared Serverless", platform: "Fireworks Serverless API",
-    body: "What you're looking at. Kimi K2.6, JSON mode, compact schema-in-prompt, repair loop. 92% combined accuracy, $0.000942/query, p50 spans 1–9s on shared tier." },
+    body: "What you're looking at. Kimi K2.6, JSON mode, compact schema-in-prompt, repair loop. Top-tier accuracy at sub-$0.001/query on the shared serverless tier." },
   { num: 1, title: "Cheap-first router", platform: "Fireworks Serverless + custom routing",
     body: "Qwen3-8B fast first attempt; escalate to Kimi K2.6 on low confidence (logprob threshold). Cuts mean cost ~40% on tier-1 questions while preserving quality on hard ones." },
   { num: 2, title: "Fine-tune", platform: "Fireworks SFT + RFT",
@@ -4388,6 +4403,24 @@ function updateHeroFromSweep() {
     const pct = gpt54 > 0 ? (1 - cheapestAt90.cost_per_query_usd / gpt54) * 100 : 0;
     savingsEl.textContent = `${pct.toFixed(0)}%`;
   }
+  // Model counts in the Overview hero and Model Sweep title — derived, not hardcoded.
+  const fwN = recs.filter(r => r.platform === "fireworks").length;
+  const btN = recs.filter(r => r.platform === "baseten").length;
+  const setCount = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  setCount("heroLlmCount", recs.length);
+  setCount("heroFwCount", fwN);
+  setCount("heroBtCount", btN);
+  setCount("msLlmCount", recs.length);
+
+  // Feed the cost calculator's benchmark default token profile + Kimi
+  // per-query cost from the Fireworks Kimi K2.6 sweep row, then re-render it.
+  const kimi = recs.find(r => r.platform === "fireworks" && /kimi-k2p6/.test(r.model));
+  if (kimi) {
+    if (kimi.mean_prompt_tokens)     MEAN_PROMPT_TOKENS = Math.round(kimi.mean_prompt_tokens);
+    if (kimi.mean_completion_tokens) MEAN_COMPLETION_TOKENS = Math.round(kimi.mean_completion_tokens);
+    if (kimi.cost_per_query_usd)     BENCH_KIMI_CPQ = kimi.cost_per_query_usd;
+    calcBuildVsBuy();
+  }
 }
 
 // ============================================================
@@ -4396,13 +4429,18 @@ function updateHeroFromSweep() {
 document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initKey();
-  initHeroStats();
-  initEvalCards();          // 25 question cards in Quality tab (click → navigate to Live Demo)
   initArch();
   initCalc();
   initLatency();
   initRoadmap();
-  initLiveDemo();           // unified comparison tool + sql.js + schema preview
+
+  // Gold question set + agent eval load from JSON; the Quality cards, the
+  // Live Demo picker, and the Quality score-board all depend on them.
+  Promise.all([loadGoldQuestions(), loadAgentEval()]).then(() => {
+    initEvalCards();        // 25 question cards in Quality tab
+    initLiveDemo();         // unified comparison tool + sql.js + schema preview
+    renderQuality();        // Quality score-board · eval log · failure analysis
+  });
 
   // New tabs — load sweep data then render. Each render is a no-op if the
   // target panel isn't in the DOM, so this stays safe across markup drift.

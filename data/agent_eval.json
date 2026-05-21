@@ -1,0 +1,311 @@
+{
+  "model": "accounts/fireworks/models/kimi-k2p6",
+  "harness": "SqlAgent — compact schema-in-prompt, JSON mode, execute-and-repair (max 2 repair turns), temperature 0",
+  "n_questions": 25,
+  "dev": {
+    "correct": 10,
+    "total": 10
+  },
+  "synth": {
+    "correct": 14,
+    "total": 15
+  },
+  "combined": {
+    "correct": 24,
+    "total": 25,
+    "accuracy": 0.96
+  },
+  "by_tier": {
+    "1": {
+      "correct": 8,
+      "total": 8
+    },
+    "2": {
+      "correct": 12,
+      "total": 12
+    },
+    "3": {
+      "correct": 4,
+      "total": 5
+    }
+  },
+  "median_latency_ms": 1938,
+  "total_repairs": 0,
+  "results": [
+    {
+      "qid": "q_001",
+      "set": "dev",
+      "tier": 1,
+      "question": "What are the top 5 best-selling genres by total sales?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 5754,
+      "sql": "SELECT g.Name AS Genre, SUM(il.UnitPrice * il.Quantity) AS TotalSales FROM Genre g JOIN Track t ON g.GenreId = t.GenreId JOIN InvoiceLine il ON t.TrackId = il.TrackId GROUP BY g.GenreId, g.Name ORDER BY TotalSales DESC LIMIT 5",
+      "error": null
+    },
+    {
+      "qid": "q_002",
+      "set": "dev",
+      "tier": 1,
+      "question": "List all albums by the artist 'AC/DC'.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1584,
+      "sql": "SELECT Album.Title FROM Album JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'AC/DC'",
+      "error": null
+    },
+    {
+      "qid": "q_003",
+      "set": "dev",
+      "tier": 1,
+      "question": "What are the names and email addresses of customers from Brazil?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 707,
+      "sql": "SELECT FirstName, LastName, Email FROM Customer WHERE Country = 'Brazil'",
+      "error": null
+    },
+    {
+      "qid": "q_004",
+      "set": "dev",
+      "tier": 1,
+      "question": "What is the most popular media type based on number of tracks?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1048,
+      "sql": "SELECT mt.Name AS MediaTypeName, COUNT(t.TrackId) AS TrackCount FROM MediaType mt JOIN Track t ON mt.MediaTypeId = t.MediaTypeId GROUP BY mt.MediaTypeId, mt.Name ORDER BY TrackCount DESC LIMIT 1",
+      "error": null
+    },
+    {
+      "qid": "q_005",
+      "set": "dev",
+      "tier": 2,
+      "question": "Which employee has the most customers assigned to them?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 2162,
+      "sql": "SELECT e.FirstName ||' '|| e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId ORDER BY CustomerCount DESC LIMIT 1",
+      "error": null
+    },
+    {
+      "qid": "q_006",
+      "set": "dev",
+      "tier": 2,
+      "question": "How many tracks are there in each playlist?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1347,
+      "sql": "SELECT p.Name AS PlaylistName, COUNT(pt.TrackId) AS TrackCount FROM Playlist p LEFT JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId GROUP BY p.PlaylistId, p.Name ORDER BY TrackCount DESC",
+      "error": null
+    },
+    {
+      "qid": "q_007",
+      "set": "dev",
+      "tier": 2,
+      "question": "What is the total revenue generated in the year 2021?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1159,
+      "sql": "SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2021'",
+      "error": null
+    },
+    {
+      "qid": "q_008",
+      "set": "dev",
+      "tier": 2,
+      "question": "What is the average invoice total for each billing country, ordered from highest to lowest?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 906,
+      "sql": "SELECT BillingCountry, AVG(Total) AS AverageInvoiceTotal FROM Invoice GROUP BY BillingCountry ORDER BY AverageInvoiceTotal DESC",
+      "error": null
+    },
+    {
+      "qid": "q_009",
+      "set": "dev",
+      "tier": 3,
+      "question": "For each customer, what is their total spending and how does it rank compared to other customers? Show the top 5 customers by spending.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1186,
+      "sql": "SELECT c.FirstName || ' ' || c.LastName AS CustomerName, SUM(i.Total) AS TotalSpending, RANK() OVER (ORDER BY SUM(i.Total) DESC) AS SpendingRank FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY c.CustomerId ORDER BY TotalSpending DESC LIMIT 5",
+      "error": null
+    },
+    {
+      "qid": "q_010",
+      "set": "dev",
+      "tier": 3,
+      "question": "Which artists have tracks in more than 3 different genres? List the artist name and the number of distinct genres.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 2376,
+      "sql": "SELECT ar.Name AS ArtistName, COUNT(DISTINCT t.GenreId) AS GenreCount FROM Artist ar JOIN Album al ON ar.ArtistId = al.ArtistId JOIN Track t ON al.AlbumId = t.AlbumId GROUP BY ar.ArtistId, ar.Name HAVING COUNT(DISTINCT t.GenreId) > 3",
+      "error": null
+    },
+    {
+      "qid": "s_001",
+      "set": "synth",
+      "tier": 1,
+      "question": "How many tracks are longer than the average track length (in milliseconds)?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1752,
+      "sql": "SELECT COUNT(*) FROM Track WHERE Milliseconds > (SELECT AVG(Milliseconds) FROM Track)",
+      "error": null
+    },
+    {
+      "qid": "s_002",
+      "set": "synth",
+      "tier": 2,
+      "question": "Bucket tracks by length: short (< 3 min), medium (3–5 min), long (> 5 min). How many tracks are in each bucket?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1500,
+      "sql": "SELECT CASE WHEN Milliseconds < 180000 THEN 'short' WHEN Milliseconds BETWEEN 180000 AND 300000 THEN 'medium' ELSE 'long' END AS length_bucket, COUNT(*) AS track_count FROM Track GROUP BY length_bucket",
+      "error": null
+    },
+    {
+      "qid": "s_003",
+      "set": "synth",
+      "tier": 1,
+      "question": "Which employees do not report to a manager? Show their full name and title.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 2389,
+      "sql": "SELECT FirstName ||' '|| LastName AS FullName, Title FROM Employee WHERE ReportsTo IS NULL",
+      "error": null
+    },
+    {
+      "qid": "s_004",
+      "set": "synth",
+      "tier": 2,
+      "question": "How many invoices were issued in the first quarter of 2022 (January through March)?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 895,
+      "sql": "SELECT COUNT(*) AS InvoiceCount FROM Invoice WHERE strftime('%Y', InvoiceDate) = '2022' AND strftime('%m', InvoiceDate) IN ('01', '02', '03')",
+      "error": null
+    },
+    {
+      "qid": "s_005",
+      "set": "synth",
+      "tier": 2,
+      "question": "List each employee with their manager's name. Include employees who have no manager (show the manager column as NULL).",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 5313,
+      "sql": "SELECT e.FirstName ||' '|| e.LastName AS EmployeeName, m.FirstName ||' '|| m.LastName AS ManagerName FROM Employee e LEFT JOIN Employee m ON e.ReportsTo = m.EmployeeId",
+      "error": null
+    },
+    {
+      "qid": "s_006",
+      "set": "synth",
+      "tier": 1,
+      "question": "How many distinct countries do we have customers in?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 12066,
+      "sql": "SELECT COUNT(DISTINCT Country) FROM Customer",
+      "error": null
+    },
+    {
+      "qid": "s_007",
+      "set": "synth",
+      "tier": 2,
+      "question": "List every distinct country that appears either as a customer's country or as an invoice's billing country. Order alphabetically.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1598,
+      "sql": "SELECT Country AS Country FROM Customer UNION SELECT BillingCountry AS Country FROM Invoice ORDER BY Country",
+      "error": null
+    },
+    {
+      "qid": "s_008",
+      "set": "synth",
+      "tier": 2,
+      "question": "What is the average number of tracks per album, across all albums?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 12355,
+      "sql": "SELECT CAST(COUNT(*) AS REAL) / COUNT(DISTINCT AlbumId) AS avg_tracks_per_album FROM Track",
+      "error": null
+    },
+    {
+      "qid": "s_009",
+      "set": "synth",
+      "tier": 2,
+      "question": "List all employees and the number of customers they support. Show 0 for employees who support no customers. Order by customer count descending, then by employee name.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1938,
+      "sql": "SELECT e.FirstName ||' '|| e.LastName AS EmployeeName, COUNT(c.CustomerId) AS CustomerCount FROM Employee e LEFT JOIN Customer c ON e.EmployeeId = c.SupportRepId GROUP BY e.EmployeeId, e.FirstName, e.LastName ORDER BY CustomerCount DESC, EmployeeName",
+      "error": null
+    },
+    {
+      "qid": "s_010",
+      "set": "synth",
+      "tier": 1,
+      "question": "How many tracks have the word 'love' (case-insensitive) anywhere in their name?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 5961,
+      "sql": "SELECT COUNT(*) FROM Track WHERE LOWER(Name) LIKE '%love%'",
+      "error": null
+    },
+    {
+      "qid": "s_011",
+      "set": "synth",
+      "tier": 3,
+      "question": "What is the longest track in each genre? Show the genre name, the track name, and the length in milliseconds. Order by genre name.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 1921,
+      "sql": "SELECT g.Name AS GenreName, t.Name AS TrackName, t.Milliseconds AS Length\nFROM Genre g\nJOIN Track t ON g.GenreId = t.GenreId\nWHERE t.Milliseconds = (\n    SELECT MAX(Milliseconds)\n    FROM Track\n    WHERE GenreId = g.GenreId\n)\nORDER BY g.Name",
+      "error": null
+    },
+    {
+      "qid": "s_012",
+      "set": "synth",
+      "tier": 2,
+      "question": "Bucket invoices by total: small (< $5), medium ($5–$10), large (> $10). Show the count of invoices in each bucket.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 5673,
+      "sql": "SELECT CASE WHEN Total < 5 THEN 'small' WHEN Total BETWEEN 5 AND 10 THEN 'medium' ELSE 'large' END AS bucket, COUNT(*) AS invoice_count FROM Invoice GROUP BY bucket",
+      "error": null
+    },
+    {
+      "qid": "s_013",
+      "set": "synth",
+      "tier": 3,
+      "question": "What was the total revenue in the last 6 months of available invoice data?",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 12155,
+      "sql": "SELECT SUM(Total) AS TotalRevenue FROM Invoice WHERE InvoiceDate >= date((SELECT MAX(InvoiceDate) FROM Invoice), '-6 months')",
+      "error": null
+    },
+    {
+      "qid": "s_014",
+      "set": "synth",
+      "tier": 3,
+      "question": "Who is the top-spending customer for each support rep? Show the rep's name, the customer's name, and the customer's total spending. Order by total spending descending.",
+      "correct": false,
+      "repairs": 0,
+      "latency_ms": 13352,
+      "sql": "SELECT e.FirstName || ' ' || e.LastName AS RepName, c.FirstName || ' ' || c.LastName AS CustomerName, SUM(i.Total) AS TotalSpending FROM Employee e JOIN Customer c ON e.EmployeeId = c.SupportRepId JOIN Invoice i ON c.CustomerId = i.CustomerId GROUP BY e.EmployeeId, c.CustomerId HAVING SUM(i.Total) = (SELECT SUM(i2.Total) FROM Customer c2 JOIN Invoice i2 ON c2.CustomerId = i2.CustomerId WHERE c2.SupportRepId = e.EmployeeId GROUP BY c2.CustomerId ORDER BY SUM(i2.Total) DESC LIMIT 1) ORDER BY TotalSpending DESC",
+      "error": null
+    },
+    {
+      "qid": "s_015",
+      "set": "synth",
+      "tier": 2,
+      "question": "Which customers in cities starting with 'S' have more than 1 invoice? Show their name, city, and invoice count. Order by invoice count descending, then by customer name.",
+      "correct": true,
+      "repairs": 0,
+      "latency_ms": 43202,
+      "sql": "SELECT c.FirstName ||' '|| c.LastName AS CustomerName, c.City, COUNT(i.InvoiceId) AS InvoiceCount FROM Customer c JOIN Invoice i ON c.CustomerId = i.CustomerId WHERE c.City LIKE 'S%' GROUP BY c.CustomerId, c.FirstName, c.LastName, c.City HAVING COUNT(i.InvoiceId) > 1 ORDER BY InvoiceCount DESC, CustomerName",
+      "error": null
+    }
+  ]
+}
